@@ -90,11 +90,12 @@ def load_params(datadir):
     ind_fit = (buf['fit']==1)
     fitkeys = buf['name'][ ind_fit ]
     theta_0 = buf['value'][ ind_fit ]
+    init_err = buf['init_err'][ ind_fit ]
     bounds = [ str(item).split(' ') for item in buf['bounds'][ ind_fit ] ]
     for i, item in enumerate(bounds):
         bounds[i] = [ item[0], float(item[1]), float(item[2]) ]
         
-    return theta_0, bounds, params, fitkeys, allkeys, labels, units
+    return theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units
     
 
 
@@ -123,7 +124,7 @@ def load_data(datadir, settings, params=None, fast_fit=False):
     '''
     data = {}
     for inst in settings['inst_phot']:
-        time, flux, flux_err = np.genfromtxt(os.path.join(datadir,inst+'.csv'), delimiter=',', unpack=True)         
+        time, flux, flux_err = np.genfromtxt(os.path.join(datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
         if fast_fit: time, flux, flux_err = reduce_phot_data(time, flux, flux_err, params, settings)
         data[inst] = {
                       'time':time,
@@ -132,7 +133,7 @@ def load_data(datadir, settings, params=None, fast_fit=False):
                      }
         
     for inst in settings['inst_rv']:
-        time, rv, rv_err = np.genfromtxt(os.path.join(datadir,inst+'.csv'), delimiter=',', unpack=True)         
+        time, rv, rv_err = np.genfromtxt(os.path.join(datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
         data[inst] = {
                       'time':time,
                       'rv':rv,
@@ -148,8 +149,13 @@ def load_data(datadir, settings, params=None, fast_fit=False):
 ###############################################################################   
 def reduce_phot_data(time, flux, flux_err, params, settings):
     ind_in = []
+          
     for planet in settings['planets_phot']:
-        dic = {'TIME':time, 'EPOCH':params[planet+'_epoch'], 'PERIOD':params[planet+'_period'], 'WIDTH':8./24.}
+        t0 = time[0]
+        dt = params[planet+'_epoch'] - t0
+        n = np.max( int( dt/params[planet+'_period'] )+1, 0 )
+        epoch = params[planet+'_epoch'] - n*params[planet+'_period']    
+        dic = {'TIME':time, 'EPOCH':epoch, 'PERIOD':params[planet+'_period'], 'WIDTH':8./24.}
         ind_in += list(index_transits.index_transits(dic)[0])
     time = time[ind_in]
     flux = flux[ind_in]
@@ -174,8 +180,19 @@ def update_params(theta, params, fitkeys):
 #::: convert input params into ellc params
 ###############################################################################  
 def get_ellc_params(params, inst, planet, key, phased):
+    global data
     
     ellc_params = params.copy()
+    
+    
+    ###########################################################################
+    #::: phase-folded?
+    #::: (it's important to have this before calculating the semi-major axis!)
+    ###########################################################################
+    if phased:
+        ellc_params[planet+'_epoch'] = 0.
+        ellc_params[planet+'_period'] = 1.
+    
     
     ###########################################################################
     #::: photometry
@@ -219,19 +236,12 @@ def get_ellc_params(params, inst, planet, key, phased):
     #::: RV
     ###########################################################################
     elif key=='rv':        
-        ellc_params[planet+'_incl'] = np.arccos( params[planet+'_cosi'] )/np.pi*180.
+        ellc_params[planet+'_incl'] = np.arccos( ellc_params[planet+'_cosi'] )/np.pi*180.
 
-        ecc = params[planet+'_f_s']**2 + params[planet+'_f_c']**2
-        a_1 = 0.019771142 * params[planet+'_K'] * 1. * np.sqrt(1. - ecc**2)/np.sin(ellc_params[planet+'_incl']*np.pi/180.)
-        ellc_params[planet+'_a'] = (1.+1./params[planet+'_q'])*a_1
+        ecc = ellc_params[planet+'_f_s']**2 + ellc_params[planet+'_f_c']**2
+        a_1 = 0.019771142 * ellc_params[planet+'_K'] * ellc_params[planet+'_period'] * np.sqrt(1. - ecc**2)/np.sin(ellc_params[planet+'_incl']*np.pi/180.)
+        ellc_params[planet+'_a'] = (1.+1./ellc_params[planet+'_q'])*a_1
         
-    
-    ###########################################################################
-    #::: phase-folded?
-    ###########################################################################
-    if phased:
-        ellc_params[planet+'_epoch'] = 0.
-        ellc_params[planet+'_period'] = 1.
     
     return ellc_params
 
@@ -243,7 +253,7 @@ def get_ellc_params(params, inst, planet, key, phased):
 ###############################################################################
 def flux_fct(time, params, inst, planet, phased=False):
     ellc_params = get_ellc_params(params, inst, planet, 'flux', phased)
-        
+    
     model_flux = ellc.lc(
                       t_obs =       time, 
                       radius_1 =    ellc_params[planet+'_radius_1'], 
@@ -521,7 +531,7 @@ def lnprob(theta, bounds, params, fitkeys, settings):
 ###########################################################################
 #::: MCMC fit
 ###########################################################################
-def MCMC_fit(outdir, theta_0, bounds, params, fitkeys, settings, continue_old_run=False):
+def MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, continue_old_run=False):
     ndim = len(theta_0)
     
     #::: set up a backend
@@ -539,7 +549,7 @@ def MCMC_fit(outdir, theta_0, bounds, params, fitkeys, settings, continue_old_ru
             p0 = backend.get_chain()[-1,:,:]
             already_completed_steps = backend.get_chain().shape[0] * settings['thin_by']
         else:
-            p0 = theta_0 + 1e-8 * np.random.randn(settings['nwalkers'], ndim)
+            p0 = theta_0 + init_err * np.random.randn(settings['nwalkers'], ndim)
             already_completed_steps = 0
         
         #::: make sure the inital positions are within the limits
@@ -606,7 +616,7 @@ def update_params_with_MCMC_results(settings, params, fitkeys, sampler):
 ###############################################################################
 #::: plot
 ###############################################################################
-def plot(settings, params, styles, fitkeys=None, sampler=None, planet='b', show_all_data=True):
+def plot(settings, params, styles, theta_0=None, init_err=None, sampler=None, fitkeys=None, planet='b', show_all_data=True):
     '''
     Inputs:
     -------
@@ -614,6 +624,9 @@ def plot(settings, params, styles, fitkeys=None, sampler=None, planet='b', show_
         'data_d', 'initial_guess_d', 'MCMC_results_d'
         'data_phase', 'initial_guess_phase', 'MCMC_results_phase'
         'data_phasezoom', 'initial_guess_phasezoom', 'MCMC_results_phasezoom'
+        
+    theta_0, init_err, sampler, fitkeys : (optional)
+        only needed if you want to plot 'initial_guess_*' or 'MCMC_results_*'
     '''
     
     instruments = settings['inst_phot']+settings['inst_rv']    
@@ -622,20 +635,46 @@ def plot(settings, params, styles, fitkeys=None, sampler=None, planet='b', show_
     
     fig, axes = plt.subplots(N_inst,len(styles),figsize=(6*3,4*N_inst))
     axes = np.atleast_2d(axes)
-    
+                
+    #TODO: not clean, just a hack to have the same samples for all inst & phase-foldings
+    #TODO: rewrite the plot function to be more efficient, and handle such things
+    samples = draw_samples_for_plot(styles[0], theta_0, init_err, sampler, settings, fitkeys)
+
     for i,inst in enumerate(instruments):
         for j,style in enumerate(styles):
-            plot_1(axes[i,j], settings, params, style, inst, keys[i], fitkeys, sampler, planet)
+            plot_1(axes[i,j], settings, params, style, inst, keys[i], samples, fitkeys, planet)
 
     plt.tight_layout()
     return fig, axes
 
 
 
+def draw_samples_for_plot(style, theta_0, init_err, sampler, settings, fitkeys):
+    if ('initial_guess' in style) & (theta_0 is not None) & (init_err is not None):
+        return draw_init_samples_for_plot(theta_0, init_err)
+    elif ('MCMC_results' in style) & (sampler is not None) & (fitkeys is not None):
+        return draw_MCMC_samples_for_plot(sampler, settings, fitkeys)
+    else:
+        raise ValueError('Need to pass the right variables to "plot" in order to plot samples.')
+
+
+def draw_init_samples_for_plot(theta_0, init_err, Nsamples=20):
+    samples = theta_0 + init_err * np.random.randn(Nsamples, len(theta_0))    
+    return samples
+
+
+
+def draw_MCMC_samples_for_plot(sampler, settings, fitkeys, Nsamples=20):
+    samples = sampler.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
+    samples = samples[np.random.randint(len(samples), size=20)]
+    return samples
+
+
+
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, settings, params, style, inst, key, fitkeys, sampler, planet):
+def plot_1(ax, settings, params, style, inst, key, samples, fitkeys, planet):
     '''
     Inputs:
     -------
@@ -662,20 +701,14 @@ def plot_1(ax, settings, params, style, inst, key, fitkeys, sampler, planet):
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
     
         #model, not phased
-        if ('initial_guess' in style) | ('MCMC_results' in style):
+        if ( ('initial_guess' in style) | ('MCMC_results' in style) ) & (samples is not None) & (fitkeys is not None):
             if (data[inst]['time'][-1] - data[inst]['time'][-1] < 10): #less than 10 days of data
                 dt = 5./24./60. #5 min resolution
             else:
                 dt = 30./24./60. #30 min resolution
             model_time = np.arange( data[inst]['time'][0], data[inst]['time'][-1], dt) 
-
-        if ('initial_guess' in style):
-            model_y = calculate_model_y(model_time, params, settings, inst, key)
-            ax.plot( model_time, model_y, 'r-', zorder=10 )
-            
-        elif ('MCMC_results' in style) & (fitkeys is not None) & (sampler is not None):
-            samples = sampler.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
-            for s in samples[np.random.randint(len(samples), size=20)]:
+            for i in range(samples.shape[0]):
+                s = samples[i,:]
                 p = update_params(s, params, fitkeys)
                 model_y = calculate_model_y(model_time, p, settings, inst, key)
                 ax.plot( model_time, model_y, 'r-', alpha=0.1, zorder=10, rasterized=True )
@@ -700,15 +733,10 @@ def plot_1(ax, settings, params, style, inst, key, fitkeys, sampler, planet):
         
 
         #model, phased
-        if 'initial_guess' in style:
+        if ( ('initial_guess' in style) | ('MCMC_results' in style) ) & (samples is not None) & (fitkeys is not None):
             model_phase = np.linspace( -0.25, 0.75, 1000)
-            model_y = calculate_model_y(model_phase, params, settings, inst, key, phased=True)
-            ax.plot( model_phase*zoomfactor, model_y, 'r-', zorder=10, rasterized=True )
-            
-        elif ('MCMC_results' in style) & (fitkeys is not None) & (sampler is not None):
-            model_phase = np.linspace( -0.25, 0.75, 1000)
-            samples = sampler.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
-            for s in samples[np.random.randint(len(samples), size=20)]:
+            for i in range(samples.shape[0]):
+                s = samples[i,:]
                 p = update_params(s, params, fitkeys)
                 model_y = calculate_model_y(model_phase, p, settings, inst, key, phased=True)
                 ax.plot( model_phase*zoomfactor, model_y, 'r-', alpha=0.1, zorder=10, rasterized=True )
@@ -828,7 +856,7 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     #::: set output directory
     #::: plot & show the initial guess & settings
     ###############################################################################
-    settings, theta_0, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
     
 
     ###############################################################################
@@ -841,7 +869,7 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     #::: run MCMC fit
     ###############################################################################
     print 'Running MCMC fit...'
-    sampler = MCMC_fit(outdir,theta_0, bounds, params, fitkeys, settings, continue_old_run)
+    sampler = MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, continue_old_run)
     
     
     ###############################################################################
@@ -863,13 +891,13 @@ def init(datadir, fast_fit):
     global data
     
     settings = load_settings(datadir)
-    theta_0, bounds, params, fitkeys, allkeys, labels, units = load_params(datadir)
+    theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units = load_params(datadir)
     data = load_data(datadir, settings, params=params, fast_fit=fast_fit)  
 
     outdir = os.path.join(datadir,'results')
     if not os.path.exists(outdir): os.makedirs(outdir)
 
-    return settings, theta_0, bounds, params, fitkeys, allkeys, labels, units, outdir
+    return settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir
     
 
 
@@ -883,7 +911,7 @@ def show_initial_guess(datadir, fast_fit=False):
     '''
     global data
     
-    settings, theta_0, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)    
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)    
     
     print '\nSettings & intitial guess:'
     print '--------------------------'
@@ -907,7 +935,7 @@ def show_initial_guess(datadir, fast_fit=False):
     print 'lnprob: \t', lnprob(theta_0, bounds, params, fitkeys, settings)        
 
     
-    fig, axes = plot(settings, params, ['initial_guess_d', 'initial_guess_phase', 'initial_guess_phasezoom'])
+    fig, axes = plot(settings, params, ['initial_guess_d', 'initial_guess_phase', 'initial_guess_phasezoom'], theta_0=theta_0, init_err=init_err, fitkeys=fitkeys)
     fig.savefig( os.path.join(outdir,'initial_guess.pdf'), bbox_inches='tight' )
     plt.close(fig)
     
@@ -934,9 +962,9 @@ def analyse_output(datadir, fast_fit=False, QL=False, *args):
     global data
     
     if datadir is None:        
-        settings, theta_0, bounds, params, fitkeys, allkeys, labels, units, outdir = args
+        settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = args
     else:
-        settings, theta_0, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
+        settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
     
     if QL:
         outdir = os.path.join( datadir,'QL' )
@@ -949,8 +977,6 @@ def analyse_output(datadir, fast_fit=False, QL=False, *args):
     if QL:
         settings['total_steps'] = reader.get_chain().shape[0]
         settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
-
-    pprint(settings)
 
     try:
         print 'Autocorrelation times:', reader.get_autocorr_time(discard=settings['burn_steps'])
