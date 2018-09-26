@@ -722,7 +722,7 @@ def plot_1(ax, settings, params, style, inst, key, samples, fitkeys, planet):
         else: zoomfactor = params[planet+'_period']*24.
                 
         #data, phased
-        phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(data[inst]['time'], y, params[planet+'_period'], params[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=True)    
+        phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(data[inst]['time'], y, params[planet+'_period'], params[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
         #::: plot the binned points only if there are at least 2 points per bin on average
         if len(phase_time) <= 0.5*len(phi):
             ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
@@ -883,6 +883,20 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     ###############################################################################
     settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
     
+    
+    ###############################################################################
+    #::: safety check: ask user for permission
+    ###############################################################################
+    f = os.path.join(outdir,'save.h5')
+    if os.path.exists(f) & (continue_old_run==False):
+        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite save.h5 and all output files? Y = yes, N = no\n')
+        if not (overwrite.lower() == 'y'):
+            raise ValueError('User aborted operation.')
+    elif os.path.exists(f) & (continue_old_run==True):
+        overwrite = raw_input('Output already exists in '+outdir+'. Append to save.h5 and overwrite the other output files? Y = yes, N = no\n')
+        if not (overwrite.lower() == 'y'):
+            raise ValueError('User aborted operation.')
+
 
     ###############################################################################
     #::: plot & show the initial guess & settings
@@ -968,6 +982,16 @@ def show_initial_guess(datadir, fast_fit=False):
     
     settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)    
     
+    ###############################################################################
+    #::: safety check: ask user for permission
+    ###############################################################################
+    f = os.path.join(outdir,'initial_guess.jpg')
+    if os.path.exists( f ):
+        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
+        if not (overwrite.lower() == 'y'):
+            raise ValueError('User aborted operation.')
+            
+            
     print '\nSettings & intitial guess:'
     print '--------------------------'
     for i, key in enumerate(allkeys):
@@ -991,7 +1015,7 @@ def show_initial_guess(datadir, fast_fit=False):
 
     
     fig, axes = plot(settings, params, ['initial_guess_d', 'initial_guess_phase', 'initial_guess_phasezoom'], theta_0=theta_0, init_err=init_err, fitkeys=fitkeys)
-    fig.savefig( os.path.join(outdir,'initial_guess.pdf'), bbox_inches='tight' )
+    fig.savefig( os.path.join(outdir,'initial_guess.jpg'), dpi=100, bbox_inches='tight' )
     plt.close(fig)
     
     
@@ -1020,7 +1044,7 @@ def analyse_output(datadir, fast_fit=False, QL=False):
         if True: 
            allows a quick look (QL) at the MCMC results while MCMC is still running
            copies the chains from results/save.h5 file over to QL/save.h5 and opens that file
-           set burn_steps automatically to half the chain length
+           set burn_steps automatically to 75% of the chain length
             
     Outputs:
     --------
@@ -1037,6 +1061,16 @@ def analyse_output(datadir, fast_fit=False, QL=False):
         copyfile(os.path.join(datadir,'results','save.h5'), 
                  os.path.join(outdir,'save.h5'))
     
+    ###############################################################################
+    #::: safety check: ask user for permission
+    ###############################################################################
+    f = os.path.join(outdir,'fit.jpg')
+    if os.path.exists( f ):
+        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
+        if not (overwrite.lower() == 'y'):
+            raise ValueError('User aborted operation.')
+            
+            
     reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
 
     if QL:

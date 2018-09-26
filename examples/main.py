@@ -100,7 +100,6 @@ Outputs:
 --------
 This will output some information into the console, 
 and create output files into datadir/results/
-
 '''
 #allesfitter.run(datadir)
 #allesfitter.run(datadir, fast_fit=True)
