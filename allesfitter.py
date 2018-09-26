@@ -847,6 +847,31 @@ def save_latex_table(outdir, settings, params, fitkeys, allkeys, labels, units, 
 #::: run
 ###############################################################################
 def run(datadir, fast_fit=False, continue_old_run=False):
+    '''
+    Inputs:
+    -------
+    datadir : str
+        the working directory for allesfitter
+        must contain all the data files
+        output directories and files will also be created inside datadir
+    fast_fit : bool (optional; default is False)
+        if False: 
+            use all photometric data for the fit
+        if True: 
+            only use photometric data in an 8h window around the transit 
+            requires a good initial guess of the epoch and period
+    continue_olf_run : bool (optional; default is False)
+        if False:
+            overwrite any previously created files
+        if True:
+            continue writing into the pre-existing chain (datadir/results/save.h5)
+            once done, it will still overwrite the results files
+            
+    Outputs:
+    --------
+    This will output some information into the console, 
+    and create output files into datadir/results/
+    '''
     global data
 
     print 'Starting...'    
@@ -886,7 +911,22 @@ def run(datadir, fast_fit=False, continue_old_run=False):
 ###############################################################################
 def init(datadir, fast_fit):
     '''
-    note: data is not a global variable in here
+    Inputs:
+    -------
+    datadir : str
+        the working directory for allesfitter
+        must contain all the data files
+        output directories and files will also be created inside datadir
+    fast_fit : bool (optional; default is False)
+        if False: 
+            use all photometric data for the plot
+        if True: 
+            only use photometric data in an 8h window around the transit 
+            requires a good initial guess of the epoch and period
+            
+    Returns:
+    --------
+    All the variables needed for allesfitter.MCMC_fit
     '''
     global data
     
@@ -906,8 +946,23 @@ def init(datadir, fast_fit):
 ###############################################################################
 def show_initial_guess(datadir, fast_fit=False):
     '''
-    note: data is *not* a global variable in here, 
-          so that its global value is preserved
+    Inputs:
+    -------
+    datadir : str
+        the working directory for allesfitter
+        must contain all the data files
+        output directories and files will also be created inside datadir
+    fast_fit : bool (optional; default is False)
+        if False: 
+            use all photometric data for the plot
+        if True: 
+            only use photometric data in an 8h window around the transit 
+            requires a good initial guess of the epoch and period
+            
+    Outputs:
+    --------
+    This will output information into the console, 
+    and create a file called datadir/results/initial_guess.pdf
     '''
     global data
     
@@ -944,27 +999,37 @@ def show_initial_guess(datadir, fast_fit=False):
 ###############################################################################
 #::: analyse the output from .h5 file
 ###############################################################################
-def analyse_output(datadir, fast_fit=False, QL=False, *args):
+def analyse_output(datadir, fast_fit=False, QL=False):
     '''
     Inputs:
     -------
     datadir : str
         the working directory for allesfitter
-    QL : bool
-        True: 
-            allows a quick look (QL) at the MCMC results while MCMC is still running
-            copies the results/save.h5 file over to QL/save.h5 and opens that file
-            set burn_steps automatically to half the chain length
+        must contain all the data files
+        output directories and files will also be created inside datadir
+    fast_fit : bool (optional; default is False)
+        if False: 
+            use all photometric data for the plot
+        if True: 
+            only use photometric data in an 8h window around the transit 
+            requires a good initial guess of the epoch and period
+    QL : bool (optional; default is False)
+        if False: 
+            read out the chains from datadir/results/save.h5
+            WARNING: this breaks any running MCMC that tries writing into this file!
+        if True: 
+           allows a quick look (QL) at the MCMC results while MCMC is still running
+           copies the chains from results/save.h5 file over to QL/save.h5 and opens that file
+           set burn_steps automatically to half the chain length
             
-    note: data is a global variable here, 
-          in order to overwrite the global value
+    Outputs:
+    --------
+    This will output information into the console, and create a output files 
+    into datadir/results/ (or datadir/QL/ if QL==True)    
     '''
     global data
     
-    if datadir is None:        
-        settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = args
-    else:
-        settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
     
     if QL:
         outdir = os.path.join( datadir,'QL' )
