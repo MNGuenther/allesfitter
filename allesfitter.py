@@ -27,6 +27,7 @@ import ellc
 import emcee
 from corner import corner
 from scipy.optimize import minimize
+from scipy.interpolate import UnivariateSpline
 import numpy.polynomial.polynomial as poly
 from mytools import lightcurve_tools as lct
 from mytools import index_transits
@@ -36,6 +37,7 @@ from pprint import pprint
 from shutil import copyfile
 import latex_printer
 import warnings
+from time import time as timer
 warnings.simplefilter('ignore', np.RankWarning)
 try:
     import celerite
@@ -67,7 +69,6 @@ def load_settings(datadir):
     settings['burn_steps'] = int(buf['burn_steps'])
     settings['thin_by'] = int(buf['thin_by'])
     settings['multiprocess'] = bool(buf['multiprocess'])
-    settings['baseline_fit'] = str(buf['baseline_fit'])
     return settings
 
     
@@ -86,6 +87,10 @@ def load_params(datadir):
     params = {}
     for i,key in enumerate(allkeys):
         params[key] = buf['value'][i]
+        
+    for key in allkeys:
+        if 'baseline_' in key:
+            params[key] = int(params[key])
     
     ind_fit = (buf['fit']==1)
     fitkeys = buf['name'][ ind_fit ]
@@ -252,6 +257,7 @@ def get_ellc_params(params, inst, planet, key, phased):
 #::: flux fct
 ###############################################################################
 def flux_fct(time, params, inst, planet, phased=False):
+#    then = timer()
     ellc_params = get_ellc_params(params, inst, planet, 'flux', phased)
     
     model_flux = ellc.lc(
@@ -270,6 +276,8 @@ def flux_fct(time, params, inst, planet, phased=False):
                       ld_1 =        ellc_params['ld_1_'+inst],
 #                      ld_2 = 'quad' 
                       )
+#    now = timer() #Time after it finished
+#    print("ellc took: ", now-then, " seconds for "+inst)
                  
     return model_flux
         
@@ -279,8 +287,9 @@ def flux_fct(time, params, inst, planet, phased=False):
 #::: rv fct
 ###############################################################################
 def rv_fct(time, params, inst, planet, phased=False):
+#    then = timer()
     ellc_params = get_ellc_params(params, inst, planet, 'rv', phased)
-        
+    
     model_rv1, model_rv2 = ellc.rv(
                       t_obs =   time, 
                       incl =    ellc_params[planet+'_incl'], 
@@ -292,7 +301,8 @@ def rv_fct(time, params, inst, planet, phased=False):
                       q =       ellc_params[planet+'_q'],
                       flux_weighted = False
                       )
-                 
+#    now = timer() #Time after it finished
+#    print("ellc took: ", now-then, " seconds for "+inst)
     return model_rv1, model_rv2
 
 
@@ -301,42 +311,72 @@ def rv_fct(time, params, inst, planet, phased=False):
 #::: log likelihood 
 ###############################################################################
 def lnlike(theta, params, fitkeys, settings):
+#    then = timer() #Time before the operations start
     params = update_params(theta, params, fitkeys)
     
     lnlike = 0
     
-    def lnlike_1(key):
-        model_y = calculate_model_y(data[inst]['time'], params, settings, inst, key)
-        y_res = calculate_y_res(params, settings, inst, key, model_y)
+    def lnlike_1(inst, key):
+        residuals = calculate_residuals(params, settings, inst, key)
         inv_sigma2 = data[inst]['err_scales_'+key]**(-2) * params['inv_sigma2_'+key+'_'+inst]
-        return -0.5*(np.nansum((y_res)**2 * inv_sigma2 - np.log(inv_sigma2)))
+        return -0.5*(np.nansum((residuals)**2 * inv_sigma2 - np.log(inv_sigma2)))
     
     for inst in settings['inst_phot']:
-        lnlike += lnlike_1('flux')
+        lnlike += lnlike_1(inst, 'flux')
         
     for inst in settings['inst_rv']:
-        lnlike += lnlike_1('rv')
+        lnlike += lnlike_1(inst, 'rv')
 
+#    now = timer() #Time after it finished
+#    print("lnlike took: ", now-then, " seconds")
     return lnlike
 
 
 
 ###############################################################################
-#::: calculate model curve
+#::: calculate residuals
+###############################################################################  
+def calculate_residuals(params, settings, inst, key):
+    '''
+    Note:
+    -----
+    No 'xx' here, because residuals can only be calculated on given data
+    (not on an arbitrary xx grid)
+    '''
+    global data
+#    then = timer()
+    model = calculate_model(params, settings, inst, key)
+    baseline = calculate_baseline(params, settings, inst, key, model=model)
+    residuals = data[inst][key] - model - baseline
+#    now = timer() #Time after it finished
+#    print("calculate_residuals took: ", now-then, " seconds for "+inst+" "+key)
+    return residuals
+
+
+        
+###############################################################################
+#::: calculate model
 ###############################################################################      
-def calculate_model_y(x, params, settings, inst, key, phased=False):
-    
+def calculate_model(params, settings, inst, key, xx=None, phased=False):
+    global data
+#    then = timer()
+    if xx is None: xx = 1.*data[inst]['time']
+        
     if key=='flux':
         depth = 0.
         for planet in settings['planets_phot']:
-            depth += ( 1. - flux_fct(x, params, inst, planet, phased) )
+            depth += ( 1. - flux_fct(xx, params, inst, planet, phased) )
         model_flux = 1. - depth
+#        now = timer() #Time after it finished
+#        print("calculate_model flux took: ", now-then, " seconds for "+inst)
         return model_flux
     
     elif key=='rv':
         model_rv = 0.
         for planet in settings['planets_rv']:
-            model_rv += rv_fct(x, params, inst, planet, phased)[0]
+            model_rv += rv_fct(xx, params, inst, planet, phased)[0]
+#        now = timer() #Time after it finished
+#        print("calculate_model rv took: ", now-then, " seconds for "+inst)
         return model_rv
     
     elif (key=='centdx') | (key=='centdy'):
@@ -346,104 +386,190 @@ def calculate_model_y(x, params, settings, inst, key, phased=False):
     else:
         raise ValueError("Variable 'key' has to be 'flux', 'rv', 'centdx', or 'centdy'.")
 
+    
 
-        
 ###############################################################################
-#::: calculate residuals
-###############################################################################  
-def calculate_y_res(params, settings, inst, key, model_y):
+#::: calculate baseline
+###############################################################################   
+def calculate_baseline(params, settings, inst, key, model=None, xx=None):
+    global data
+    
+    if model is None: 
+        model = calculate_model(params, settings, inst, key, xx=None)
+    x = 1.*data[inst]['time']
+    y = data[inst][key] - model
+    yerr = data[inst]['err_scales_'+key] * (1./np.sqrt(params['inv_sigma2_'+key+'_'+inst]))
+    
+#    try:
+#        offset = params['offset_'+key+'_'+inst]
+#    except KeyError:
+#        offset = None
+#    translate = {
+#            '-3' : ('traditional', offset),
+#            '-2' : ('hybrid_GP',None),
+#            '-1' : ('hybrid_spline',None),
+#            '0' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '1' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '2' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '3' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '4' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '5' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst])),
+#            '6' : ('hybrid_poly', int(params['baseline_'+key+'_'+inst]))
+#            }
+#    command = translate[ str(int(params['baseline_'+key+'_'+inst])) ]
+    
+    if params['baseline_'+key+'_'+inst] == 0: #'hybrid_offset'
+        command = ['hybrid_offset']
+    elif params['baseline_'+key+'_'+inst] > 0: #'hybrid_poly'
+        command = ['hybrid_poly', int(params['baseline_'+key+'_'+inst])]
+    elif params['baseline_'+key+'_'+inst] == -1: #'hybrid_spline'
+        command = ['hybrid_spline']
+    elif params['baseline_'+key+'_'+inst] == -2: #'hybrid_GP'
+        command = ['hybrid_GP']
+    elif params['baseline_'+key+'_'+inst] == -3: #'traditional (MCMC fit of mean offset)'
+        command = ['traditional', params['offset_'+key+'_'+inst]]
+    else:
+        raise ValueError("Parameter 'baseline_"+key+"_"+inst+"' has to be a number in [-3,-2,-1,0,1,2,...], but was "+str(params['baseline_'+key+'_'+inst]))
+#    if inst=='GROND_i':
+#        model = calculate_model(params, settings, inst, key, xx=None)
+#        baseline = calculate_baseline_1(x, y, yerr, command, xx=None)
+#        
+#        xx = np.arange(x[0],x[-1],0.1) 
+#        model_yy = calculate_model(params, settings, inst, key, xx=xx)
+#        baseline_yy = calculate_baseline_1(x, y, yerr, command, xx=xx)
+#        
+#        plt.figure()
+#        plt.plot(data[inst]['time'], data[inst][key], 'k.')
+#        plt.plot(x, model, 'g-', lw=3)
+#        plt.plot(xx, model_yy, 'r-')
+#        
+#        plt.figure()
+#        plt.plot(x, data[inst][key], 'k.')
+#        plt.plot(x, model + baseline, 'g-', lw=3)
+#        plt.plot(xx, model_yy + baseline_yy, 'r-')
+#        
+#        plt.figure()
+#        plt.plot(x, y, 'k.')
+#        plt.plot(x, baseline, 'g-', lw=3)
+#        plt.plot(xx, baseline_yy, 'r-')
+        
+    return calculate_baseline_1(x, y, yerr, command, xx=xx)
+        
+       
+    
+#::: helper fct
+def calculate_baseline_1(x, y, yerr, command, xx=None):
     '''
-    Returns:
+    Inputs:
+    -------
+    x : array of float
+        time stamps of the data
+    y : array of float
+        y = data_y - model_y (!!!)
+        i.e., the values that you want to constrain the baseline on
+    command : tuple
+        ('traditional', offset)
+        ('hybrid_poly', polyorder)
+        ('hybrid_spline')
+        ('hybrid_GP')
+    xx : array of float (optional; default=None)
+        if given, evaluate the baseline fit on the xx values 
+        (e.g. a finer time grid for plotting)
+        
+    Returns: 
     --------
-    y : array
-        if settings['baseline_fit']=='traditional':
-            data - model - offset
-        if settings['baseline_fit']=='hybrid_poly':
-            data - model - offset - polynomial baseline MLE fit
-        if settings['baseline_fit']=='hybrid_GP':
-            data - model - offset - GP baseline baseline MLE fit
+    baseline : array of float
+        the baseline evaluate on the grid x (or xx, if xx!=None)
     '''
     global data
     
-    
-    model_res = data[inst][key] - params['offset_'+key+'_'+inst] - model_y
-    
+    if xx is None: xx = 1.*x
+
     
     ###########################################################################
     #::: traditional (constant offset)
     ###########################################################################
-    if settings['baseline_fit'] == 'traditional':
-        y_res = model_res
-        return y_res
+    if command[0] == 'traditional':
+        offset = command[1]
+        baseline = offset * np.ones_like(xx)
+        return baseline
     
+    
+    ###########################################################################
+    #::: hybrid_mean (like Gillon+2012, but only remove mean offset)
+    ###########################################################################
+    if command[0] == 'hybrid_offset':
+        inv_sigma = 1./yerr
+        ind = np.isfinite(y) #np.average can't handle NaN
+        return np.average(y[ind], weights=inv_sigma[ind])
+
     
     ###########################################################################
     #::: hybrid_poly (like Gillon+2012)
     ###########################################################################
-    elif settings['baseline_fit'] == 'hybrid_poly':
-        #polyfit needs the x-axis reset to [0,1], otherwise it goes nuts
-        xx = (data[inst]['time'] - data[inst]['time'][0])
-        xx /= xx[-1]
-        polyorder = int(params['baseline_polyorder_'+key+'_'+inst])
+    elif command[0] == 'hybrid_poly':
+#        then = timer()
+        polyorder = command[1]
+        xx = (xx - x[0])/x[-1] #polyfit needs the xx-axis scaled to [0,1], otherwise it goes nuts
+        x = (x - x[0])/x[-1] #polyfit needs the x-axis scaled to [0,1], otherwise it goes nuts
         if polyorder>=0:
-            inv_sigma = data[inst]['err_scales_'+key]**(-1) * np.sqrt(params['inv_sigma2_'+key+'_'+inst])
-            weights = inv_sigma/np.nanmax(inv_sigma)
-            ind = np.isfinite(model_res) #polyfit can't handle NaN
-            params_poly = poly.polyfit(xx[ind],model_res[ind],polyorder,w=weights[ind]) #WARNING: returns params in reverse order than np.polyfit!!!
-            baseline = poly.polyval(xx, params_poly)
+            inv_sigma = 1./yerr
+#            weights = inv_sigma/np.nanmax(inv_sigma) #weights should be normalized inv_sigma
+            ind = np.isfinite(y) #polyfit can't handle NaN
+            params_poly = poly.polyfit(x[ind],y[ind],polyorder,w=inv_sigma[ind]) #WARNING: returns params in reverse order than np.polyfit!!!
+            baseline = poly.polyval(xx, params_poly) #evaluate on xx (!)
         else:
-            raise ValueError("Parameters 'baseline polyorder' have to be >= 0.")
-        y_res = model_res - baseline
-        
-#        plt.figure()
-#        plt.errorbar(data[inst]['time'], model_res,yerr=1./inv_sigma,fmt='k.')
-#        plt.plot(data[inst]['time'], baseline, 'r-', lw=2)
-#        plt.show()
-        
-        return y_res
+            raise ValueError("'polyorder' has to be >= 0.")
+#        now = timer() #Time after it finished
+#        print("hybrid_poly took: ", now-then, " seconds.")
+        return baseline
     
     
     ###########################################################################
-    #::: hybrid_GP (like Gillon+2012, but with a GP instead of polynomials)
+    #::: hybrid_spline (like Gillon+2012, but with a cubic spline)
+    ###########################################################################
+    elif command[0] == 'hybrid_spline':
+#        then = timer()
+        inv_sigma = 1./yerr
+#        weights = inv_sigma/np.nanmax(inv_sigma) #weights should be normalized inv_sigma
+        ind = np.isfinite(y) #polyfit can't handle NaN
+        spl = UnivariateSpline(x[ind],y[ind],w=inv_sigma[ind])
+        baseline = spl(xx)
+#        now = timer() #Time after it finished
+#        print("hybrid_spline took: ", now-then, " seconds.")
+        return baseline    
+    
+    
+    ###########################################################################
+    #::: hybrid_GP (like Gillon+2012, but with a GP)
     ###########################################################################    
-    elif settings['baseline_fit'] == 'hybrid_GP':
-        xx = data[inst]['time']
-        yy = model_res
-#        yerr = data[inst]['err_scales_'+key] * (1./np.sqrt(params['inv_sigma2_'+key+'_'+inst]))
-        yerr = np.nanstd(yy)
+    elif command[0] == 'hybrid_GP':
+        yerr = np.nanstd(y) #overwrite yerr; works better for removing smooth global trends
         kernel = terms.Matern32Term(log_sigma=1., log_rho=1.)
-        gp = celerite.GP(kernel, mean=0.) 
-        gp.compute(xx, yerr=yerr)
+        gp = celerite.GP(kernel, mean=np.nanmean(y)) 
+        gp.compute(x, yerr=yerr) #constrain on x/y/yerr
          
-        def neg_log_like(params, yy, gp):
-            gp.set_parameter_vector(params)
-            return -gp.log_likelihood(yy)
+        def neg_log_like(gp_params, y, gp):
+            gp.set_parameter_vector(gp_params)
+            return -gp.log_likelihood(y)
         
-        def grad_neg_log_like(params, yy, gp):
-            gp.set_parameter_vector(params)
-            return -gp.grad_log_likelihood(yy)[1]
-        
+        def grad_neg_log_like(gp_params, y, gp):
+            gp.set_parameter_vector(gp_params)
+            return -gp.grad_log_likelihood(y)[1]
         
         initial_params = gp.get_parameter_vector()
         bounds = gp.get_parameter_bounds()
         soln = minimize(neg_log_like, initial_params, jac=grad_neg_log_like,
-                        method="L-BFGS-B", bounds=bounds, args=(yy, gp))
+                        method="L-BFGS-B", bounds=bounds, args=(y, gp))
         gp.set_parameter_vector(soln.x)
         
-        baseline = gp.predict(yy, xx)[0]
-        y_res = model_res - baseline
-        
-#        plt.figure()
-#        plt.plot(xx,yy,'k.')
-#        plt.plot(xx, baseline, 'r-')
-#        plt.show()
-        
-        return y_res
+        baseline = gp.predict(y, xx)[0] #constrain on x/y/yerr, evaluate on xx (!)
+        return baseline
         
     else:
-        raise ValueError("Setting 'baseline_fit' has to be 'traditional','hybrid_poly', or 'hybrid_GP', but is:"+settings['baseline_fit'])
-        
-    
+        raise ValueError("Setting 'baseline_fit' has to be 'traditional', 'hybrid_poly', "+\
+                         "'hybrid_spline' or 'hybrid_GP', but is:"+command[0])
+   
     
 
 ###############################################################################
@@ -612,6 +738,7 @@ def update_params_with_MCMC_results(settings, params, fitkeys, sampler):
     
     return params, params_ul, params_ll
 
+
     
 ###############################################################################
 #::: plot
@@ -642,7 +769,14 @@ def plot(settings, params, styles, theta_0=None, init_err=None, sampler=None, fi
 
     for i,inst in enumerate(instruments):
         for j,style in enumerate(styles):
-            plot_1(axes[i,j], settings, params, style, inst, keys[i], samples, fitkeys, planet)
+            #::: don't phase-fold single day photometric follow-up
+            if ('phase' in style) & (inst in settings['inst_phot']) & ((data[inst]['time'][-1] - data[inst]['time'][0]) < 1.):
+                axes[i,j].axis('off')
+            #::: don't zoom onto RV data
+            elif ('zoom' in style) & (inst in settings['inst_rv']):
+                axes[i,j].axis('off')
+            else:
+                plot_1(axes[i,j], settings, params, style, inst, keys[i], samples, fitkeys, planet)
 
     plt.tight_layout()
     return fig, axes
@@ -681,65 +815,84 @@ def plot_1(ax, settings, params, style, inst, key, samples, fitkeys, planet):
         planet : str (optional)
             only needed if style=='_phase' or '_phasezoom'
             None, 'b', 'c', etc.
+            
+    Notes:
+    ------
+    yerr / epoch / period: 
+        come from the initial_guess value or the MCMC median (not from individual samples)
+
     '''
     global data
     
     if key=='flux': ylabel='Flux'
     elif key=='rv': ylabel='RV (km/s)'
     
-    model_y = calculate_model_y(data[inst]['time'], params, settings, inst, key)
-    y_res = calculate_y_res(params, settings, inst, key, model_y)
-    y = y_res + model_y
-    yerr = data[inst]['err_scales_'+key]*(1./np.sqrt(params['inv_sigma2_'+key+'_'+inst]))
 
-
-    #::: not phased
+    ###############################################################################
+    # not phased
+    # plot the 'undetrended' data
+    # plot each sampled model + its baseline 
+    ###############################################################################
     if 'phase' not in style:
         
+        x = 1.*data[inst]['time']
+        y = 1.*data[inst][key]
+        yerr = data[inst]['err_scales_'+key]*(1./np.sqrt(params['inv_sigma2_'+key+'_'+inst]))
+        
         #data, not phase
-        ax.errorbar( data[inst]['time'], y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )
+        ax.errorbar( x, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
-    
-        #model, not phased
+        
+        #model + baseline, not phased
         if ( ('initial_guess' in style) | ('MCMC_results' in style) ) & (samples is not None) & (fitkeys is not None):
-            if (data[inst]['time'][-1] - data[inst]['time'][-1] < 10): #less than 10 days of data
-                dt = 5./24./60. #5 min resolution
-            else:
-                dt = 30./24./60. #30 min resolution
-            model_time = np.arange( data[inst]['time'][0], data[inst]['time'][-1], dt) 
+            if ((x[-1] - x[0]) < 1): dt = 2./24./60. #2 min resolution if less than 1 day of data
+            else: dt = 30./24./60. #30 min resolution
+            xx = np.arange( x[0], x[-1]+dt, dt) 
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, params, fitkeys)
-                model_y = calculate_model_y(model_time, p, settings, inst, key)
-                ax.plot( model_time, model_y, 'r-', alpha=0.1, zorder=10, rasterized=True )
+                model = calculate_model(p, settings, inst, key, xx=xx) #evaluated on xx (!)
+                baseline = calculate_baseline(p, settings, inst, key, xx=xx) #evaluated on xx (!)
+                ax.plot( xx, model+baseline, 'r-', alpha=0.1, zorder=10, rasterized=True )
             
             
-    
-    #::: phased - and optionally zoomed
+    ###############################################################################
+    # phased - and optionally zoomed
+    # get a 'median' baseline from intial guess value / MCMC median result
+    # detrend the data with this 'median' baseline
+    # then phase-fold the 'detrended' data
+    # plot each phase-folded model (without baseline)
+    # TODO: This is not ideal, as we overplot models with different 
+    #       epochs/periods/baselines onto a phase-folded plot
+    ###############################################################################
     else:
-
+        
+        #::: "data - baseline" calculated from initial guess / MCMC median posterior results
+        x = 1.*data[inst]['time']
+        baseline = calculate_baseline(params, settings, inst, key) #evaluated on x (!)
+        y = 1.*data[inst][key] - baseline
+        yerr = data[inst]['err_scales_'+key]*(1./np.sqrt(params['inv_sigma2_'+key+'_'+inst]))
+        
         if 'zoom' not in style: zoomfactor = 1.
         else: zoomfactor = params[planet+'_period']*24.
                 
-        #data, phased
-        phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(data[inst]['time'], y, params[planet+'_period'], params[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-        #::: plot the binned points only if there are at least 2 points per bin on average
-        if len(phase_time) <= 0.5*len(phi):
+        #data, phased        
+        phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params[planet+'_period'], params[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
+        if len(phase_time) < 0.5*len(phi):
             ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
-            ax.errorbar( phase_time*zoomfactor, phase_y, phase_y_err, fmt='b.', capsize=0, rasterized=True )
+            ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
         else:
-            ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True)    
+            ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )            
         ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
-        
 
         #model, phased
         if ( ('initial_guess' in style) | ('MCMC_results' in style) ) & (samples is not None) & (fitkeys is not None):
-            model_phase = np.linspace( -0.25, 0.75, 1000)
+            xx = np.linspace( -0.25, 0.75, 1000)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, params, fitkeys)
-                model_y = calculate_model_y(model_phase, p, settings, inst, key, phased=True)
-                ax.plot( model_phase*zoomfactor, model_y, 'r-', alpha=0.1, zorder=10, rasterized=True )
+                model = calculate_model(p, settings, inst, key, xx=xx, phased=True) #evaluated on xx (!)
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
          
         if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
 
@@ -793,6 +946,14 @@ def plot_MCMC_corner(fitkeys, settings, sampler):
 
 
 
+###############################################################################
+#::: print autocorr
+###############################################################################
+def print_autocorr(reader, settings):
+    try: print 'Autocorrelation times:', reader.get_autocorr_time(discard=settings['burn_steps'])
+    except: print 'Autocorrelation times:', 'chains not converged yet'
+
+
 
 ###############################################################################
 #::: save table
@@ -809,7 +970,6 @@ def save_table(outdir, settings, params, fitkeys, allkeys, sampler):
                 f.write(key + ',' + str(params[key]) + ',' + str(params_ll[key]) + ',' + str(params_ul[key]) + '\n' )
    
         
-
 
 ###############################################################################
 #::: save Latex table
@@ -947,7 +1107,7 @@ def init(datadir, fast_fit):
     settings = load_settings(datadir)
     theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units = load_params(datadir)
     data = load_data(datadir, settings, params=params, fast_fit=fast_fit)  
-
+    
     outdir = os.path.join(datadir,'results')
     if not os.path.exists(outdir): os.makedirs(outdir)
 
@@ -981,6 +1141,7 @@ def show_initial_guess(datadir, fast_fit=False):
     global data
     
     settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)    
+    
     
     ###############################################################################
     #::: safety check: ask user for permission
@@ -1058,8 +1219,6 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     if QL:
         outdir = os.path.join( datadir,'QL' )
         if not os.path.exists( outdir ): os.makedirs( outdir )
-        copyfile(os.path.join(datadir,'results','save.h5'), 
-                 os.path.join(outdir,'save.h5'))
     
     ###############################################################################
     #::: safety check: ask user for permission
@@ -1070,6 +1229,9 @@ def analyse_output(datadir, fast_fit=False, QL=False):
         if not (overwrite.lower() == 'y'):
             raise ValueError('User aborted operation.')
             
+    if QL:
+        copyfile(os.path.join(datadir,'results','save.h5'), 
+                 os.path.join(outdir,'save.h5'))
             
     reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
 
@@ -1077,10 +1239,17 @@ def analyse_output(datadir, fast_fit=False, QL=False):
         settings['total_steps'] = reader.get_chain().shape[0]
         settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
 
-    try:
-        print 'Autocorrelation times:', reader.get_autocorr_time(discard=settings['burn_steps'])
-    except:
-        print 'Autocorrelation times:', 'chains not converged yet'
+    
+    ###############################################################################
+    #::: update params to the median MCMC result
+    ###############################################################################
+    params, params_ll, params_ul = update_params_with_MCMC_results(settings, params, fitkeys, reader)
+    
+    
+    ###############################################################################
+    #::: create plots and output
+    ###############################################################################
+    print_autocorr(reader, settings)
 
     fig, axes = plot(settings, params, ['MCMC_results_d', 'MCMC_results_phase', 'MCMC_results_phasezoom'], fitkeys=fitkeys, sampler=reader)
     fig.savefig( os.path.join(outdir,'fit.jpg'), dpi=100, bbox_inches='tight' )
