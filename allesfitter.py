@@ -483,16 +483,8 @@ def calculate_baseline_1(x, y, yerr, command, xx=None):
     '''
     global data
     
-    if xx is None: xx = 1.*x
-
-    
-    ###########################################################################
-    #::: traditional (constant offset)
-    ###########################################################################
-    if command[0] == 'traditional':
-        offset = command[1]
-        baseline = offset * np.ones_like(xx)
-        return baseline
+    if xx is None: 
+        xx = 1.*x
     
     
     ###########################################################################
@@ -500,6 +492,7 @@ def calculate_baseline_1(x, y, yerr, command, xx=None):
     ###########################################################################
     if command[0] == 'hybrid_offset':
         inv_sigma = 1./yerr
+        weights = inv_sigma/np.nanmean(inv_sigma) #weights should be normalized inv_sigma
         ind = np.isfinite(y) #np.average can't handle NaN
         return np.average(y[ind], weights=inv_sigma[ind])
 
@@ -514,9 +507,9 @@ def calculate_baseline_1(x, y, yerr, command, xx=None):
         x = (x - x[0])/x[-1] #polyfit needs the x-axis scaled to [0,1], otherwise it goes nuts
         if polyorder>=0:
             inv_sigma = 1./yerr
-#            weights = inv_sigma/np.nanmax(inv_sigma) #weights should be normalized inv_sigma
+            weights = inv_sigma/np.nanmean(inv_sigma) #weights should be normalized inv_sigma
             ind = np.isfinite(y) #polyfit can't handle NaN
-            params_poly = poly.polyfit(x[ind],y[ind],polyorder,w=inv_sigma[ind]) #WARNING: returns params in reverse order than np.polyfit!!!
+            params_poly = poly.polyfit(x[ind],y[ind],polyorder,w=weights[ind]) #WARNING: returns params in reverse order than np.polyfit!!!
             baseline = poly.polyval(xx, params_poly) #evaluate on xx (!)
         else:
             raise ValueError("'polyorder' has to be >= 0.")
@@ -531,10 +524,17 @@ def calculate_baseline_1(x, y, yerr, command, xx=None):
     elif command[0] == 'hybrid_spline':
 #        then = timer()
         inv_sigma = 1./yerr
-#        weights = inv_sigma/np.nanmax(inv_sigma) #weights should be normalized inv_sigma
-        ind = np.isfinite(y) #polyfit can't handle NaN
-        spl = UnivariateSpline(x[ind],y[ind],w=inv_sigma[ind])
+        weights = inv_sigma/np.nanmean(inv_sigma) #weights should be normalized inv_sigma
+        ind = np.isfinite(y) #mask NaN
+        spl = UnivariateSpline(x[ind],y[ind],w=weights[ind],s=np.sum(weights[ind]))
         baseline = spl(xx)
+        
+#        print 'fitting splines'
+#        plt.figure()
+#        plt.plot(x,y,'k.', color='grey')
+#        plt.plot(xx,baseline,'r-', lw=2)
+#        plt.show()
+#        raw_input('press enter to continue')
 #        now = timer() #Time after it finished
 #        print("hybrid_spline took: ", now-then, " seconds.")
         return baseline    
@@ -565,6 +565,16 @@ def calculate_baseline_1(x, y, yerr, command, xx=None):
         
         baseline = gp.predict(y, xx)[0] #constrain on x/y/yerr, evaluate on xx (!)
         return baseline
+
+    
+    ###########################################################################
+    #::: traditional (constant offset)
+    ###########################################################################
+    elif command[0] == 'traditional':
+        offset = command[1]
+        baseline = offset * np.ones_like(xx)
+        return baseline
+
         
     else:
         raise ValueError("Setting 'baseline_fit' has to be 'traditional', 'hybrid_poly', "+\
