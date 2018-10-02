@@ -1064,7 +1064,7 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     '''
     global data
 
-    print 'Starting...'    
+    print '\nStarting...'    
     
     ###############################################################################
     #::: load settings, data and input params
@@ -1097,7 +1097,7 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     ###############################################################################
     #::: run MCMC fit
     ###############################################################################
-    print 'Running MCMC fit...'
+    print '\nRunning MCMC fit...'
     sampler = MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, continue_old_run)
     
     
@@ -1106,14 +1106,14 @@ def run(datadir, fast_fit=False, continue_old_run=False):
     ###############################################################################
     analyse_output(datadir, fast_fit=fast_fit) #fast_fit=False here, in order to show the full data    
     
-    print 'Done.'
+    print '\nDone.'
     
     
     
 ###############################################################################
 #::: init
 ###############################################################################
-def init(datadir, fast_fit):
+def init(datadir, fast_fit=True, QL=False, read_only=False):
     '''
     Inputs:
     -------
@@ -1134,12 +1134,42 @@ def init(datadir, fast_fit):
     '''
     global data
     
+    
+    #::: load stuff
     settings = load_settings(datadir)
     theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units = load_params(datadir)
     data = load_data(datadir, settings, params=params, fast_fit=fast_fit)  
     
-    outdir = os.path.join(datadir,'results')
-    if not os.path.exists(outdir): os.makedirs(outdir)
+    
+    #::: set up the outdir
+    if QL==False: 
+        outdir = os.path.join(datadir,'results')   
+    else:
+        outdir = os.path.join( datadir,'QL' )
+    
+    if not os.path.exists( outdir ): os.makedirs( outdir )
+    
+    if read_only==False:
+        f = os.path.join(outdir,'save.h5')
+        if os.path.exists( f ):
+            overwrite = raw_input('Output already exists in '+outdir+'.\n'+\
+                                  'Overwrite output files?\n'+\
+                                  'Y = yes, N = no\n')
+            if not (overwrite.lower() == 'y'):
+                raise ValueError('User aborted operation.')
+                
+        if QL:
+            print '\nCopying most recent save.h5 file into '+outdir
+            copyfile(os.path.join(datadir,'results','save.h5'), 
+                     os.path.join(outdir,'save.h5'))
+
+
+    #::: if QL: auto-select the burn-in phase
+    if QL:    
+        reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
+        settings['total_steps'] = reader.get_chain().shape[0]
+        settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
+
 
     return settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir
     
@@ -1148,7 +1178,7 @@ def init(datadir, fast_fit):
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def show_initial_guess(datadir, fast_fit=False):
+def show_initial_guess(datadir, fast_fit=True):
     '''
     Inputs:
     -------
@@ -1171,16 +1201,6 @@ def show_initial_guess(datadir, fast_fit=False):
     global data
     
     settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)    
-    
-    
-    ###############################################################################
-    #::: safety check: ask user for permission
-    ###############################################################################
-    f = os.path.join(outdir,'initial_guess.jpg')
-    if os.path.exists( f ):
-        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
-        if not (overwrite.lower() == 'y'):
-            raise ValueError('User aborted operation.')
             
             
     print '\nSettings & intitial guess:'
@@ -1214,7 +1234,7 @@ def show_initial_guess(datadir, fast_fit=False):
 ###############################################################################
 #::: analyse the output from .h5 file
 ###############################################################################
-def analyse_output(datadir, fast_fit=False, QL=False):
+def analyse_output(datadir, fast_fit=True, QL=False):
     '''
     Inputs:
     -------
@@ -1244,31 +1264,13 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     '''
     global data
     
-    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit)
-    
-    if QL:
-        outdir = os.path.join( datadir,'QL' )
-        if not os.path.exists( outdir ): os.makedirs( outdir )
     
     ###############################################################################
-    #::: safety check: ask user for permission
+    #::: init
     ###############################################################################
-    f = os.path.join(outdir,'fit.jpg')
-    if os.path.exists( f ):
-        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
-        if not (overwrite.lower() == 'y'):
-            raise ValueError('User aborted operation.')
-            
-    if QL:
-        copyfile(os.path.join(datadir,'results','save.h5'), 
-                 os.path.join(outdir,'save.h5'))
-            
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, fast_fit=fast_fit, QL=QL)
     reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
-
-    if QL:
-        settings['total_steps'] = reader.get_chain().shape[0]
-        settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
-
+    
     
     ###############################################################################
     #::: update params to the median MCMC result
@@ -1299,11 +1301,48 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     
     print 'Done. For all outputs, see', outdir
     
-    
-    
+
 
 ###############################################################################
 #::: derive all astrophysical values from the MCMC .h5 file, and save output files
 ###############################################################################
 def derive(datadir):
     deriver.derive(datadir)
+    
+
+
+###############################################################################
+#::: get samples
+###############################################################################
+def get_samples(datadir, QL=False, as_type='dic'):
+    
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, QL=QL, read_only=True)
+    reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
+    samples = reader.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
+    
+    if as_type=='2d_array':
+        return samples
+    
+    elif as_type=='dic':
+        samples_dic = {}
+        for key in fitkeys:
+            ind = np.where(fitkeys==key)[0]
+            samples_dic[key] = samples[:,ind].flatten()
+        return samples_dic
+    
+    
+    
+###############################################################################
+#::: get latex labels
+###############################################################################
+def get_labels(datadir, QL=False, as_type='dic'):
+    
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = init(datadir, QL=QL, read_only=True)
+       
+    if as_type=='dic':
+        labels_dic = {}
+        for key in fitkeys:
+            ind = np.where(allkeys==key)[0]
+            labels_dic[key] = labels[ind][0]
+        return labels_dic
+
