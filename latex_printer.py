@@ -35,7 +35,6 @@ def extra_digits(x,y):
     return int(np.floor(np.log10(np.abs(x)))) - int(np.floor(np.log10(np.abs(y))))
     
 def round_tex(x, err_low, err_up, mode=None):
-    print x,  err_low, err_up
     if np.isnan(x):
         return 'NaN'
     y = np.min(( np.abs(err_low), np.abs(err_up) ))

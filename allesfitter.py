@@ -35,7 +35,7 @@ from multiprocessing import Pool, cpu_count
 from contextlib import closing
 from pprint import pprint
 from shutil import copyfile
-import latex_printer
+import latex_printer, deriver
 import warnings
 from time import time as timer
 warnings.simplefilter('ignore', np.RankWarning)
@@ -668,14 +668,18 @@ def lnprob(theta, bounds, params, fitkeys, settings):
 #::: MCMC fit
 ###########################################################################
 def MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, continue_old_run=False):
+    global data
     ndim = len(theta_0)
+    
     
     #::: set up a backend
     backend = emcee.backends.HDFBackend(os.path.join(outdir,'save.h5'))
     
+    
     #::: continue on the backend / reset the backend
     if not continue_old_run:
         backend.reset(settings['nwalkers'], ndim)
+    
     
     #::: helper fct
     def run_mcmc(sampler):
@@ -700,13 +704,10 @@ def MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, conti
                          thin_by=settings['thin_by'], 
                          progress=True)
         
-        print 'Acceptance fraction:', sampler.acceptance_fraction
-        try:
-            print 'Autocorrelation times:', sampler.get_autocorr_time(discard=settings['burn_steps'])
-        except:
-            print 'Autocorrelation times:', 'chains not converged yet'
+        return sampler
 
-    #::: run
+
+    #::: Run
     if settings['multiprocess']:    
         with closing(Pool(processes=(cpu_count()-1))) as pool:
             print 'Running on', cpu_count()-1, 'CPUs.'    
@@ -716,15 +717,24 @@ def MCMC_fit(outdir, theta_0, init_err, bounds, params, fitkeys, settings, conti
                                             args=(bounds, params, fitkeys, settings), 
                                             pool=pool, 
                                             backend=backend)
-            run_mcmc(sampler)
+            sampler = run_mcmc(sampler)
     else:
         sampler = emcee.EnsembleSampler(settings['nwalkers'],
                                         ndim,
                                         lnprob,
                                         args=(bounds, params, fitkeys, settings),
                                         backend=backend)
-        run_mcmc(sampler)
+        sampler = run_mcmc(sampler)
         
+    
+    #::: Check performance and convergence
+    print '\Acceptance franctions:'
+    print '--------------------------'
+    print sampler.acceptance_fraction
+    
+    print_autocorr(sampler, settings, fitkeys)
+            
+            
     return sampler
 
 
@@ -947,10 +957,10 @@ def plot_MCMC_corner(fitkeys, settings, sampler):
     ndim = len(fitkeys)
     
     fig = corner(samples, 
-            labels = fitkeys,
-             range = [0.999]*ndim,
-             quantiles=[0.15865, 0.5, 0.84135],
-             show_titles=True, title_kwargs={"fontsize": 14})
+                 labels = fitkeys,
+                 range = [0.999]*ndim,
+                 quantiles=[0.15865, 0.5, 0.84135],
+                 show_titles=True, title_kwargs={"fontsize": 14})
             
     return fig
 
@@ -959,10 +969,20 @@ def plot_MCMC_corner(fitkeys, settings, sampler):
 ###############################################################################
 #::: print autocorr
 ###############################################################################
-def print_autocorr(reader, settings):
-    try: print 'Autocorrelation times:', reader.get_autocorr_time(discard=settings['burn_steps'])
-    except: print 'Autocorrelation times:', 'chains not converged yet'
-
+def print_autocorr(reader, settings, fitkeys):
+    print '\nConvergence check:'
+    print '--------------------------'
+    
+    print '{0: <20}'.format('Total steps:'),        '{0: <10}'.format(settings['total_steps'])
+    print '{0: <20}'.format('Burn steps:'),         '{0: <10}'.format(settings['burn_steps'])
+    print '{0: <20}'.format('Evaluation steps:'),   '{0: <20}'.format(settings['total_steps'] - settings['burn_steps'])
+    
+    tau = reader.get_autocorr_time(discard=settings['burn_steps']/settings['thin_by'], c=5, tol=10, quiet=True)*settings['thin_by']
+    print 'Autocorrelation times:'
+    print '\t', '{0: <30}'.format('parameter'), '{0: <20}'.format('tau (in steps)'), '{0: <20}'.format('Chain length (in multiples of tau)') 
+    for i, key in enumerate(fitkeys):
+        print '\t', '{0: <30}'.format(key), '{0: <20}'.format(tau[i]), '{0: <20}'.format((settings['total_steps'] - settings['burn_steps']) / tau[i])
+        
 
 
 ###############################################################################
@@ -1259,7 +1279,7 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     ###############################################################################
     #::: create plots and output
     ###############################################################################
-    print_autocorr(reader, settings)
+    print_autocorr(reader, settings, fitkeys)
 
     fig, axes = plot(settings, params, ['MCMC_results_d', 'MCMC_results_phase', 'MCMC_results_phasezoom'], fitkeys=fitkeys, sampler=reader)
     fig.savefig( os.path.join(outdir,'fit.jpg'), dpi=100, bbox_inches='tight' )
@@ -1270,7 +1290,7 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     plt.close(fig)
 
     fig = plot_MCMC_corner(fitkeys, settings, reader)
-    fig.savefig( os.path.join(outdir,'corner.jpg'), dpi=50, bbox_inches='tight' )
+    fig.savefig( os.path.join(outdir,'corner.jpg'), dpi=80, bbox_inches='tight' )
     plt.close(fig)
 
     save_table(outdir, settings, params, fitkeys, allkeys, reader)
@@ -1278,3 +1298,12 @@ def analyse_output(datadir, fast_fit=False, QL=False):
     save_latex_table(outdir, settings, params, fitkeys, allkeys, labels, units, reader)
     
     print 'Done. For all outputs, see', outdir
+    
+    
+    
+
+###############################################################################
+#::: derive all astrophysical values from the MCMC .h5 file, and save output files
+###############################################################################
+def derive(datadir):
+    deriver.derive(datadir)
