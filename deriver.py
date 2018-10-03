@@ -70,46 +70,56 @@ def derive(datadir, QL=False, output_units='jup'):
     '''
 
 
-    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, False)
-    
-    if QL:
-        outdir = os.path.join( datadir,'QL' )
-        if not os.path.exists( outdir ): os.makedirs( outdir )
-    
-    
-    ###############################################################################
-    #::: safety check: ask user for permission
-    ###############################################################################
-    f = os.path.join(outdir,'fit.jpg')
-    if os.path.exists( f ):
-        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
-        if not (overwrite.lower() == 'y'):
-            raise ValueError('User aborted operation.')
-            
-    if QL:
-        copyfile(os.path.join(datadir,'results','save.h5'), 
-                 os.path.join(outdir,'save.h5'))
-            
-    reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
 
-    if QL:
-        settings['total_steps'] = reader.get_chain().shape[0]
-        settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
-
-
-
-    ###############################################################################
-    #::: autocorr
-    ###############################################################################
-    allesfitter.print_autocorr(reader, settings, fitkeys)
+#    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, False)
+#    
+#    if QL:
+#        outdir = os.path.join( datadir,'QL' )
+#        if not os.path.exists( outdir ): os.makedirs( outdir )
+#    
+#    
+#    ###############################################################################
+#    #::: safety check: ask user for permission
+#    ###############################################################################
+#    f = os.path.join(outdir,'fit.jpg')
+#    if os.path.exists( f ):
+#        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
+#        if not (overwrite.lower() == 'y'):
+#            raise ValueError('User aborted operation.')
+#            
+#    if QL:
+#        copyfile(os.path.join(datadir,'results','save.h5'), 
+#                 os.path.join(outdir,'save.h5'))
+#            
+#    reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
+#
+#    if QL:
+#        settings['total_steps'] = reader.get_chain().shape[0]
+#        settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
+#
+#
+#
+#    ###############################################################################
+#    #::: autocorr
+#    ###############################################################################
+#    allesfitter.print_autocorr(reader, settings, fitkeys)
  
  
  
     ###############################################################################
     #::: draw samples
     ###############################################################################
-    samples = reader.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
+#    samples = reader.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
 #    samples = samples[np.random.randint(len(samples), size=5000)]
+#    N_samples = samples.shape[0]
+
+
+
+    ###############################################################################
+    #::: init and draw samples
+    ###############################################################################
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, False)
+    samples = allesfitter.get_samples(datadir, QL=QL, as_type='2d_array')
     N_samples = samples.shape[0]
     
     
@@ -235,7 +245,7 @@ def derive(datadir, QL=False, output_units='jup'):
             ll, median, ul = np.percentile(derived_samples[name], [15.865, 50., 84.135])
             outfile.write( str(label)+','+str(unit)+','+str(median)+','+str(median-ll)+','+str(ul-median)+'\n' )
             
-            value = latex_printer.round_tex(median, ll, ul)
+            value = latex_printer.round_tex(median, median-ll, ul-median)
             f.write( label + ' & $' + value + '$ & $\mathrm{' + unit +'}$ \\\\ \n' )
             
             f_cmd.write('\\newcommand{\\'+name.replace("_", "")+'}{'+name+'$='+value+'$} \n')

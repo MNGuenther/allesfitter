@@ -1306,8 +1306,8 @@ def analyse_output(datadir, fast_fit=True, QL=False):
 ###############################################################################
 #::: derive all astrophysical values from the MCMC .h5 file, and save output files
 ###############################################################################
-def derive(datadir):
-    deriver.derive(datadir)
+def derive(datadir, QL=False):
+    deriver.derive(datadir, QL)
     
 
 
