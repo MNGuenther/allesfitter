@@ -32,6 +32,7 @@ from corner import corner
 
 #::: allesfitter modules
 from . import config
+from . import deriver
 from .general_output import afplot, save_table, save_latex_table, logprint
 
 
@@ -187,7 +188,10 @@ def mcmc_output(datadir):
     save_latex_table(samples, 'mcmc')
     
     #::: derive values (using stellar parameters from params_star.csv)
-#    deriver.derive(datadir)
+    try:
+        deriver.derive(samples, 'mcmc')
+    except:
+        print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     #::: clean up and delete the tmp file
     os.remove(os.path.join(datadir,'results','mcmc_save_tmp.h5'))

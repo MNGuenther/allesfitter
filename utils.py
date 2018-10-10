@@ -24,7 +24,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
-from mytools.index_transits import index_transits
+from lichtkurven.index_transits import index_transits
 
 
 

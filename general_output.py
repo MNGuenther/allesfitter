@@ -26,15 +26,17 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
-from mytools import lightcurve_tools as lct
 import warnings
 #import pickle
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
+#::: my modules
+from lichtkurven import lightcurve_tools as lct
+
 #::: allesfitter modules
 from . import config
-from . import latex_printer, deriver
+from . import latex_printer
 from .computer import update_params,\
                      calculate_model,rv_fct,\
                      calculate_baseline, calculate_inv_sigma2_w

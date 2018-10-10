@@ -23,7 +23,6 @@ import emcee
 from multiprocessing import Pool
 from multiprocessing import cpu_count
 from contextlib import closing
-import pickle
 
 #::: warnings
 import warnings
@@ -33,7 +32,6 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 #::: allesfitter modules
 from . import config
 from .computer import update_params,\
-                      calculate_residuals, calculate_inv_sigma2_w,\
                       calculate_lnlike
 from .general_output import show_initial_guess, logprint
 from .mcmc_output import print_autocorr

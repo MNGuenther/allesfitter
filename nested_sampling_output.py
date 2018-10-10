@@ -32,6 +32,7 @@ from dynesty import plotting as dyplot
 
 #::: allesfitter modules
 from . import config
+from . import deriver
 from .general_output import afplot, save_table, save_latex_table, logprint
                      
 
@@ -126,11 +127,12 @@ def ns_output(datadir):
     save_table(samples, 'ns')
     save_latex_table(samples, 'ns')
     
-    
-    ###############################################################################
+
     #::: derive values (using stellar parameters from params_star.csv)
-    ###############################################################################
-#    deriver.derive(samples)
+    try:
+        deriver.derive(samples, 'mcmc')
+    except:
+        print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)

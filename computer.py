@@ -24,12 +24,10 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
-#import matplotlib.pyplot as plt
 import ellc
 from scipy.optimize import minimize
 from scipy.interpolate import UnivariateSpline
 import numpy.polynomial.polynomial as poly
-#from pprint import pprint
 import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
@@ -42,7 +40,6 @@ except ImportError:
 
 #allesfitter modules
 from . import config
-#from .switchlang.switchlang import switch
 
 
 

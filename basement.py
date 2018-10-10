@@ -29,11 +29,6 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
-#try:
-#    import celerite
-#    from celerite import terms
-#except ImportError:
-#    warnings.warn("Cannot import package 'celerite', thus 'hybrid_GP' baseline models will not be supported.")
 
 #::: allesfitter modules
 from . import utils
@@ -160,7 +155,9 @@ class Basement():
             else:
                 self.settings['ns_sample'] = 'slice'
         
-        
+        for planet in self.settings['planets_all']:
+            if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
+                self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
         
         
 
@@ -229,15 +226,16 @@ class Basement():
     ###############################################################################
     def change_epoch(self):
         
-        #::: get data time range
-        all_data = []
-        for inst in self.settings['inst_all']:
-            all_data += list(self.data[inst]['time'])
-        start = np.nanmin( all_data )
-        end = np.nanmax( all_data )
-            
         #::: change epoch entry from params.csv to set epoch into the middle of the range
         for planet in self.settings['planets_all']:
+            
+            #::: get data time range
+            all_data = []
+            for inst in self.settings['inst_for_'+planet+'_epoch']:
+                all_data += list(self.data[inst]['time'])
+            start = np.nanmin( all_data )
+            end = np.nanmax( all_data )
+            
 #            import matplotlib.pyplot as plt
 #            plt.figure()
 #            plt.plot(all_data, np.ones_like(all_data), 'bo')

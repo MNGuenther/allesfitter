@@ -14,6 +14,8 @@ Email: maxgue@mit.edu
 Web: www.mnguenther.com
 """
 
+from __future__ import print_function, division, absolute_import
+
 #::: plotting settings
 import seaborn as sns
 sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
@@ -25,10 +27,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import allesfitter, latex_printer
-import emcee
 from corner import corner
-from shutil import copyfile
+
+#::: allesfitter modules
+from . import config
+from . import latex_printer
+from .general_output import logprint
 
 #::: constants
 M_earth = 5.9742e+24 	#kg 	Earth mass
@@ -40,17 +44,17 @@ R_sun   = 695508000 	#m 	Solar radius
 
 
 
-def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
+def derive(samples, mode, output_units='jup'):
     '''
     Derives parameter of the system using Winn 2010
     
     Input:
     ------
-    datadir : str
-        ...
-        ! This needs to contain a file called 'params_star.csv' which contains all the infos of the host star !
-    ...
-    
+    samples : array
+        samples from the mcmc or nested sampling
+    mode : str
+        'mcmc' or 'ns'
+        
     Returns:
     --------
     derived_samples : dict 
@@ -68,58 +72,7 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
     latex table of results
     corner plot of derived values posteriors
     '''
-
-
-
-#    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, False)
-#    
-#    if QL:
-#        outdir = os.path.join( datadir,'QL' )
-#        if not os.path.exists( outdir ): os.makedirs( outdir )
-#    
-#    
-#    ###############################################################################
-#    #::: safety check: ask user for permission
-#    ###############################################################################
-#    f = os.path.join(outdir,'fit.jpg')
-#    if os.path.exists( f ):
-#        overwrite = raw_input('Output already exists in '+outdir+'. Overwrite output files? Y = yes, N = no\n')
-#        if not (overwrite.lower() == 'y'):
-#            raise ValueError('User aborted operation.')
-#            
-#    if QL:
-#        copyfile(os.path.join(datadir,'results','save.h5'), 
-#                 os.path.join(outdir,'save.h5'))
-#            
-#    reader = emcee.backends.HDFBackend( os.path.join(outdir,'save.h5'), read_only=True )
-#
-#    if QL:
-#        settings['total_steps'] = reader.get_chain().shape[0]
-#        settings['burn_steps'] = int(0.75*settings['thin_by']*reader.get_chain().shape[0])
-#
-#
-#
-#    ###############################################################################
-#    #::: autocorr
-#    ###############################################################################
-#    allesfitter.print_autocorr(reader, settings, fitkeys)
- 
- 
- 
-    ###############################################################################
-    #::: draw samples
-    ###############################################################################
-#    samples = reader.get_chain(flat=True, discard=settings['burn_steps']/settings['thin_by'])
-#    samples = samples[np.random.randint(len(samples), size=5000)]
-#    N_samples = samples.shape[0]
-
-
-
-    ###############################################################################
-    #::: init and draw samples
-    ###############################################################################
-    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, fast_fit=fast_fit, QL=QL)
-    samples = allesfitter.get_samples(datadir, QL=QL, as_type='2d_array')
+    
     N_samples = samples.shape[0]
     
     
@@ -127,7 +80,7 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
     ###############################################################################
     #::: stellar 'posteriors'
     ###############################################################################
-    buf = np.genfromtxt( os.path.join(datadir,'params_star.csv'), delimiter=',', names=True, comments='#' )
+    buf = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, comments='#' )
     star = {}
     star['R_star'] = buf['R_star'] + buf['R_star_err']*np.random.randn(N_samples)
     star['M_star'] = buf['M_star'] + buf['M_star_err']*np.random.randn(N_samples)
@@ -137,12 +90,12 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
     ###############################################################################
     #::: derive all the params
     ###############################################################################
-    planets = np.unique( settings['planets_phot']+settings['planets_rv'] )
+    planets = config.BASEMENT.settings['planets_all']
     
     def get_params(key):
-        ind = np.where(fitkeys==key)[0]
+        ind = np.where(config.BASEMENT.fitkeys==key)[0]
         if len(ind)==1: return samples[:,ind].flatten() #if it was fitted for
-        else: return params[key] #else take the input value
+        else: return config.BASEMENT.params[key] #else take the input value
         
     def sin_d(alpha): return np.sin(np.deg2rad(alpha))
     def cos_d(alpha): return np.cos(np.deg2rad(alpha))
@@ -223,16 +176,16 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
     ###############################################################################
     #::: save all in pickle
     ###############################################################################
-    pickle.dump(derived_samples, open(os.path.join(outdir,'derived_samples.pickle'),'wb'))
+    pickle.dump(derived_samples, open(os.path.join(config.BASEMENT.outdir,mode+'_derived_samples.pickle'),'wb'))
     
     
     
     ###############################################################################
     #::: save txt & latex table & latex commands
     ###############################################################################
-    with open(os.path.join(outdir,'derived_results.csv'),'wb') as outfile,\
-         open(os.path.join(outdir,'derived_latex_table.txt'),'wb') as f,\
-         open(os.path.join(outdir,'derived_latex_cmd.txt'),'wb') as f_cmd:
+    with open(os.path.join(config.BASEMENT.outdir,mode+'_derived_table.csv'),'wb') as outfile,\
+         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_table.txt'),'wb') as f,\
+         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_cmd.txt'),'wb') as f_cmd:
              
         outfile.write('name,unit,value,lower_error,upper_error\n')
         
@@ -250,7 +203,7 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
             
             f_cmd.write('\\newcommand{\\'+name.replace("_", "")+'}{'+name+'$='+value+'$} \n')
             
-    print '\nSaved derived_results.csv, derived_latex_table.txt, and derived_latex_cmd.txt'
+    logprint('\nSaved '+mode+'_derived_results.csv, '+mode+'_derived_latex_table.txt, and '+mode+'_derived_latex_cmd.txt')
     
         
         
@@ -268,8 +221,8 @@ def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
                  labels = names,
                  quantiles=[0.15865, 0.5, 0.84135],
                  show_titles=True, title_kwargs={"fontsize": 14})
-    fig.savefig( os.path.join(outdir,'derived_corner.jpg'), dpi=100, bbox_inches='tight' )
+    fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=100, bbox_inches='tight' )
     plt.close(fig)
     
-    print '\nSaved derived_corner.jpg.'
+    logprint('\nSaved '+mode+'__derived_corner.jpg')
     
