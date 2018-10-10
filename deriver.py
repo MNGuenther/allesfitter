@@ -40,7 +40,7 @@ R_sun   = 695508000 	#m 	Solar radius
 
 
 
-def derive(datadir, QL=False, output_units='jup'):
+def derive(datadir, fast_fit=True, QL=False, output_units='jup'):
     '''
     Derives parameter of the system using Winn 2010
     
@@ -118,7 +118,7 @@ def derive(datadir, QL=False, output_units='jup'):
     ###############################################################################
     #::: init and draw samples
     ###############################################################################
-    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, False)
+    settings, theta_0, init_err, bounds, params, fitkeys, allkeys, labels, units, outdir = allesfitter.init(datadir, fast_fit=fast_fit, QL=QL)
     samples = allesfitter.get_samples(datadir, QL=QL, as_type='2d_array')
     N_samples = samples.shape[0]
     
