@@ -9,7 +9,9 @@
 
 
 ## 1. Installation
-Not yet on PyPi. For now, simply pull this repository, e.g. into "/users/johnwayne/code" and add this directory to your python path.
+Not yet on PyPi.
+Simply pull this repository from GitHub.
+You also need to pull https://github.com/MNGuenther/lichtkurven.
 
 
 ## 2. Fitting
