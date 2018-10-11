@@ -32,7 +32,10 @@ def str_digits(y):
     else: return int(np.floor(np.log10(np.abs(y))))+1
     
 def extra_digits(x,y):
-    return int(np.floor(np.log10(np.abs(x)))) - int(np.floor(np.log10(np.abs(y))))
+    try:
+        return int(np.floor(np.log10(np.abs(x)))) - int(np.floor(np.log10(np.abs(y))))
+    except:
+        return 0
     
 def round_tex(x, err_low, err_up, mode=None):
     if np.isnan(x):

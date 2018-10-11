@@ -188,9 +188,9 @@ def mcmc_output(datadir):
     save_latex_table(samples, 'mcmc')
     
     #::: derive values (using stellar parameters from params_star.csv)
-    try:
+    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
         deriver.derive(samples, 'mcmc')
-    except:
+    else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     #::: clean up and delete the tmp file

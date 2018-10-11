@@ -37,14 +37,6 @@ from . import utils
 
 
 ###############################################################################
-#::: Give BASEMENT a value at import, so other scripts can see it globally
-###############################################################################
-#BASEMENT = None
-
-
-
-
-###############################################################################
 #::: 'Basement' class, which contains all the data, settings, etc.
 ###############################################################################
 class Basement():
@@ -133,8 +125,10 @@ class Basement():
         self.settings = {r[0]:r[1] for r in rows}
         
         for key in ['planets_phot', 'planets_rv', 'inst_phot', 'inst_rv']:
-            if len(self.settings[key]): self.settings[key] = str(self.settings[key]).split(' ')
-            else:                       self.settings[key] = []
+            if len(self.settings[key]): 
+                self.settings[key] = str(self.settings[key]).split(' ')
+            else:                       
+                self.settings[key] = []
         
         self.settings['planets_all']  = list(np.unique(self.settings['planets_phot']+self.settings['planets_rv'])) #sorted by b, c, d...
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
@@ -158,6 +152,11 @@ class Basement():
         for planet in self.settings['planets_all']:
             if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
                 self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
+            else:
+                if len(self.settings['inst_for_'+planet+'_epoch']): 
+                    self.settings['inst_for_'+planet+'_epoch'] = str(self.settings['inst_for_'+planet+'_epoch']).split(' ')
+                else:                       
+                    self.settings['inst_for_'+planet+'_epoch'] = []
         
         
 
@@ -186,7 +185,7 @@ class Basement():
             self.bounds[i] = [ item[0], np.float(item[1]), np.float(item[2]) ]
     
         self.ndim = len(self.theta_0)                   #len(ndim)
-    
+
     
 
     ###############################################################################
@@ -228,7 +227,6 @@ class Basement():
         
         #::: change epoch entry from params.csv to set epoch into the middle of the range
         for planet in self.settings['planets_all']:
-            
             #::: get data time range
             all_data = []
             for inst in self.settings['inst_for_'+planet+'_epoch']:
@@ -274,18 +272,22 @@ class Basement():
                     self.bounds[ind_epoch_fitkeys][2]  = epoch_for_fit + upper           #upper bound
                 
                 #:::change bounds if normal bounds
-                if self.bounds[ind_epoch_fitkeys][0] == 'normal':
+                elif self.bounds[ind_epoch_fitkeys][0] == 'normal':
                     mean = 1.*self.theta_0[ind_epoch_fitkeys]
                     std = 1.*self.bounds[ind_epoch_fitkeys][2]
                     self.bounds[ind_epoch_fitkeys][1]  = mean         
                     self.bounds[ind_epoch_fitkeys][2]  = std        
+                    
+                else:
+                    raise ValueError('Parameters "bounds" have to be "uniform" or "normal".')
            
             #::: print output (for testing only)
-#            print('First epoch, from params.csv file:', first_epoch)
+#            print('\nSetting epoch for planet '+planet)
+#            print('\tfirst epoch, from params.csv file:', first_epoch)
 #            
 #            print('\nOrbital cycles since then:', int( (end-start) / period))
 #            
-#            print('\nEpoch for fit, placed in the middle of the data range:', epoch_for_fit)
+#            print('\tepoch for fit, placed in the middle of the data range:', epoch_for_fit)
 #            print('Theta for fit:', self.theta_0[ind_epoch_fitkeys])
 #            print('Bounds[1] for fit:', self.bounds[ind_epoch_fitkeys][1])
 #            print('Bounds[2] for fit:', self.bounds[ind_epoch_fitkeys][2])

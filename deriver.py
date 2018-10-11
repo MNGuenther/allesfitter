@@ -24,6 +24,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import os
+import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -75,7 +76,6 @@ def derive(samples, mode, output_units='jup'):
     
     N_samples = samples.shape[0]
     
-    
 
     ###############################################################################
     #::: stellar 'posteriors'
@@ -84,7 +84,6 @@ def derive(samples, mode, output_units='jup'):
     star = {}
     star['R_star'] = buf['R_star'] + buf['R_star_err']*np.random.randn(N_samples)
     star['M_star'] = buf['M_star'] + buf['M_star_err']*np.random.randn(N_samples)
-    
     
     
     ###############################################################################
@@ -160,9 +159,9 @@ def derive(samples, mode, output_units='jup'):
     labels = []
     units = []
     for planet in planets:
-        for name,label,unit in zip([planet+'_R_star/a'                 , planet+'_R_planet/a'                  , planet+'_R_planet'             , planet+'_a'                , planet+'_i'                , planet+'_e'                , planet+'_w'                     , planet+'_M_planet'             , planet+'_b_tra'                  , planet+'_b_occ'                  , planet+'_T_tra_tot'              , planet+'_T_tra_full'              ],\
-                                   ['$\mathrm{R_\star/a ('+planet+')}$', '$\mathrm{R_{planet}/a ('+planet+')}$', '$\mathrm{R_{p} ('+planet+')}$', '$\mathrm{a ('+planet+')}$', '$\mathrm{i ('+planet+')}$', '$\mathrm{e ('+planet+')}$', '$\mathrm{\omega ('+planet+')}$', '$\mathrm{M_{p} ('+planet+')}$', '$\mathrm{b_{tra} ('+planet+')}$', '$\mathrm{b_{occ} ('+planet+')}$', '$\mathrm{T_{tot} ('+planet+')}$', '$\mathrm{T_{full} ('+planet+')}$'],\
-                                   ['-'                                , '-'                                   , 'R_{'+suffix+'}'               , 'R_{\odot}'                , 'deg'                      , '-'                        , 'deg'                           , 'M_{'+suffix  +'}'             , '-'                              , '-'                              , 'h'                              , 'h'                               ]):
+        for name,label,unit in zip( [planet+'_R_star/a'                 , planet+'_R_planet/a'                            , planet+'_R_planet'             , planet+'_a'              , planet+'_i'                , planet+'_e'                , planet+'_w'                   , planet+'_M_planet'         , planet+'_b_tra'               , planet+'_b_occ'               , planet+'_T_tra_tot'          , planet+'_T_tra_full'              ],\
+                                    ['$R_\star/a_\mathrm{'+planet+'}$' , '$R_\mathrm{'+planet+'}/a_\mathrm{'+planet+'}$', '$R_\mathrm{'+planet+'}$'       , '$a\mathrm{'+planet+'}$' , '$i_\mathrm{'+planet+'}$'  , '$e_\mathrm{'+planet+'}$'   , '$\omega_\mathrm{'+planet+'}$', '$M_\mathrm{'+planet+'}$'   , '$b_\mathrm{{tra;'+planet+'}$', '$b_\mathrm{{occ;'+planet+'}$', '$T_\mathrm{tot;'+planet+'}$', '$T_\mathrm{full;'+planet+'}$'    ],\
+                                    ['-'                                , '-'                                             , '$\mathrm{R_{'+suffix+'}}$'    , '$\mathrm{R_{\odot}}$'   , 'deg'                      , '-'                        , 'deg'                         , '$\mathrm{M_{'+suffix+'}}$'  , '-'                           , '-'                           , 'h'                          , 'h'                               ]):
             names.append(name) 
             labels.append(label)
             units.append(unit)
@@ -172,6 +171,20 @@ def derive(samples, mode, output_units='jup'):
 #            units.append( '%' )
             
             
+            
+    ###############################################################################
+    #::: delete pointless values
+    ###############################################################################
+    ind_good = []
+    for i,name in enumerate(names):
+        if ( isinstance(derived_samples[name], np.ndarray) ) and not ( any(np.isnan(derived_samples[name])) ):
+            ind_good.append(i)
+            
+    names = [ names[i] for i in ind_good ]
+    labels = [ labels[i] for i in ind_good ]
+    units = [ units[i] for i in ind_good ]
+    
+    
             
     ###############################################################################
     #::: save all in pickle
@@ -191,7 +204,7 @@ def derive(samples, mode, output_units='jup'):
         
         f.write('parameter & value & unit & - \\\\ \n')
         f.write('\\hline \n')
-        f.write('\\multicolumn{4}{c}{\\textit{Fitted parameters}} \\\\ \n')
+        f.write('\\multicolumn{4}{c}{\\textit{Derived parameters}} \\\\ \n')
         f.write('\\hline \n')
         
         for name,label,unit in zip(names, labels, units):
@@ -199,7 +212,7 @@ def derive(samples, mode, output_units='jup'):
             outfile.write( str(label)+','+str(unit)+','+str(median)+','+str(median-ll)+','+str(ul-median)+'\n' )
             
             value = latex_printer.round_tex(median, median-ll, ul-median)
-            f.write( label + ' & $' + value + '$ & $\mathrm{' + unit +'}$ \\\\ \n' )
+            f.write( label + ' & $' + value + '$ & ' + unit +' \\\\ \n' )
             
             f_cmd.write('\\newcommand{\\'+name.replace("_", "")+'}{'+name+'$='+value+'$} \n')
             
