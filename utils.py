@@ -36,11 +36,17 @@ def reduce_phot_data(time, flux, flux_err, params, settings):
     ind_in = []
           
     for planet in settings['planets_phot']:
-        t0 = time[0]
-        dt = params[planet+'_epoch'] - t0
-        n = np.max( int( dt/params[planet+'_period'] )+1, 0 )
-        epoch = params[planet+'_epoch'] - n*params[planet+'_period']    
-        dic = {'TIME':time, 'EPOCH':epoch, 'PERIOD':params[planet+'_period'], 'WIDTH':8./24.}
+        start = np.nanmin( time )
+        first_epoch = 1.*params[planet+'_epoch']
+        period      = 1.*params[planet+'_period']
+        
+        #::: place the first_epoch at the start of the data to avoid luser mistakes
+        if start<=first_epoch:
+            first_epoch -= int(np.round((first_epoch-start)/period)) * period
+        else:
+            first_epoch += int(np.round((start-first_epoch)/period)) * period
+  
+        dic = {'TIME':time, 'EPOCH':first_epoch, 'PERIOD':period, 'WIDTH':8./24.}
         ind_in += list(index_transits(dic)[0])
     time = time[ind_in]
     flux = flux[ind_in]

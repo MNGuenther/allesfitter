@@ -126,7 +126,7 @@ def plot_1(ax, samples, inst, planet, style):
 #    global config.BASEMENT
     
     params_median, params_ll, params_ul = get_params_from_samples(samples)
-        
+    
     if inst in config.BASEMENT.settings['inst_phot']:
         key='flux'
         ylabel='Flux'
@@ -161,6 +161,10 @@ def plot_1(ax, samples, inst, planet, style):
         for i in range(samples.shape[0]):
             s = samples[i,:]
             p = update_params(s)
+            print('---')
+            print(p)
+            print(x)
+            print(xx)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
             ax.plot( xx, model+baseline, 'r-', alpha=0.1, zorder=10, rasterized=True )
