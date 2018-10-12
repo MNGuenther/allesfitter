@@ -167,6 +167,9 @@ class Basement():
         else:
             self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
         
+        if 'color_plot' not in self.settings.keys():
+            self.settings['color_plot'] = False
+            
 
 
     ###############################################################################

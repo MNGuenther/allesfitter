@@ -152,7 +152,8 @@ def plot_1(ax, samples, inst, planet, style):
         
         #::: plot data, not phase
         ax.errorbar( x, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
-        ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 ) 
+        if config.BASEMENT.settings['color_plot']:
+            ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 ) 
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
         
         #::: plot model + baseline, not phased
@@ -194,7 +195,7 @@ def plot_1(ax, samples, inst, planet, style):
             
             #data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(phase_time) < 0.5*len(phi):
+            if len(x) > 1000:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
@@ -215,12 +216,13 @@ def plot_1(ax, samples, inst, planet, style):
         else: 
             #data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(phase_time) < 0.5*len(phi):
+            if len(x) > 1000:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
-                ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 )          
+                if config.BASEMENT.settings['color_plot']:
+                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
