@@ -151,7 +151,8 @@ def plot_1(ax, samples, inst, planet, style):
         yerr = 1./np.sqrt(inv_sigma2_w)
         
         #::: plot data, not phase
-        ax.errorbar( x, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )
+        ax.errorbar( x, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
+        ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 ) 
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
         
         #::: plot model + baseline, not phased
@@ -161,10 +162,6 @@ def plot_1(ax, samples, inst, planet, style):
         for i in range(samples.shape[0]):
             s = samples[i,:]
             p = update_params(s)
-            print('---')
-            print(p)
-            print(x)
-            print(xx)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
             ax.plot( xx, model+baseline, 'r-', alpha=0.1, zorder=10, rasterized=True )
@@ -183,8 +180,8 @@ def plot_1(ax, samples, inst, planet, style):
         
         #::: "data - baseline" calculated from initial guess / MCMC median posterior results
         x = config.BASEMENT.data[inst]['time']
-        baseline = calculate_baseline(params_median, inst, key) #evaluated on x (!)
-        y = config.BASEMENT.data[inst][key] - baseline
+        baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
+        y = config.BASEMENT.data[inst][key] - baseline_median
         inv_sigma2_w = calculate_inv_sigma2_w(params_median, inst, key)
         yerr = 1./np.sqrt(inv_sigma2_w)
         if 'zoom' not in style: zoomfactor = 1.
@@ -222,15 +219,19 @@ def plot_1(ax, samples, inst, planet, style):
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
+                ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
             xx = np.linspace( -0.25, 0.75, 1000)
+            baseline_median = calculate_baseline(params_median, inst, key, xx=xx)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                baseline = calculate_baseline(p, inst, key, xx=xx)
+                model = model + baseline_median - baseline
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
              
             if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )

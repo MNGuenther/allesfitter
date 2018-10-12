@@ -30,9 +30,8 @@ import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
-#::: allesfitter modules
-from . import utils
-
+#::: my modules
+from lichtkurven import index_transits, index_eclipses
 
 
 
@@ -158,7 +157,17 @@ class Basement():
                 else:                       
                     self.settings['inst_for_'+planet+'_epoch'] = []
         
+        if 'secondary_eclipse' not in self.settings.keys():
+            self.settings['secondary_eclipse'] = False
+        else:
+            self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
+                        
+        if 'fast_fit_width' not in self.settings.keys():
+            self.settings['fast_fit_width'] = 8./24.
+        else:
+            self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
         
+
 
     ###############################################################################
     #::: load params
@@ -203,7 +212,7 @@ class Basement():
         self.data = {}
         for inst in self.settings['inst_phot']:
             time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
-            if self.settings['fast_fit']: time, flux, flux_err = utils.reduce_phot_data(time, flux, flux_err, self.params, self.settings)
+            if self.settings['fast_fit']: time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
             self.data[inst] = {
                           'time':time,
                           'flux':flux,
@@ -299,14 +308,23 @@ class Basement():
 
 
     ###############################################################################
-    #::: set up a GP object for photometric data sets
+    #::: reduce_phot_data
     ###############################################################################
-#    def setup_GPs(self):
-#        self.gp = {}
-#        for inst in self.settings['inst_phot']:
-#            for key in ['flux']:
-#                kernel = terms.Matern32Term(log_sigma=self.params['baseline_gp1_'+key+'_'+inst], log_rho=self.params['baseline_gp2_'+key+'_'+inst])
-#                self.gp[key+'_'+inst] = celerite.GP(kernel)
-        
-        
-        
+    def reduce_phot_data(self, time, flux, flux_err):
+        ind_in = []
+              
+        for planet in self.settings['planets_phot']:
+            epoch  = self.params[planet+'_epoch']
+            period = self.params[planet+'_period']
+            width  = self.settings['fast_fit_width']
+            if self.settings['secondary_eclipse']:
+                ind_ecl1, ind_ecl2, _ = index_eclipses(time,epoch,period,width)
+                ind_in += list(ind_ecl1)
+                ind_in += list(ind_ecl2)
+            else:
+                ind_in += list(index_transits(time,epoch,period,width)[0])
+        time = time[ind_in]
+        flux = flux[ind_in]
+        flux_err = flux_err[ind_in]
+        return time, flux, flux_err
+            

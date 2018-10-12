@@ -237,5 +237,5 @@ def derive(samples, mode, output_units='jup'):
     fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=100, bbox_inches='tight' )
     plt.close(fig)
     
-    logprint('\nSaved '+mode+'__derived_corner.jpg')
+    logprint('\nSaved '+mode+'_derived_corner.jpg')
     
