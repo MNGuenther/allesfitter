@@ -215,6 +215,8 @@ class Basement():
         self.data = {}
         for inst in self.settings['inst_phot']:
             time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
+            if not all(np.diff(time)>=0):
+                raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             if self.settings['fast_fit']: time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
             self.data[inst] = {
                           'time':time,
@@ -224,6 +226,8 @@ class Basement():
             
         for inst in self.settings['inst_rv']:
             time, rv, rv_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
+            if not all(np.diff(time)>=0):
+                raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             self.data[inst] = {
                           'time':time,
                           'rv':rv,

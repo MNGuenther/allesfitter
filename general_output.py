@@ -195,7 +195,7 @@ def plot_1(ax, samples, inst, planet, style):
             
             #data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(x) > 1000:
+            if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
@@ -216,7 +216,7 @@ def plot_1(ax, samples, inst, planet, style):
         else: 
             #data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(x) > 1000:
+            if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
