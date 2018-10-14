@@ -21,7 +21,6 @@ import numpy as np
 import os
 import emcee
 from multiprocessing import Pool
-from multiprocessing import cpu_count
 from contextlib import closing
 
 #::: warnings
@@ -170,9 +169,9 @@ def mcmc_fit(datadir):
     logprint("\nRunning MCMC...")
     logprint('--------------------------')
     if config.BASEMENT.settings['multiprocess']:
-         with closing(Pool(processes=(cpu_count()-1))) as pool: #multiprocessing
+         with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool: #multiprocessing
 #        with closing(Pool(cpu_count()-1)) as pool: #pathos
-            logprint('\nRunning on', cpu_count()-1, 'CPUs.')
+            logprint('\nRunning on', config.BASEMENT.settings['multiprocess_cores'], 'CPUs.')
             sampler = emcee.EnsembleSampler(config.BASEMENT.settings['mcmc_nwalkers'], 
                                             config.BASEMENT.ndim, 
                                             mcmc_lnprob,

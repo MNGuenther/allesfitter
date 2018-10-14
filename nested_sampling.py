@@ -22,7 +22,6 @@ import os
 import dynesty
 from scipy.special import ndtri
 from multiprocessing import Pool
-from multiprocessing import cpu_count
 from contextlib import closing
 import pickle
 from time import time as timer
@@ -34,9 +33,7 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 
 #::: allesfitter modules
 from . import config
-from .computer import update_params,\
-                     calculate_residuals, calculate_inv_sigma2_w,\
-                     calculate_lnlike
+from .computer import update_params, calculate_lnlike
 from .general_output import show_initial_guess, logprint
 
 
@@ -121,10 +118,10 @@ def ns_fit(datadir):
         t0 = timer()
         
         if config.BASEMENT.settings['multiprocess']:
-             with closing(Pool(processes=(cpu_count()-1))) as pool:
-                logprint('\nRunning on', cpu_count()-1, 'CPUs.')
+             with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool:
+                logprint('\nRunning on', config.BASEMENT.settings['multiprocess_cores'], 'CPUs.')
                 sampler = dynesty.NestedSampler(ns_lnlike, ns_prior_transform, ndim, 
-                                                pool=pool, queue_size=cpu_count()-1, 
+                                                pool=pool, queue_size=config.BASEMENT.settings['multiprocess_cores'], 
                                                 bound=bound, sample=sample, nlive=nlive)
                 sampler.run_nested(dlogz=tol, print_progress=True)
             
