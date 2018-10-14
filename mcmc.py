@@ -76,8 +76,8 @@ def mcmc_lnprior(theta):
     lnp = 0.        
     
     for th, b in zip(theta, config.BASEMENT.bounds):
-        if (b[0] == 'uniform') and not (b[1] <= th <= b[2]):
-            return -np.inf
+        if b[0] == 'uniform':
+            if not (b[1] <= th <= b[2]): return -np.inf
         elif b[0] == 'normal':
             lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (th - b[1])**2 / (2.*b[2]**2) ) )
         else:
