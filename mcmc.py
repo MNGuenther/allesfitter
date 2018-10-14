@@ -80,7 +80,8 @@ def mcmc_lnprior(theta):
             return -np.inf
         elif b[0] == 'normal':
             lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (th - b[1])**2 / (2.*b[2]**2) ) )
-       
+        else:
+            raise ValueError('Bounds have to be "uniform" or "normal". Input from "params.csv" was "'+b[0]+'".')
     return lnp
 
 

@@ -173,6 +173,8 @@ class Basement():
             
         if 'multiprocess_cores' not in self.settings.keys():
             self.settings['multiprocess_cores'] = cpu_count()-1
+        elif self.settings['multiprocess_cores'] == 'all':
+            self.settings['multiprocess_cores'] = cpu_count()-1
         else:
             self.settings['multiprocess_cores'] = int(self.settings['multiprocess_cores'])
             if self.settings['multiprocess_cores'] >= cpu_count()-1:

@@ -86,7 +86,8 @@ def ns_prior_transform(utheta):
             theta[i] = utheta[i]*(config.BASEMENT.bounds[i][2]-config.BASEMENT.bounds[i][1]) + config.BASEMENT.bounds[i][1]
         elif config.BASEMENT.bounds[i][0]=='normal':
             theta[i] = config.BASEMENT.bounds[i][1] + config.BASEMENT.bounds[i][2]*ndtri(utheta[i])
-    
+        else:
+            raise ValueError('Bounds have to be "uniform" or "normal". Input from "params.csv" was "'+config.BASEMENT.bounds[i][0]+'".')
     return theta
     
 
