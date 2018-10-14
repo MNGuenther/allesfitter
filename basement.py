@@ -175,7 +175,7 @@ class Basement():
             self.settings['multiprocess_cores'] = cpu_count()-1
         else:
             self.settings['multiprocess_cores'] = int(self.settings['multiprocess_cores'])
-            if self.settings['multiprocess_cores'] > cpu_count()-1:
+            if self.settings['multiprocess_cores'] >= cpu_count()-1:
                 string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
                 raise ValueError(string)
 

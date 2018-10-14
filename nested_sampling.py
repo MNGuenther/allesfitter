@@ -141,10 +141,10 @@ def ns_fit(datadir):
         t0 = timer()
         
         if config.BASEMENT.settings['multiprocess']:
-             with closing(Pool(processes=(cpu_count()-1))) as pool:
-                logprint('\nRunning on', cpu_count()-1, 'CPUs.')
+             with closing(Pool(processes=config.BASEMENT.settings['multiprocess_cores'])) as pool:
+                logprint('\nRunning on', config.BASEMENT.settings['multiprocess_cores'], 'CPUs.')
                 sampler = dynesty.DynamicNestedSampler(ns_lnlike, ns_prior_transform, ndim, 
-                                                       pool=pool, queue_size=cpu_count()-1, 
+                                                       pool=pool, queue_size=config.BASEMENT.settings['multiprocess_cores'], 
                                                        bound=bound, sample=sample)
                 sampler.run_nested(nlive_init=nlive, print_progress=True)
             
