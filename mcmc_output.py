@@ -68,10 +68,12 @@ def plot_MCMC_chains(sampler):
     
     #::: plot the lnprob_values; emcee_3.0.0 format = (nsteps, nwalkers)
     axes[0].plot(log_prob, '-', rasterized=True)
+    axes[0].axvline( 1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'], color='k', linestyle='--' )
     mini = np.min(log_prob[int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']):,:])
     maxi = np.max(log_prob[int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']):,:])
     axes[0].set( ylabel='lnprob', xlabel='steps', rasterized=True,
                  ylim=[mini, maxi] )
+    axes[0].set_xticklabels( [int(label) for label in axes[0].get_xticks()*config.BASEMENT.settings['mcmc_thin_by']] )
     
     #:::plot all chains of parameters
     for i in range(config.BASEMENT.ndim):
@@ -79,7 +81,9 @@ def plot_MCMC_chains(sampler):
         ax.set(ylabel=config.BASEMENT.fitkeys[i], xlabel='steps')
         ax.plot(chain[:,:,i], '-', rasterized=True)
         ax.axvline( 1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'], color='k', linestyle='--' )
-    
+#        ax.set_xticks(ax.get_xticks()[::2])
+        ax.set_xticklabels( [int(label) for label in ax.get_xticks()*config.BASEMENT.settings['mcmc_thin_by']] )
+
     plt.tight_layout()
     return fig, axes
     
