@@ -124,6 +124,9 @@ class Basement():
 
         self.settings = {r[0]:r[1] for r in rows}
         
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: General settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for key in ['planets_phot', 'planets_rv', 'inst_phot', 'inst_rv']:
             if len(self.settings[key]): 
                 self.settings[key] = str(self.settings[key]).split(' ')
@@ -134,11 +137,30 @@ class Basement():
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
     
         self.settings['multiprocess'] = set_bool(self.settings['multiprocess'])
+        
+        if 'multiprocess_cores' not in self.settings.keys():
+            self.settings['multiprocess_cores'] = cpu_count()-1
+        elif self.settings['multiprocess_cores'] == 'all':
+            self.settings['multiprocess_cores'] = cpu_count()-1
+        else:
+            self.settings['multiprocess_cores'] = int(self.settings['multiprocess_cores'])
+            if self.settings['multiprocess_cores'] > cpu_count()-1:
+                string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
+                raise ValueError(string)
+                
         self.settings['fast_fit'] = set_bool(self.settings['fast_fit'])
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: MCMC settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for key in ['mcmc_nwalkers','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
-            
+        
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Nested Sampling settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['ns_nlive'] = int(self.settings['ns_nlive'])
         self.settings['ns_tol'] = float(self.settings['ns_tol'])
         if self.settings['ns_sample'] == 'auto':
@@ -149,6 +171,10 @@ class Basement():
             else:
                 self.settings['ns_sample'] = 'slice'
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Epoch settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for planet in self.settings['planets_all']:
             if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
                 self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
@@ -158,31 +184,59 @@ class Basement():
                 else:                       
                     self.settings['inst_for_'+planet+'_epoch'] = []
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Secondary eclipse
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if 'secondary_eclipse' not in self.settings.keys():
             self.settings['secondary_eclipse'] = False
         else:
             self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
                         
+            
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Fast fit width
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if 'fast_fit_width' not in self.settings.keys():
             self.settings['fast_fit_width'] = 8./24.
         else:
             self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Color plot
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if 'color_plot' not in self.settings.keys():
             self.settings['color_plot'] = False
             
-        if 'multiprocess_cores' not in self.settings.keys():
-            self.settings['multiprocess_cores'] = cpu_count()-1
-        elif self.settings['multiprocess_cores'] == 'all':
-            self.settings['multiprocess_cores'] = cpu_count()-1
-        else:
-            self.settings['multiprocess_cores'] = int(self.settings['multiprocess_cores'])
-            if self.settings['multiprocess_cores'] >= cpu_count()-1:
-                string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
-                raise ValueError(string)
-
-
-
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Exposure time interpolation
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_all']:
+            #::: if t_exp is given
+            if 't_exp_'+inst in self.settings.keys() and len(self.settings['t_exp_'+inst]):
+                t_exp = self.settings['t_exp_'+inst].split(' ')
+                #if float
+                if len(t_exp)==1:
+                    self.settings['t_exp_'+inst] = np.float(t_exp[0])
+                #if array
+                else:
+                    self.settings['t_exp_'+inst] = np.array([ np.float(t) for t in t_exp ])
+            #::: if not given / given as an empty field
+            else:
+                self.settings['t_exp_'+inst] = None
+                
+            #::: if t_exp_n_int is given
+            if 't_exp_'+inst in self.settings.keys() and len(self.settings['t_exp_n_int_'+inst]):
+                self.settings['t_exp_n_int_'+inst] = int(self.settings['t_exp_n_int_'+inst])
+                if self.settings['t_exp_n_int_'+inst] < 1:
+                    raise ValueError('"t_exp_n_int_'+inst+'" must be >= 1, but is given as '+str(self.settings['t_exp_n_int_'+inst])+' in params.csv')
+            else:
+                self.settings['t_exp_n_int_'+inst] = None
+                
+                
+                
     ###############################################################################
     #::: load params
     ###############################################################################
@@ -242,7 +296,7 @@ class Basement():
             self.data[inst] = {
                           'time':time,
                           'rv':rv,
-                          'err_scales_rv':rv_err/np.nanmean(rv_err)
+                          'white_noise_rv':rv_err
                          }
             
             

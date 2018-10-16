@@ -38,8 +38,8 @@ from lichtkurven import lightcurve_tools as lct
 from . import config
 from . import latex_printer
 from .computer import update_params,\
-                     calculate_model,rv_fct,\
-                     calculate_baseline, calculate_inv_sigma2_w
+                     calculate_model, rv_fct,\
+                     calculate_baseline, calculate_yerr_w
                      
                      
                      
@@ -147,11 +147,10 @@ def plot_1(ax, samples, inst, planet, style):
         #::: set it up
         x = config.BASEMENT.data[inst]['time']
         y = config.BASEMENT.data[inst][key]
-        inv_sigma2_w = calculate_inv_sigma2_w(params_median, inst, key)
-        yerr = 1./np.sqrt(inv_sigma2_w)
+        yerr_w = calculate_yerr_w(params_median, inst, key)
         
         #::: plot data, not phase
-        ax.errorbar( x, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
+        ax.errorbar( x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
         if config.BASEMENT.settings['color_plot']:
             ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 ) 
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
@@ -179,15 +178,20 @@ def plot_1(ax, samples, inst, planet, style):
     ###############################################################################
     else:
         
-        #::: "data - baseline" calculated from initial guess / MCMC median posterior results
+        #::: data - baseline_median
         x = config.BASEMENT.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
         y = config.BASEMENT.data[inst][key] - baseline_median
-        inv_sigma2_w = calculate_inv_sigma2_w(params_median, inst, key)
-        yerr = 1./np.sqrt(inv_sigma2_w)
-        if 'zoom' not in style: zoomfactor = 1.
-        else: zoomfactor = params_median[planet+'_period']*24.
+        yerr_w = calculate_yerr_w(params_median, inst, key)
         
+        #::: zoom?
+        if 'zoom' in style: 
+            zoomfactor = params_median[planet+'_period']*24.
+        else: 
+            zoomfactor = 1.
+        
+        
+        #::: if RV, need to take care of multiple planets
         #TODO: make this upwards compatible fo rmultiple planets ('d', 'e', etc)
         if (inst in config.BASEMENT.settings['inst_rv']) & (planet=='c'):
             model = rv_fct(params_median, inst, 'b')[0]
@@ -199,7 +203,7 @@ def plot_1(ax, samples, inst, planet, style):
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )            
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
@@ -213,6 +217,7 @@ def plot_1(ax, samples, inst, planet, style):
             if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
             
         
+        #::: if photometry
         else: 
             #data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
@@ -220,20 +225,17 @@ def plot_1(ax, samples, inst, planet, style):
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr, fmt='b.', capsize=0, rasterized=True )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
                 if config.BASEMENT.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
             xx = np.linspace( -0.25, 0.75, 1000)
-            baseline_median = calculate_baseline(params_median, inst, key, xx=xx)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-                baseline = calculate_baseline(p, inst, key, xx=xx)
-                model = model + baseline_median - baseline
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
              
             if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
