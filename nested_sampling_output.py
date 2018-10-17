@@ -89,7 +89,7 @@ def ns_output(datadir):
     samples = draw_ns_samples(results, Nsamples=20) #only 20 samples for plotting
     for planet in config.BASEMENT.settings['planets_all']:
         fig, axes = afplot(samples, planet)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
         plt.close(fig)
     
     

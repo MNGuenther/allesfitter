@@ -161,7 +161,10 @@ class Basement():
             self.settings['multiprocess_cores'] = cpu_count()-1
         else:
             self.settings['multiprocess_cores'] = int(self.settings['multiprocess_cores'])
-            if self.settings['multiprocess_cores'] > cpu_count()-1:
+            if self.settings['multiprocess_cores'] == cpu_count():
+                string = 'You are pushing your luck: you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. I will let you go through with it this time...'
+                warnings.warn(string)
+            if self.settings['multiprocess_cores'] > cpu_count():
                 string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
                 raise ValueError(string)
 
@@ -202,10 +205,13 @@ class Basement():
         if self.settings['ns_sample'] == 'auto':
             if self.ndim < 10:
                 self.settings['ns_sample'] = 'unif'
+                print('Using ns_sample=="unif".')
             elif 10 <= self.ndim <= 20:
                 self.settings['ns_sample'] = 'rwalk'
+                print('Using ns_sample=="rwalk".')
             else:
                 self.settings['ns_sample'] = 'slice'
+                print('Using ns_sample=="slice".')
                 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -405,7 +411,7 @@ class Basement():
             period = self.params[planet+'_period']
             width  = self.settings['fast_fit_width']
             if self.settings['secondary_eclipse']:
-                ind_ecl1, ind_ecl2, _ = index_eclipses(time,epoch,period,width)
+                ind_ecl1, ind_ecl2, _ = index_eclipses(time,epoch,period,width,width) #TODO: currently this assumes width_occ == width_tra
                 ind_in += list(ind_ecl1)
                 ind_in += list(ind_ecl2)
             else:
