@@ -21,6 +21,7 @@ import numpy as np
 import os
 import dynesty
 from scipy.special import ndtri
+from scipy.stats import truncnorm
 from multiprocessing import Pool
 from contextlib import closing
 import pickle
@@ -86,10 +87,18 @@ def ns_prior_transform(utheta):
             theta[i] = utheta[i]*(config.BASEMENT.bounds[i][2]-config.BASEMENT.bounds[i][1]) + config.BASEMENT.bounds[i][1]
         elif config.BASEMENT.bounds[i][0]=='normal':
             theta[i] = config.BASEMENT.bounds[i][1] + config.BASEMENT.bounds[i][2]*ndtri(utheta[i])
+        elif config.BASEMENT.bounds[i][0]=='trunc_normal':
+            theta[i] = my_truncnorm_isf(utheta[i],config.BASEMENT.bounds[i][1],config.BASEMENT.bounds[i][2],config.BASEMENT.bounds[i][3],config.BASEMENT.bounds[i][4]) 
         else:
-            raise ValueError('Bounds have to be "uniform" or "normal". Input from "params.csv" was "'+config.BASEMENT.bounds[i][0]+'".')
+            raise ValueError('Bounds have to be "uniform", "normal" and "trunc_normal". Input from "params.csv" was "'+config.BASEMENT.bounds[i][0]+'".')
     return theta
     
+
+def my_truncnorm_isf(q,a,b,mean,std):
+    a_scipy = 1.*(a - mean) / std
+    b_scipy = 1.*(b - mean) / std
+    return truncnorm.isf(q,a_scipy,b_scipy,loc=mean,scale=std)
+
 
 
 ###############################################################################

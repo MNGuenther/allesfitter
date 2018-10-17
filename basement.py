@@ -136,6 +136,23 @@ class Basement():
         self.settings['planets_all']  = list(np.unique(self.settings['planets_phot']+self.settings['planets_rv'])) #sorted by b, c, d...
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
     
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Epoch settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for planet in self.settings['planets_all']:
+            if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
+                self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
+            else:
+                if len(self.settings['inst_for_'+planet+'_epoch']): 
+                    self.settings['inst_for_'+planet+'_epoch'] = str(self.settings['inst_for_'+planet+'_epoch']).split(' ')
+                else:                       
+                    self.settings['inst_for_'+planet+'_epoch'] = []
+        
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Multiprocess settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['multiprocess'] = set_bool(self.settings['multiprocess'])
         
         if 'multiprocess_cores' not in self.settings.keys():
@@ -147,9 +164,28 @@ class Basement():
             if self.settings['multiprocess_cores'] > cpu_count()-1:
                 string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
                 raise ValueError(string)
-                
+
+
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Fast fit
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['fast_fit'] = set_bool(self.settings['fast_fit'])
         
+        if 'fast_fit_width' not in self.settings.keys():
+            self.settings['fast_fit_width'] = 8./24.
+        else:
+            self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
+                
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Secondary eclipse
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'secondary_eclipse' not in self.settings.keys():
+            self.settings['secondary_eclipse'] = False
+        else:
+            self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
+                        
+            
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: MCMC settings
@@ -170,38 +206,7 @@ class Basement():
                 self.settings['ns_sample'] = 'rwalk'
             else:
                 self.settings['ns_sample'] = 'slice'
-        
-        
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: Epoch settings
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for planet in self.settings['planets_all']:
-            if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
-                self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
-            else:
-                if len(self.settings['inst_for_'+planet+'_epoch']): 
-                    self.settings['inst_for_'+planet+'_epoch'] = str(self.settings['inst_for_'+planet+'_epoch']).split(' ')
-                else:                       
-                    self.settings['inst_for_'+planet+'_epoch'] = []
-        
-        
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: Secondary eclipse
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        if 'secondary_eclipse' not in self.settings.keys():
-            self.settings['secondary_eclipse'] = False
-        else:
-            self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
-                        
-            
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: Fast fit width
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        if 'fast_fit_width' not in self.settings.keys():
-            self.settings['fast_fit_width'] = 8./24.
-        else:
-            self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
-        
+                
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Color plot
@@ -256,10 +261,20 @@ class Basement():
         
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)
         self.theta_0 = buf['value'][ self.ind_fit ]     #len(ndim)
-        self.init_err = buf['init_err'][ self.ind_fit ] #len(ndim)
+        
+        if 'init_err' in buf.dtype.names:
+            self.init_err = buf['init_err'][ self.ind_fit ] #len(ndim)
+        else:
+            self.init_err = 1e-8
+            
         self.bounds = [ str(item).split(' ') for item in buf['bounds'][ self.ind_fit ] ] #len(ndim)
         for i, item in enumerate(self.bounds):
-            self.bounds[i] = [ item[0], np.float(item[1]), np.float(item[2]) ]
+            if item[0] in ['uniform', 'normal']:
+                self.bounds[i] = [ item[0], np.float(item[1]), np.float(item[2]) ]
+            elif item[0] in ['trunc_normal']:
+                self.bounds[i] = [ item[0], np.float(item[1]), np.float(item[2]), np.float(item[3]), np.float(item[4]) ]
+            else:
+                raise ValueError('Bounds have to be "uniform" or "normal". Input from "params.csv" was "'+self.bounds[i][0]+'".')
     
         self.ndim = len(self.theta_0)                   #len(ndim)
 
