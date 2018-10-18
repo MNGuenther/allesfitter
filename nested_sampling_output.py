@@ -33,7 +33,9 @@ from dynesty import plotting as dyplot
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint
+from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .colormaputil import truncate_colormap
+from .latex_printer import round_tex
                      
 
     
@@ -98,12 +100,12 @@ def ns_output(datadir):
     logprint('--------------------------')
 #    print(results.summary())
     samples = draw_ns_samples(results)    #all samples
-    plt.figure()
-    plt.plot(np.arange(len(samples[:,0])), samples[:,0])
-    plt.show()
-    plt.figure()
-    plt.plot(np.arange(len(samples[:,1])), samples[:,1])
-    plt.show()
+#    plt.figure()
+#    plt.plot(np.arange(len(samples[:,0])), samples[:,0])
+#    plt.show()
+#    plt.figure()
+#    plt.plot(np.arange(len(samples[:,1])), samples[:,1])
+#    plt.show()
     logZdynesty = results.logz[-1]        # value of logZ
     logZerrdynesty = results.logzerr[-1]  # estimate of the statistcal uncertainty on logZ
     logprint('Static: log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
@@ -114,11 +116,56 @@ def ns_output(datadir):
 #    rfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_run.jpg'), dpi=100, bbox_inches='tight' )
 #    plt.close(rfig)
     
-    tfig, taxes = dyplot.traceplot(results)
+    
+    #::: make pretty titles for the plots  
+    labels, units = [], []
+    for i,l in enumerate(config.BASEMENT.fitlabels):
+        labels.append( str(config.BASEMENT.fitlabels[i]) )
+        units.append( str(config.BASEMENT.fitunits[i]) )
+        
+    results2 = results.copy()    
+    params_median, params_ll, params_ul = get_params_from_samples(results['samples'])
+
+    for planet in config.BASEMENT.settings['planets_all']:
+        
+        if planet+'_period' in config.BASEMENT.fitkeys:
+            ind    = np.where(config.BASEMENT.fitkeys==planet+'_period')[0][0]
+            results2['samples'][:,ind] -= np.round(params_median[planet+'_period'],decimals=3)
+            units[ind] = str(units[ind]+'-'+np.format_float_positional(params_median[planet+'_period'],3)+'d')
+            
+        if planet+'_epoch' in config.BASEMENT.fitkeys:
+            ind    = np.where(config.BASEMENT.fitkeys==planet+'_epoch')[0][0]
+            results2['samples'][:,ind] -= np.round(params_median[planet+'_epoch'],decimals=0)
+            units[ind] = str(units[ind]+'-'+np.format_float_positional(params_median[planet+'_epoch'],0)+'d')
+          
+    for i,l in enumerate(labels):
+        if units[i]!='':
+            labels[i] = str(labels[i]+' ('+units[i]+')')
+        
+    #::: traceplot    
+    cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
+    tfig, taxes = dyplot.traceplot(results2, labels=labels, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim)
+    plt.tight_layout()
+    
+    #::: cornerplot
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
+
+    #::: set allesfitter titles
+    for i, key in enumerate(config.BASEMENT.fitkeys):    
+        params_median, params_ll, params_ul = get_params_from_samples(results2['samples'])
+        value = round_tex(params_median[key], params_ll[key], params_ul[key])
+        ttitle = r'' + labels[i] + r'$=' + value + '$'
+        taxes[i,1].set_title(ttitle)
+        ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
+        caxes[i,i].set_title(ctitle)
+    for i in range(caxes.shape[0]):
+        for j in range(caxes.shape[1]):
+            caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
+            caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+            
+    #::: save and close the trace- and cornerplot
     tfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_trace.jpg'), dpi=100, bbox_inches='tight' )
     plt.close(tfig)
-    
-    cfig, caxes = dyplot.cornerplot(results)
     cfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_corner.jpg'), dpi=100, bbox_inches='tight' )
     plt.close(cfig)
 

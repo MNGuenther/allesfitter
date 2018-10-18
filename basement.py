@@ -202,16 +202,16 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['ns_nlive'] = int(self.settings['ns_nlive'])
         self.settings['ns_tol'] = float(self.settings['ns_tol'])
-        if self.settings['ns_sample'] == 'auto':
-            if self.ndim < 10:
-                self.settings['ns_sample'] = 'unif'
-                print('Using ns_sample=="unif".')
-            elif 10 <= self.ndim <= 20:
-                self.settings['ns_sample'] = 'rwalk'
-                print('Using ns_sample=="rwalk".')
-            else:
-                self.settings['ns_sample'] = 'slice'
-                print('Using ns_sample=="slice".')
+#        if self.settings['ns_sample'] == 'auto':
+#            if self.ndim < 10:
+#                self.settings['ns_sample'] = 'unif'
+#                print('Using ns_sample=="unif".')
+#            elif 10 <= self.ndim <= 20:
+#                self.settings['ns_sample'] = 'rwalk'
+#                print('Using ns_sample=="rwalk".')
+#            else:
+#                self.settings['ns_sample'] = 'slice'
+#                print('Using ns_sample=="slice".')
                 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -266,6 +266,9 @@ class Basement():
         self.ind_fit = (buf['fit']==1)                  #len(all rows in params.csv)
         
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)
+        self.fitlabels = self.labels[ self.ind_fit ]    #len(ndim)
+        self.fitunits = self.units[ self.ind_fit ]      #len(ndim)
+        
         self.theta_0 = buf['value'][ self.ind_fit ]     #len(ndim)
         
         if 'init_err' in buf.dtype.names:
