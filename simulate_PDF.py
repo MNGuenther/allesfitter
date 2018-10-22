@@ -31,7 +31,7 @@ import math
 np.random.seed(42)
 
 
-def simulate_posterior_samples(median, lower_err, upper_err, size=1, plot=True):
+def simulate_PDF(median, lower_err, upper_err, size=1, plot=True):
     '''
     Simulates a draw of posterior samples from a value and asymmetric errorbars
     by assuming the underlying distribution is a skewed normal distribution.

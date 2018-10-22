@@ -27,5 +27,6 @@ from .nested_sampling import ns_fit
 from .general_output import get_labels, get_initial_guess_gp
 from .nested_sampling_output import get_ns_samples, ns_output
 from .mcmc_output import get_mcmc_samples, mcmc_output
+from .get_priors_from_literature import get_priors_from_literature
 
 __version__ = '0.2.0'
