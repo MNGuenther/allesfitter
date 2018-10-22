@@ -34,6 +34,32 @@ from .latex_printer import round_tex
 #::: calculations and output
 ###############################################################################
 def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
+    '''
+    Inputs:
+    -------
+    i : tuple or list
+        the median, lower error (median - 16th percentile), and upper error (84th percentile - median) 
+        of the inclination in the form (median, lower_error, upper_error)
+        
+    a_over_Rstar : tuple or list
+        the median, lower error (median - 16th percentile), and upper error (84th percentile - median) 
+        of a_over_Rstar in the form (median, lower_error, upper_error)
+        
+    Rp_over_Rstar : tuple or list
+        the median, lower error (median - 16th percentile), and upper error (84th percentile - median) 
+        of Rp_over_Rstar in the form (median, lower_error, upper_error)
+        
+    Returns:
+    --------
+    prints the values and error bars for cosi, Rstar_over_a, Rsuma, and Rp_over_a
+    
+    Example:
+    --------
+    i = (82.80, 0.17, 0.17)
+    a_over_Rstar = (5.851, 0.038, 0.037)
+    Rp_over_Rstar = (0.14075, 0.00035, 0.00035)
+    get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar
+    '''
     
     #::: calculate cosi
     if i is not None:
@@ -65,16 +91,4 @@ def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
         print 'Rp_over_a =', round_tex(median, median-ll, ul-median)
 
 
-
-
-###############################################################################
-#::: user input
-###############################################################################
-if __name__ == '__main__':
-    pass
-    #::: example
-#    i = (82.80, 0.17, 0.17)
-#    a_over_Rstar = (5.851, 0.038, 0.037)
-#    Rp_over_Rstar = (0.14075, 0.00035, 0.00035)
-#    get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar)
     
