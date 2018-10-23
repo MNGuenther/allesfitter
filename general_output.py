@@ -258,7 +258,7 @@ def get_params_from_samples(samples):
     params_ul = update_params(theta_ul)
     params_ll = update_params(theta_ll)
     
-    return params_median, params_ul, params_ll
+    return params_median, params_ll, params_ul
 
 
 

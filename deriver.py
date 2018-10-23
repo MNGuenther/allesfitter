@@ -177,7 +177,7 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     ind_good = []
     for i,name in enumerate(names):
-        if ( isinstance(derived_samples[name], np.ndarray) ) and not ( any(np.isnan(derived_samples[name])) ):
+        if isinstance(derived_samples[name], np.ndarray) and not any(np.isnan(derived_samples[name])) and not all(np.array(derived_samples[name])==0):
             ind_good.append(i)
             
     names = [ names[i] for i in ind_good ]

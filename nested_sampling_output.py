@@ -108,7 +108,7 @@ def ns_output(datadir):
 #    plt.show()
     logZdynesty = results.logz[-1]        # value of logZ
     logZerrdynesty = results.logzerr[-1]  # estimate of the statistcal uncertainty on logZ
-    logprint('Static: log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
+    logprint('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
     logprint('Nr. of posterior samples: {}'.format(len(samples)))
     
     #::: plot all the diagnositc plots
@@ -176,9 +176,9 @@ def ns_output(datadir):
     
 
     #::: derive values (using stellar parameters from params_star.csv)
-    try:
-        deriver.derive(samples, 'mcmc')
-    except:
+    if os.path.exists(os.path.join(config.BASEMENT.datadir,'params_star.csv')):
+        deriver.derive(samples, 'ns')
+    else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     

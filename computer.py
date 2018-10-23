@@ -79,6 +79,7 @@ def update_params(theta, phased=False):
             params[planet+'_radius_1'] = params[planet+'_rsuma'] / (1. + params[planet+'_rr'])
             params[planet+'_radius_2'] = params[planet+'_radius_1'] * params[planet+'_rr']
             
+            #::: limb darkening
             if config.BASEMENT.settings['ld_law_'+inst] == 'lin':
                 params['ldc_1_'+inst] = params['ldc_q1_'+inst]
                 
@@ -93,6 +94,16 @@ def update_params(theta, phased=False):
             else:
                 raise ValueError("Currently only 'lin' and 'quad' limb darkening implemented.")
     
+            #::: brightness ratio
+            #::: this is to avoid a bug in ellc, where it sets reflected light to 0 if sbratio==0
+            if params[planet+'_sbratio_'+inst]==0:
+                params[planet+'_sbratio_'+inst] = 1e-12
+    
+            #::: albedo / heat_2
+            if planet+'_geom_albedo_'+inst not in params:
+                params[planet+'_heat_2_'+inst] = 0
+            else:
+                params[planet+'_heat_2_'+inst] = params[planet+'_geom_albedo_'+inst]/2.
     
     #::: RV
     for planet in config.BASEMENT.settings['planets_rv']:
@@ -135,6 +146,7 @@ def flux_fct(params, inst, planet, xx=None):
 #                      ldc_2 = ldc_2,
                       ld_1 =        config.BASEMENT.settings['ld_law_'+inst],
 #                      ld_2 = 'quad',
+                      heat_2 =      params[planet+'_heat_2_'+inst],
                       t_exp =       config.BASEMENT.settings['t_exp_'+inst],
                       n_int =       config.BASEMENT.settings['t_exp_n_int_'+inst]
                       )

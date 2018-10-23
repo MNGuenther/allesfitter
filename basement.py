@@ -304,7 +304,7 @@ class Basement():
         self.data = {}
         for inst in self.settings['inst_phot']:
             time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
-            if not all(np.diff(time)>=0):
+            if not all(np.diff(time)>0):
                 raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             if self.settings['fast_fit']: time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
             self.data[inst] = {
@@ -315,7 +315,7 @@ class Basement():
             
         for inst in self.settings['inst_rv']:
             time, rv, rv_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
-            if not all(np.diff(time)>=0):
+            if not all(np.diff(time)>0):
                 raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             self.data[inst] = {
                           'time':time,
@@ -376,15 +376,25 @@ class Basement():
                     self.bounds[ind_epoch_fitkeys][1]  = epoch_for_fit - lower           #lower bound
                     self.bounds[ind_epoch_fitkeys][2]  = epoch_for_fit + upper           #upper bound
                 
-                #:::change bounds if normal bounds
+                #:::change bounds if normal or trunc_normal bounds
                 elif self.bounds[ind_epoch_fitkeys][0] == 'normal':
                     mean = 1.*self.theta_0[ind_epoch_fitkeys]
                     std = 1.*self.bounds[ind_epoch_fitkeys][2]
                     self.bounds[ind_epoch_fitkeys][1]  = mean         
                     self.bounds[ind_epoch_fitkeys][2]  = std        
                     
+                elif self.bounds[ind_epoch_fitkeys][0] == 'trunc_normal':
+                    lower = buf - self.bounds[ind_epoch_fitkeys][1]
+                    upper = self.bounds[ind_epoch_fitkeys][2] - buf
+                    mean = 1.*self.theta_0[ind_epoch_fitkeys]
+                    std = 1.*self.bounds[ind_epoch_fitkeys][4]
+                    self.bounds[ind_epoch_fitkeys][1]  = epoch_for_fit - lower           #lower bound
+                    self.bounds[ind_epoch_fitkeys][2]  = epoch_for_fit + upper
+                    self.bounds[ind_epoch_fitkeys][3]  = mean         
+                    self.bounds[ind_epoch_fitkeys][4]  = std        
+                    
                 else:
-                    raise ValueError('Parameters "bounds" have to be "uniform" or "normal".')
+                    raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
            
             #::: print output (for testing only)
 #            print('\nSetting epoch for planet '+planet)
@@ -419,6 +429,8 @@ class Basement():
                 ind_in += list(ind_ecl2)
             else:
                 ind_in += list(index_transits(time,epoch,period,width)[0])
+                
+        ind_in = np.sort(ind_in)
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
