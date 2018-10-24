@@ -28,5 +28,6 @@ from .general_output import get_labels, get_initial_guess_gp
 from .nested_sampling_output import get_ns_samples, ns_output
 from .mcmc_output import get_mcmc_samples, mcmc_output
 from .get_priors_from_literature import get_priors_from_literature
+from .nested_sampling_compare_logZ import ns_compare_logZ
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'

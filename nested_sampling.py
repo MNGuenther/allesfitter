@@ -165,7 +165,7 @@ def ns_fit(datadir):
             
         t1 = timer()
         timedynestydynamic = (t1-t0)
-        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {} seconds".format(timedynestydynamic))
+        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {} minutes".format(int(timedynestydynamic/60.)))
 
 
     #::: pickle-save the 'results' class

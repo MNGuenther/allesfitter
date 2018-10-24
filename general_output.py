@@ -81,11 +81,16 @@ def afplot(samples, planet):
       
     N_inst = len(config.BASEMENT.settings['inst_all'])
     
-    fig, axes = plt.subplots(N_inst,3,figsize=(6*3,4*N_inst))
+    if config.BASEMENT.settings['secondary_eclipse']:
+        fig, axes = plt.subplots(N_inst,4,figsize=(6*4,4*N_inst))
+        styles = ['full','phase','phasezoom','phasezoom_occ']
+    else:
+        fig, axes = plt.subplots(N_inst,3,figsize=(6*3,4*N_inst))
+        styles = ['full','phase','phasezoom']
     axes = np.atleast_2d(axes)
     
     for i,inst in enumerate(config.BASEMENT.settings['inst_all']):
-        for j,style in enumerate(['full','phase','phasezoom']):
+        for j,style in enumerate(styles):
             #::: don't phase-fold single day photometric follow-up
             if ('phase' in style) & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
                 axes[i,j].axis('off')
@@ -185,7 +190,7 @@ def plot_1(ax, samples, inst, planet, style):
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
         #::: zoom?
-        if 'zoom' in style: 
+        if 'phasezoom' in style: 
             zoomfactor = params_median[planet+'_period']*24.
         else: 
             zoomfactor = 1.
@@ -213,8 +218,6 @@ def plot_1(ax, samples, inst, planet, style):
                 p = update_params(s, phased=True)
                 model = rv_fct(p, inst, 'c', xx=xx)[0]
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
-             
-            if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
             
         
         #::: if photometry
@@ -238,7 +241,10 @@ def plot_1(ax, samples, inst, planet, style):
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
              
-            if 'zoom' in style: ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+        
+        #::: zoom?        
+        if 'phasezoom' in style:     ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+        if 'phasezoom_occ' in style: ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], ylim=[0.999,1.001], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
 
 
     
