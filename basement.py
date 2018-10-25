@@ -71,8 +71,8 @@ class Basement():
         
         self.datadir = datadir
         
-        self.load_params()
         self.load_settings()
+        self.load_params()
         self.load_data()
         self.change_epoch()
         
@@ -109,6 +109,86 @@ class Basement():
     #::: load settings
     ###############################################################################
     def load_settings(self):
+        '''
+        Below is a copy of a "complete" settings.csv file:
+            
+        ###############################################################################
+        # General settings
+        ###############################################################################
+        planets_phot 
+        planets_rv
+        inst_phot
+        inst_rv
+        secondary_eclipse                     : optional. Default is False.
+        fast_fit                              : optional. Default is False.
+        fast_fit_width                        : optional. Default is 8./24.
+        multiprocess                          : optional. Default is False.
+        multiprocess_cores                    : optional. Default is cpu_count()-1.
+        ###############################################################################
+        # MCMC settings
+        ###############################################################################
+        mcmc_nwalkers                         : optional. Default is 100.
+        mcmc_total_steps                      : optional. Default is 2000.
+        mcmc_burn_steps                       : optional. Default is 1000.
+        mcmc_thin_by                          : optional. Default is 1.
+        ###############################################################################
+        # Nested Sampling settings
+        ###############################################################################
+        ns_modus                              : optional. Default is static.
+        ns_nlive                              : optional. Default is 500.
+        ns_bound                              : optional. Default is single.
+        ns_sample                             : optional. Default is auto.
+        ns_tol                                : optional. Default is 0.01.
+        ###############################################################################
+        # Exposure settings for interpolation
+        # needs to be in the same units as the time series
+        # if not given the observing times will not be interpolated leading to biased results
+        ###############################################################################
+        t_exp_Leonardo                        : optional. Default is None.
+        t_exp_Michelangelo                    : optional. Default is None.
+        t_exp_Donatello                       : optional. Default is None.
+        t_exp_Raphael                         : optional. Default is None.
+        ###############################################################################
+        # Number of points for exposure interpolation
+        # Sample as fine as possible; generally at least with a 2 min sampling for photometry
+        # n_int=5 was found to be a good number of interpolation points for any short phot. cadence t_exp; 
+        # increase to n_int=10 for 30 min phot. cadence
+        # the impact on RV is not as drasctic and generally n_int=5 is fine enough
+        ###############################################################################
+        t_exp_n_int_Leonardo                  : optional. Default is None.
+        t_exp_n_int_Michelangelo              : optional. Default is None.
+        t_exp_n_int_Donatello                 : optional. Default is None.
+        t_exp_n_int_Raphael                   : optional. Default is None.
+        ###############################################################################
+        # Limb darkening law per instrument: lin / quad / sing
+        #if 'lin' one corresponding parameter called 'ldc_q1_inst' has to be given in params.csv
+        #if 'quad' two corresponding parameter called 'ldc_q1_inst' and 'ldc_q2_inst' have to be given in params.csv
+        #if 'sing' three corresponding parameter called 'ldc_q1_inst'; 'ldc_q2_inst' and 'ldc_q3_inst' have to be given in params.csv
+        ###############################################################################
+        ld_law_Leonardo                       : optional. Default is quad.
+        ld_law_Michelangelo                   : optional. Default is quad.
+        ###############################################################################
+        # Baseline settings
+        # baseline params per instrument: sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_pol_5 / hybrid_pol_6 / hybrid_spline / hybrid_GP
+        # if 'sample_offset' one corresponding parameter called 'baseline_offset_key_inst' has to be given in params.csv
+        # if 'sample_linear' two corresponding parameters called 'baseline_a_key_inst' and 'baseline_b_key_inst' have to be given in params.csv
+        ###############################################################################
+        baseline_flux_Leonardo                : optional. Default is 'hybrid_spline'.
+        baseline_flux_Michelangelo            : optional. Default is 'hybrid_spline'.
+        baseline_rv_Donatello                 : optional. Default is 'hybrid_offset'.
+        baseline_rv_Raphael                   : optional. Default is 'hybrid_offset'.
+        ###############################################################################
+        # Error settings
+        # errors (overall scaling) per instrument: sample / hybrid
+        # if 'sample' one corresponding parameter called 'inv_sigma2_key_inst' has to be given in params.csv (note this must be 1/sigma^2; not sigma)
+        ###############################################################################
+        error_flux_TESS                       : optional. Default is 'sample'.
+        error_rv_AAT                          : optional. Default is 'sample'.
+        error_rv_Coralie                      : optional. Default is 'sample'.
+        error_rv_FEROS                        : optional. Default is 'sample'.
+
+        '''
+        
         
         def set_bool(text):
             if text.lower() in ['true', '1']:
@@ -128,7 +208,9 @@ class Basement():
         #::: General settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for key in ['planets_phot', 'planets_rv', 'inst_phot', 'inst_rv']:
-            if len(self.settings[key]): 
+            if key not in self.settings:
+                self.settings[key] = []
+            elif len(self.settings[key]): 
                 self.settings[key] = str(self.settings[key]).split(' ')
             else:                       
                 self.settings[key] = []
@@ -141,6 +223,9 @@ class Basement():
         #::: Epoch settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for planet in self.settings['planets_all']:
+            if 'inst_for_'+planet+'_epoch' not in self.settings:
+                self.settings['inst_for_'+planet+'_epoch'] = 'all'
+        
             if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
                 self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
             else:
@@ -189,10 +274,18 @@ class Basement():
             self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
                         
             
-        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: MCMC settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'mcmc_nwalkers' not in self.settings: 
+            self.settings['mcmc_nwalkers'] = 100
+        if 'mcmc_total_steps' not in self.settings: 
+            self.settings['mcmc_total_steps'] = 2000
+        if 'mcmc_burn_steps' not in self.settings: 
+            self.settings['mcmc_burn_steps'] = 1000
+        if 'mcmc_thin_by' not in self.settings: 
+            self.settings['mcmc_thin_by'] = 1
+                
         for key in ['mcmc_nwalkers','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
         
@@ -200,8 +293,20 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Nested Sampling settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'ns_modus' not in self.settings: 
+            self.settings['ns_modus'] = 'static'
+        if 'ns_nlive' not in self.settings: 
+            self.settings['ns_nlive'] = 500
+        if 'ns_bound' not in self.settings: 
+            self.settings['ns_bound'] = 'single'
+        if 'ns_sample' not in self.settings: 
+            self.settings['ns_sample'] = 'auto'
+        if 'ns_tol' not in self.settings: 
+            self.settings['ns_tol'] = 0.01
+                
         self.settings['ns_nlive'] = int(self.settings['ns_nlive'])
         self.settings['ns_tol'] = float(self.settings['ns_tol'])
+        
 #        if self.settings['ns_sample'] == 'auto':
 #            if self.ndim < 10:
 #                self.settings['ns_sample'] = 'unif'
@@ -212,8 +317,44 @@ class Basement():
 #            else:
 #                self.settings['ns_sample'] = 'slice'
 #                print('Using ns_sample=="slice".')
-                
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Limb darkening laws
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_phot']:
+            if 'ld_law_'+inst not in self.settings: 
+                self.settings['ld_law_'+inst] = 'quad'
+                
+                
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Baselines
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_phot']:
+            for key in ['flux']:
+                if 'baseline_'+key+'_'+inst not in self.settings: 
+                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_spline'
+
+        for inst in self.settings['inst_rv']:
+            for key in ['rv']:
+                if 'baseline_'+key+'_'+inst not in self.settings: 
+                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_offset'
+                    
+                
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Errors
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_phot']:
+            for key in ['flux']:
+                if 'error_'+key+'_'+inst not in self.settings: 
+                    self.settings['error_'+key+'_'+inst] = 'sample'
+
+        for inst in self.settings['inst_rv']:
+            for key in ['rv']:
+                if 'error_'+key+'_'+inst not in self.settings: 
+                    self.settings['error_'+key+'_'+inst] = 'sample'
+                    
+                
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Color plot
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -239,7 +380,10 @@ class Basement():
                 self.settings['t_exp_'+inst] = None
                 
             #::: if t_exp_n_int is given
-            if 't_exp_'+inst in self.settings.keys() and len(self.settings['t_exp_n_int_'+inst]):
+            if 't_exp_'+inst in self.settings \
+                and 't_exp_n_int_'+inst in self.settings \
+                and len(self.settings['t_exp_n_int_'+inst]):
+                    
                 self.settings['t_exp_n_int_'+inst] = int(self.settings['t_exp_n_int_'+inst])
                 if self.settings['t_exp_n_int_'+inst] < 1:
                     raise ValueError('"t_exp_n_int_'+inst+'" must be >= 1, but is given as '+str(self.settings['t_exp_n_int_'+inst])+' in params.csv')
@@ -262,6 +406,25 @@ class Basement():
         self.params = {}           #len(all rows in params.csv)
         for i,key in enumerate(self.allkeys):
             self.params[key] = np.float(buf['value'][i])
+            
+        for planet in self.settings['planets_phot']:
+            for inst in self.settings['inst_phot']:
+                if 'light_3_'+inst not in self.params:
+                    self.params['light_3_'+inst] = 0.
+                if planet+'_sbratio_'+inst not in self.params:
+                    self.params[planet+'_sbratio_'+inst] = 1e-12 #this is to avoid a bug in ellc
+                if planet+'_geom_albedo_'+inst not in self.params:
+                    self.params[planet+'_geom_albedo_'+inst] = 1e-12 #this is to avoid a bug in ellc
+                    
+            if planet+'_q' not in self.params:
+                self.params[planet+'_q'] = 1.
+            if planet+'_K' not in self.params:
+                self.params[planet+'_K'] = 0.
+            if planet+'_f_c' not in self.params:
+                self.params[planet+'_f_c'] = 0.
+            if planet+'_f_s' not in self.params:
+                self.params[planet+'_f_s'] = 0.
+                
             
         self.ind_fit = (buf['fit']==1)                  #len(all rows in params.csv)
         
@@ -306,7 +469,8 @@ class Basement():
             time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
             if not all(np.diff(time)>0):
                 raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
-            if self.settings['fast_fit']: time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
+            if self.settings['fast_fit']: 
+                time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
             self.data[inst] = {
                           'time':time,
                           'flux':flux,
@@ -429,7 +593,6 @@ class Basement():
                 ind_in += list(ind_ecl2)
             else:
                 ind_in += list(index_transits(time,epoch,period,width)[0])
-                
         ind_in = np.sort(ind_in)
         time = time[ind_in]
         flux = flux[ind_in]

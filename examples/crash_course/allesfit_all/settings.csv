@@ -1,0 +1,11 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+planets_phot,b
+planets_rv,b
+inst_phot,Leonardo Michelangelo
+inst_rv,Donatello Raphael
+fast_fit,TRUE
+multiprocess,TRUE
+multiprocess_cores,4

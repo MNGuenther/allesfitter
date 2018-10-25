@@ -1,0 +1,8 @@
+\newcommand{\ldcq1Leonardo}{none$=0.23_{-0.15}^{+0.32}$} 
+\newcommand{\ldcq2Leonardo}{none$=0.26_{-0.19}^{+0.39}$} 
+\newcommand{\brsuma}{none$=0.1108_{-0.0053}^{+0.011}$} 
+\newcommand{\brr}{none$=0.1014\pm0.0016$} 
+\newcommand{\bcosi}{none$=0.028_{-0.019}^{+0.024}$} 
+\newcommand{\bepoch}{none$=4.50178\pm0.00092$} 
+\newcommand{\bperiod}{none$=3.4013\pm0.0011$} 
+\newcommand{\logerrfluxLeonardo}{none$=-6.244_{-0.073}^{+0.080}$} 

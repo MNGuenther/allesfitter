@@ -1,0 +1,30 @@
+
+Settings & intitial guess:
+--------------------------
+ldc_q1_Leonardo                0.5             free 
+ldc_q2_Leonardo                0.5             free 
+b_rsuma                        0.178           free 
+b_rr                           0.1011          free 
+b_cosi                         0.099           free 
+b_epoch                        4.5             free 
+b_period                       3.41            free 
+log_err_flux_Leonardo          -6.0            free 
+
+Fit parameters:
+--------------------------
+ndim = 8
+ldc_q1_Leonardo      0.5             ['uniform', 0.0, 1.0]         
+ldc_q2_Leonardo      0.5             ['uniform', 0.0, 1.0]         
+b_rsuma              0.178           ['trunc_normal', 0.0, 1.0, 0.178, 0.066]
+b_rr                 0.1011          ['trunc_normal', 0.0, 1.0, 0.1011, 0.0018]
+b_cosi               0.099           ['trunc_normal', 0.0, 1.0, 0.099, 0.105]
+b_epoch              4.5             ['trunc_normal', 3.41, 1000000000003.41, 4.5, 0.01]
+b_period             3.41            ['trunc_normal', 0.0, 1000000000000.0, 3.41, 0.01]
+log_err_flux_Leonardo -6.0            ['trunc_normal', -23.0, 0.0, -6.0, 1.0]
+
+Running Static Nested Sampler...
+--------------------------
+
+Running on 4 CPUs.
+
+Time taken to run 'dynesty' (in static mode) is 5201.19104981 seconds
