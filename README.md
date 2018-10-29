@@ -191,6 +191,7 @@ Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform 
 
  - `unif` does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.
  - `rwalk` runs fast, and finds the true solution. It shows quite "conservative" (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.
+ - `slice` is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.
 - `rslice` runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.
 - `hslice` is very slow and gives somewhat funky posteriors / traceplots.
 
