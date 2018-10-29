@@ -1,0 +1,19 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+planets_phot,b
+planets_rv,b
+inst_phot,Leonardo Michelangelo
+inst_rv,Donatello Raphael
+fast_fit,TRUE
+multiprocess,TRUE
+multiprocess_cores,4
+#####################################,
+# Nested Sampling settings,
+#####################################,
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,rslice
+ns_tol,0.01

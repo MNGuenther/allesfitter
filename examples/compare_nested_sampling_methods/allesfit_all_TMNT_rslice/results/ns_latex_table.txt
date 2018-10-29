@@ -1,0 +1,18 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$q_{1;\mathrm{Leonardo}}$ & $0.535_{-0.051}^{+0.040}$ & & \\ 
+$q_{2;\mathrm{Leonardo}}$ & $0.060_{-0.039}^{+0.043}$ & & \\ 
+$q_{1;\mathrm{Michelangelo}}$ & $0.385_{-0.030}^{+0.054}$ & & \\ 
+$q_{2;\mathrm{Michelangelo}}$ & $0.568_{-0.052}^{+0.045}$ & & \\ 
+$(R_\star + R_b) / a_b$ & $0.1116_{-0.0014}^{+0.0022}$ & & \\ 
+$R_b / R_\star$ & $0.10155_{-0.00094}^{+0.0012}$ & & \\ 
+$\cos{i_b}$ & $0.0342_{-0.0037}^{+0.0055}$ & & \\ 
+$T_{0;b}$ & $31.70087_{-0.00043}^{+0.00039}$ & $\mathrm{BJD}$& \\ 
+$P_b$ & $3.399862\pm0.000067$ & $\mathrm{d}$& \\ 
+$K_b$ & $0.0980_{-0.0018}^{+0.0020}$ & $\mathrm{km/s}$& \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.230\pm0.065$ & & \\ 
+$\log{\sigma_\mathrm{Michelangelo}}$ & $-7.712\pm0.083$ & & \\ 
+$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$ & $-4.71\pm0.29$ & $\mathrm{km/s}$& \\ 
+$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$ & $-5.75_{-0.40}^{+0.43}$ & $\mathrm{km/s}$& \\ 

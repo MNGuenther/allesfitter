@@ -24,7 +24,8 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
-import os
+import os, sys
+import collections
 from datetime import datetime
 from multiprocessing import cpu_count
 import warnings
@@ -34,8 +35,9 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 #::: my modules
 from lichtkurven import index_transits, index_eclipses
 
-
-
+                     
+    
+    
 ###############################################################################
 #::: 'Basement' class, which contains all the data, settings, etc.
 ###############################################################################
@@ -103,7 +105,19 @@ class Basement():
                (self.settings['error_'+key+'_'+inst] != 'sample'):
                    raise ValueError('If you want to use sample_GP, you will want to sample the jitters, too!')
             
-            
+                     
+    ###############################################################################
+    #::: print function that prints into console and logfile at the same time
+    ############################################################################### 
+    def logprint(self, *text):
+        print(*text)
+        original = sys.stdout
+        with open( os.path.join(self.outdir,'logfile_'+self.now+'.log'), 'a' ) as f:
+            sys.stdout = f
+            print(*text)
+        sys.stdout = original
+        
+        
 
     ###############################################################################
     #::: load settings
@@ -137,7 +151,7 @@ class Basement():
         ns_modus                              : optional. Default is static.
         ns_nlive                              : optional. Default is 500.
         ns_bound                              : optional. Default is single.
-        ns_sample                             : optional. Default is auto.
+        ns_sample                             : optional. Default is rwalk.
         ns_tol                                : optional. Default is 0.01.
         ###############################################################################
         # Exposure settings for interpolation
@@ -202,7 +216,10 @@ class Basement():
             
         rows = np.genfromtxt( os.path.join(self.datadir,'settings.csv'), dtype=None, delimiter=',' )
 
-        self.settings = {r[0]:r[1] for r in rows}
+#        self.settings = {r[0]:r[1] for r in rows}
+        self.settings = collections.OrderedDict( [('user-given:','')]+[ (r[0],r[1]) for r in rows ]+[('automatically set:','')] )
+        
+        
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: General settings
@@ -300,7 +317,7 @@ class Basement():
         if 'ns_bound' not in self.settings: 
             self.settings['ns_bound'] = 'single'
         if 'ns_sample' not in self.settings: 
-            self.settings['ns_sample'] = 'auto'
+            self.settings['ns_sample'] = 'rwalk'
         if 'ns_tol' not in self.settings: 
             self.settings['ns_tol'] = 0.01
                 
@@ -390,7 +407,7 @@ class Basement():
             else:
                 self.settings['t_exp_n_int_'+inst] = None
                 
-                
+        
                 
     ###############################################################################
     #::: load params
@@ -403,10 +420,18 @@ class Basement():
         self.labels = buf['label'] #len(all rows in params.csv)
         self.units = buf['unit']   #len(all rows in params.csv)
         
-        self.params = {}           #len(all rows in params.csv)
+        if 'truth' in buf.dtype.names:
+            self.truths = buf['truth'] #len(all rows in params.csv)
+        else:
+            self.truths = np.nan * np.ones(len(self.allkeys))
+            
+        self.params = collections.OrderedDict()           #len(all rows in params.csv)
+        self.params['user-given:'] = ''
         for i,key in enumerate(self.allkeys):
             self.params[key] = np.float(buf['value'][i])
-            
+         
+        #::: automatically set default params if they were not given
+        self.params['automatically set:'] = ''
         for planet in self.settings['planets_phot']:
             for inst in self.settings['inst_phot']:
                 if 'light_3_'+inst not in self.params:
@@ -431,6 +456,7 @@ class Basement():
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)
         self.fitlabels = self.labels[ self.ind_fit ]    #len(ndim)
         self.fitunits = self.units[ self.ind_fit ]      #len(ndim)
+        self.fittruths = self.truths[ self.ind_fit ]    #len(ndim)
         
         self.theta_0 = buf['value'][ self.ind_fit ]     #len(ndim)
         
@@ -450,6 +476,7 @@ class Basement():
     
         self.ndim = len(self.theta_0)                   #len(ndim)
 
+    
     
 
     ###############################################################################
@@ -521,17 +548,21 @@ class Basement():
 #            plt.axvline(first_epoch, color='b', lw=2)
                 
             #::: place epoch_for_fit into the middle of all data
-            epoch_for_fit = first_epoch + int(np.round((end-start)/2./period)) * period 
+            epoch_shift = int(np.round((end-start)/2./period)) * period 
+            epoch_for_fit = first_epoch + epoch_shift
             
             #::: update params
             self.params[planet+'_epoch'] = 1.*epoch_for_fit
             
-            #::: update theta and bounds
+            #::: update theta, bounds and fittruths
             ind_epoch_fitkeys = np.where(self.fitkeys==planet+'_epoch')[0]
             if len(ind_epoch_fitkeys):
                 ind_epoch_fitkeys = ind_epoch_fitkeys[0]
                 buf = 1.*self.theta_0[ind_epoch_fitkeys]
                 self.theta_0[ind_epoch_fitkeys]    = 1.*epoch_for_fit                #initial guess
+                
+                #::: update fittruhts
+                self.fittruths[ind_epoch_fitkeys] += epoch_shift 
                 
                 #:::change bounds if uniform bounds
                 if self.bounds[ind_epoch_fitkeys][0] == 'uniform':

@@ -115,7 +115,7 @@ def ns_fit(datadir):
         
     #::: settings
     nlive  = config.BASEMENT.settings['ns_nlive']    # (default 500) number of live points
-    bound  = config.BASEMENT.settings['ns_bound']    # (default 'multi') use MutliNest algorithm for bounds
+    bound  = config.BASEMENT.settings['ns_bound']    # (default 'single') use MutliNest algorithm for bounds
     ndim   = config.BASEMENT.ndim                    # number of parameters
     sample = config.BASEMENT.settings['ns_sample']   # (default 'auto') random walk sampling
     tol    = config.BASEMENT.settings['ns_tol']      # (defualt 0.01) the stopping criterion
@@ -142,7 +142,7 @@ def ns_fit(datadir):
             
         t1 = timer()
         timedynesty = (t1-t0)
-        logprint("\nTime taken to run 'dynesty' (in static mode) is {} seconds".format(timedynesty))
+        logprint("\nTime taken to run 'dynesty' (in static mode) is {} hours".format(int(timedynesty/60./60.)))
 
 
     elif config.BASEMENT.settings['ns_modus']=='dynamic':
@@ -156,7 +156,7 @@ def ns_fit(datadir):
                 sampler = dynesty.DynamicNestedSampler(ns_lnlike, ns_prior_transform, ndim, 
                                                        pool=pool, queue_size=config.BASEMENT.settings['multiprocess_cores'], 
                                                        bound=bound, sample=sample)
-                sampler.run_nested(nlive_init=nlive, print_progress=True)
+                sampler.run_nested(nlive_init=nlive, dlogz_init=tol, print_progress=True)
             
         else:
             sampler = dynesty.DynamicNestedSampler(ns_lnlike, ns_prior_transform, ndim,
@@ -165,7 +165,7 @@ def ns_fit(datadir):
             
         t1 = timer()
         timedynestydynamic = (t1-t0)
-        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {} minutes".format(int(timedynestydynamic/60.)))
+        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {} hours".format(int(timedynestydynamic/60./60.)))
 
 
     #::: pickle-save the 'results' class

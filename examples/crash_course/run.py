@@ -15,14 +15,32 @@ Email: maxgue@mit.edu
 
 
 import allesfitter
+reload(allesfitter)
 
 
 '''
 uncomment whichever model you want to run
 '''
 
-#allesfitter.ns_fit('allesfit_all')
-#allesfitter.ns_output('allesfit_all')
+#allesfitter.ns_fit('allesfit_Leonardo_unif')
+#allesfitter.ns_output('allesfit_Leonardo_unif')
 
-#allesfitter.ns_fit('allesfit_Leonardo')
-#allesfitter.ns_output('allesfit_Leonardo')
+
+#allesfitter.ns_fit('allesfit_Leonardo_rwalk')
+#allesfitter.ns_output('allesfit_Leonardo_rwalk')
+
+
+#allesfitter.ns_fit('allesfit_all_TMNT_unif')
+#allesfitter.ns_output('allesfit_all_TMNT_unif')
+
+
+#allesfitter.ns_fit('allesfit_all_TMNT_rwalk')
+#allesfitter.ns_output('allesfit_all_TMNT_rwalk')
+
+
+#allesfitter.ns_fit('allesfit_all_TMNT_rslice')
+#allesfitter.ns_output('allesfit_all_TMNT_rslice')
+
+
+allesfitter.ns_fit('allesfit_all_TMNT_hslice')
+allesfitter.ns_output('allesfit_all_TMNT_hslice')

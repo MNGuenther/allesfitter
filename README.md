@@ -4,7 +4,7 @@
 
 [beta version]
 
-*allesfitter* is a convenient wrapper around the packages *ellc* (light curve and RV models), *dynesty* (static and dynamic nested sampling) *emcee* (Markov Chain Monte Carlo sampling) and *celerite* (Gaussian Process models).
+*allesfitter* is a convenient wrapper around the packages *ellc* (planet and EB light curve and RV models), *dynesty* (static and dynamic nested sampling) *emcee* (Markov Chain Monte Carlo sampling) and *celerite* (Gaussian Process models).
 
 *allesfitter* is suited for the analysis of multi-planet systems observed with various photometric and RV instruments. It is highly user-friendly, flexible, robust, and allows a wide choice of sampling algorithms and baseline detrending. The user defines all input parameters and settings in a text file, and *allesfitter* automatically runs the nested sampling or MCMC fit, and produces all output such as tables, latex tables, and plots. 
 
@@ -15,31 +15,34 @@ If you use *allesfitter* or parts of it in your work, please cite *Günther et a
 
 ## Table of contents
 1. Why *allesfitter*?
-3. Crash course
+2. Crash course
 3. Installation
-4. Fitting 
-	4.1 Setting things up
-	4.2 Running the fit
+4. Tutorial 
+   4.1 Setting things up
+   4.2 Running the fit
+5. Examples
+6. Performance & timing
+References
 
 
 ## 1. Why allesfitter?
 - easy-to-use and all-in-one
-- choose between various MCMC and Nested Sampling algorithms (static vs. dynamic, multinest, slicing, ...). Powered by emcee (Foreman-Mackey, 2013) and dynesty (Speagal, 2018). 
-- get all that Bayesian evidence! 
+- choose between various MCMC and Nested Sampling* algorithms (static vs. dynamic, multinest, slicing, ...). Powered by emcee (Foreman-Mackey, 2013) and dynesty (Speagal, 2018). 
 - model exoplanets and eclipsing binaries. Powered by ellc (Maxted, 2016).
 - globally model any number of photometric and radial velocity observations from various instruments
 - choose between multiple baseline and noise fitting options (sampling vs. hybrid, GPs, splines, polynomials, ...)
 - fill out a .csv file, click a button, get a coffee, and let *allesfitter* write your paper (it creates all latex tables and plots).
 
+*get all that Bayesian evidence and do a meaningful model comparison! Is there evidence for an occultation? Do you see phase-variations or systematic noise patterns? Are those TTVs meaningful? Is your orbit circular or eccentric? So many questions - so much Bayesian evidence!
 
-## 2. Crash course
+## 2. Crash course - TMNT found its first planet!
 
-Imagine your photometric survey called "Leonardo" found a planet and you want to model it. The way *allesfitter* works is that you prepare a folder with all your data files (`Leonardo.csv`), a settings file (`settings.csv`) and a parameters file (`params.csv`). Then you let *allesfitter* run on that directory, and it does the rest.
+Imagine your survey called "TMNT" found a planet using its photometric telescope "Leonardo". Now you want to model it, so you can schedule follow-up with the rest of your TMNT network: Michelangelo (photometry), Donatello (RV) and Raphael (RV). The way *allesfitter* works is that you prepare a folder with all your data files (`Leonardo.csv`), a settings file (`settings.csv`) and a parameters file (`params.csv`). Then you let *allesfitter* run on that directory, and it does the rest.
 
-Open the `examples/crash_course` folder. You will see the file `run.py` and the following three folders: `allesfit_Leonardo`, `allesfit_all`, and `simulate_data`.
+Open the `examples/crash_course` folder. You will see the file `run.py` and the following two folders: `allesfit_Leonardo` and `allesfit_all_TMNT`.
 
 ### `run.py`
-This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example:
+This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example, using Nested Sampling:
 
     import allesfitter
     allesfitter.ns_fit('allesfit_Leonardo')
@@ -62,23 +65,20 @@ This folder is an example of fitting the following data set: `Leonardo.csv` (dis
 Finally, when *allesfitter* runs, it creates the subfolder `results`. It contains log files, result tables, LaTex tables, plots of the inital guess and final fit, corner plots, trace plots (for Nested Sampling), chain plots (for MCMC) and an internal save file. Have a look!
 
 
-### `allesfit_all`: 
+### `allesfit_all_TMNT`: 
 
 This is an example of fitting the following four data sets:
 
   - Leonardo.csv (discovery photometry)
   - Michelangelo.csv (follow-up photometry)
-  - Donatello.csv (sparse RV data)
-  - Raphael.csv (better RV data)
+  - Donatello.csv (decent RV data)
+  - Raphael.csv (good RV data)
 
-Feel free to explore the `settings.csv` and `params.csv` files to see how to include this additional data into the fit.
-
-
-### `simulate_data`: 
-This folder is only used to create the simulated data set and can be ignored.
+Explore the `settings.csv` and `params.csv` files to see how to include this additional data into the fit.
 
 
-## 2. Installation
+
+## 3. Installation
 For now...
 
 - git clone https://github.com/MNGuenther/allesfitter into your PYTHONPATH.
@@ -93,9 +93,9 @@ Also...
 - pip install corner>=2.0.1
 
 
-## 3. Tutorial
+## 4. Tutorial
 
-### 3.1 Settings things up
+### 4.1 Settings things up
 The file structure is as follows:
 - datadir
   * settings.csv
@@ -129,11 +129,68 @@ RV instruments must contain three columns:
 The time unit has to be days, preferably BJD. It does not matter if it is JD/HJD/BJD, but it *must* be homogenous between all data sets tel1.csv etc. and the parameters (epoch) in params.csv.
 
 
-### 3.2 Running the fit
+### 4.2 Running the fit
 - copy run.py from the "examples" that come with allesfitter
 - adjust as you need
 (todo)
 
+
+## 5. Examples
+
+### `examples/crash_course/`
+
+### `examples/TMNT/`
+Various different fitting scenarios and different settings for the TMNT data set.
+
+### `examples/simulate_data/`
+How the TMNT data set was simulated.
+
+
+
+## 6. Performance & timining
+
+### `examples/TMNT/`
+
+#### a)
+Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:
+
+    ns_modus,dynamic
+    ns_nlive,500
+    ns_bound,single
+    ns_sample,unif vs. rwalk
+    ns_tol,0.01
+    
+    ndim = 8
+
+    allesfit_Leonardo_unif/: 
+	    75 minutes, 27k samples, logZ = 545.42 +- 0.14
+    allesfit_Leonardo_rwalk/: 
+	    31 minutes, 24k samples, logZ = 545.36 +- 0.14
+
+#### b)
+Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:
+
+    ns_modus,dynamic
+    ns_nlive,500
+    ns_bound,single
+    ns_sample,unif vs. rwalk
+    ns_tol,0.01
+    
+    ndim = 8
+
+    allesfit_all_TMNT_unif/: 
+	    > 24h, aborted 
+    allesfit_all_TMNT_rwalk/: 
+	    1.3h, 35111 samples, logZ = 1234.26 +- 0.23
+    allesfit_all_TMNT_rslice/: 
+	    1h, 28074 samples, logZ = 1233.66 +- 0.23
+    allesfit_all_TMNT_hslice/: 
+	    16.4h, 30925 samples, logZ = 1231.49 +- 0.23
+
+ - `unif` does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.
+ - `rwalk` runs fast, and finds the true solution. It shows quite "conservative" (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.
+- `rslice` runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.
+- `hslice` is very slow and gives somewhat funky posteriors / traceplots.
 
 ## References
 

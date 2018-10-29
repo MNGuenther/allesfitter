@@ -1,9 +1,0 @@
-#name,value
-#####################################,
-# General settings,
-#####################################,
-planets_phot,b
-inst_phot,Leonardo
-fast_fit,TRUE
-multiprocess,TRUE
-multiprocess_cores,4

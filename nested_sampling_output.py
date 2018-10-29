@@ -128,27 +128,28 @@ def ns_output(datadir):
 
     for planet in config.BASEMENT.settings['planets_all']:
         
-        if planet+'_period' in config.BASEMENT.fitkeys:
-            ind    = np.where(config.BASEMENT.fitkeys==planet+'_period')[0][0]
-            results2['samples'][:,ind] -= np.round(params_median[planet+'_period'],decimals=3)
-            units[ind] = str(units[ind]+'-'+np.format_float_positional(params_median[planet+'_period'],3)+'d')
+#        if planet+'_period' in config.BASEMENT.fitkeys:
+#            ind    = np.where(config.BASEMENT.fitkeys==planet+'_period')[0][0]
+#            results2['samples'][:,ind] -= np.round(params_median[planet+'_period'],decimals=3)
+#            units[ind] = str(units[ind]+'-'+np.format_float_positional(params_median[planet+'_period'],3)+'d')
             
         if planet+'_epoch' in config.BASEMENT.fitkeys:
             ind    = np.where(config.BASEMENT.fitkeys==planet+'_epoch')[0][0]
-            results2['samples'][:,ind] -= np.round(params_median[planet+'_epoch'],decimals=0)
-            units[ind] = str(units[ind]+'-'+np.format_float_positional(params_median[planet+'_epoch'],0)+'d')
-          
+            results2['samples'][:,ind] -= int(params_median[planet+'_epoch']) #np.round(params_median[planet+'_epoch'],decimals=0)
+            units[ind] = str(units[ind]+'-'+str(int(params_median[planet+'_epoch']))+'d') #np.format_float_positional(params_median[planet+'_epoch'],0)+'d')
+            config.BASEMENT.fittruths[ind] -= int(params_median[planet+'_epoch'])
+            
     for i,l in enumerate(labels):
         if units[i]!='':
             labels[i] = str(labels[i]+' ('+units[i]+')')
         
     #::: traceplot    
     cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
-    tfig, taxes = dyplot.traceplot(results2, labels=labels, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim)
+    tfig, taxes = dyplot.traceplot(results2, labels=labels, truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim)
     plt.tight_layout()
     
     #::: cornerplot
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
 
     #::: set allesfitter titles
     for i, key in enumerate(config.BASEMENT.fitkeys):    

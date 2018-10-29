@@ -351,21 +351,28 @@ def show_initial_guess():
     '''
 #    global config.BASEMENT
             
-    logprint('\nSettings & intitial guess:')
+    logprint('\nSettings:')
     logprint('--------------------------')
-    for i, key in enumerate(config.BASEMENT.allkeys):
+    for key in config.BASEMENT.settings:
+        if config.BASEMENT.settings[key]!='':
+            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.settings[key]))
+        else:
+            logprint('\n{0: <30}'.format(key))
+
+    logprint('\nParameters:')
+    logprint('--------------------------')    
+    for i, key in enumerate(config.BASEMENT.params):
         if key in config.BASEMENT.fitkeys: 
-            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('free'))
+            ind = np.where( config.BASEMENT.fitkeys == key )[0][0]
+            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('free'), '{0: <30}'.format(config.BASEMENT.bounds[ind]) )
         else: 
-            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('set'))
-            
-            
-    logprint('\nFit parameters:')
-    logprint('--------------------------')
-    logprint('ndim =', len(config.BASEMENT.theta_0))
-    for i, key in enumerate(config.BASEMENT.fitkeys):
-        logprint('{0: <20}'.format(key), '{0: <15}'.format(config.BASEMENT.theta_0[i]), '{0: <30}'.format(config.BASEMENT.bounds[i]))
-        
+            if config.BASEMENT.params[key]!='':
+                logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('set'))
+            else:
+                logprint('\n{0: <30}'.format(key))
+    
+    logprint('\nndim:', config.BASEMENT.ndim)
+                
         
 #    print '\nLikelihoods:'
 #    print '--------------------------'
