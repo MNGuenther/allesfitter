@@ -190,9 +190,9 @@ def ns_output(datadir):
 ###############################################################################
 #::: get NS samples (for top-level user)
 ###############################################################################
-def get_ns_samples(datadir, Nsamples=None, QL=False, as_type='dic'):
-    config.init(datadir, QL=QL)
-    with open(os.path.join(datadir,'save_ns.pickle'),'rb') as f:
+def get_ns_samples(datadir, Nsamples=None, as_type='dic'):
+    config.init(datadir)
+    with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
         results = pickle.load(f)
     samples = draw_ns_samples(results, Nsamples=Nsamples)
     
