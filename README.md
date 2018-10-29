@@ -173,7 +173,7 @@ Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform 
     ns_modus,dynamic
     ns_nlive,500
     ns_bound,single
-    ns_sample,unif vs. rwalk
+    ns_sample,(compared below)
     ns_tol,0.01
     
     ndim = 8
@@ -182,6 +182,8 @@ Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform 
 	    > 24h, aborted 
     allesfit_all_TMNT_rwalk/: 
 	    1.3h, 35111 samples, logZ = 1234.26 +- 0.23
+    allesfit_all_TMNT_slice/: 
+	    > 24h, aborted 
     allesfit_all_TMNT_rslice/: 
 	    1h, 28074 samples, logZ = 1233.66 +- 0.23
     allesfit_all_TMNT_hslice/: 
@@ -201,4 +203,5 @@ Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform 
  - Jones E. et al., 2001, SciPy: Open Source Scientific tools for Python. Available at: http://www.scipy.org/
  - Rossum G., 1995, Technical Report, Python Reference Manual, Amsterdam, The Netherlands
  - van der Walt S., Colbert S. C., Varoquaux G., 2011, Comput. Sci. Eng., 13, 22
+
 
