@@ -34,7 +34,7 @@ from tqdm import tqdm
     
     
 
-def ns_compare_logZ(run_names, labels):
+def ns_plot_bayes_factors(run_names, labels):
     '''
     Inputs:
     -------
