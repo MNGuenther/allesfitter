@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
 #::: my modules
-from lichtkurven import index_transits, index_eclipses
+from exoplanets.lightcurves import index_transits, index_eclipses
 
                      
     
@@ -133,9 +133,12 @@ class Basement():
         planets_rv
         inst_phot
         inst_rv
-        secondary_eclipse                     : optional. Default is False.
+        ###############################################################################
+        # Fit performance settings
+        ###############################################################################
         fast_fit                              : optional. Default is False.
         fast_fit_width                        : optional. Default is 8./24.
+        secondary_eclipse            : optional. Default is False.
         multiprocess                          : optional. Default is False.
         multiprocess_cores                    : optional. Default is cpu_count()-1.
         ###############################################################################
@@ -276,19 +279,19 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['fast_fit'] = set_bool(self.settings['fast_fit'])
         
-        if 'fast_fit_width' not in self.settings.keys():
-            self.settings['fast_fit_width'] = 8./24.
-        else:
+        if ('fast_fit_width' in self.settings.keys()) and len(self.settings['fast_fit_width']):
             self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
+        else:
+            self.settings['fast_fit_width'] = 8./24.
                 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Secondary eclipse
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        if 'secondary_eclipse' not in self.settings.keys():
-            self.settings['secondary_eclipse'] = False
-        else:
+        if ('secondary_eclipse' in self.settings.keys()) and len(self.settings['secondary_eclipse']):
             self.settings['secondary_eclipse'] = set_bool(self.settings['secondary_eclipse'])
+        else:
+            self.settings['secondary_eclipse'] = False
                         
             
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -413,6 +416,80 @@ class Basement():
     #::: load params
     ###############################################################################
     def load_params(self):
+        '''
+        #name	value	fit	bounds	label	unit
+        #b_: planet name; _key : flux/rv/centd; _inst : instrument name					
+        #dilution per instrument					
+        light_3_TESS	0	0	none	$D_\mathrm{TESS}$	
+        light_3_HATS	0.14	1	trunc_normal 0 1 0.14 0.1	$D_\mathrm{HATS}$	
+        light_3_FTS_i	0	0	none	$D_\mathrm{FTS_i}$	
+        light_3_GROND_g	0	0	none	$D_\mathrm{GROND_g}$	
+        light_3_GROND_r	0	0	none	$D_\mathrm{GROND_r}$	
+        light_3_GROND_i	0	0	none	$D_\mathrm{GROND_i}$	
+        light_3_GROND_z	0	0	none	$D_\mathrm{GROND_i}$	
+        #limb darkening coefficients per instrument					
+        ldc_q1_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
+        ldc_q2_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
+        ldc_q1_HATS	0.5	1	uniform 0 1	$q_{1;\mathrm{HATS}}$	
+        ldc_q2_HATS	0.5	1	uniform 0 1	$q_{2;\mathrm{HATS}}$	
+        ldc_q1_FTS_i	0.5	1	uniform 0 1	$q_{1;\mathrm{FTS_i}}$	
+        ldc_q2_FTS_i	0.5	1	uniform 0 1	$q_{2;\mathrm{FTS_i}}$	
+        ldc_q1_GROND_g	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_g}}$	
+        ldc_q2_GROND_g	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_g}}$	
+        ldc_q1_GROND_r	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_r}}$	
+        ldc_q2_GROND_r	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_r}}$	
+        ldc_q1_GROND_i	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_i}}$	
+        ldc_q2_GROND_i	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_i}}$	
+        ldc_q1_GROND_z	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_z}}$	
+        ldc_q2_GROND_z	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_z}}$	
+        #brightness per instrument per planet					
+        b_sbratio_TESS	0	0	none	$J_{b;\mathrm{TESS}}$	
+        b_sbratio_HATS	0	0	none	$J_{b;\mathrm{HATS}}$	
+        b_sbratio_FTS_i	0	0	none	$J_{b;\mathrm{FTS_i}}$	
+        b_sbratio_GROND_g	0	0	none	$J_{b;\mathrm{GROND_g}}$	
+        b_sbratio_GROND_r	0	0	none	$J_{b;\mathrm{GROND_r}}$	
+        b_sbratio_GROND_i	0	0	none	$J_{b;\mathrm{GROND_i}}$	
+        b_sbratio_GROND_z	0	0	none	$J_{b;\mathrm{GROND_z}}$	
+        #planet b astrophysical params					
+        b_rsuma	0.178	1	trunc_normal 0 1 0.178 0.066	$(R_\star + R_b) / a_b$	
+        b_rr	0.1011	1	trunc_normal 0 1 0.1011 0.0018	$R_b / R_\star$	
+        b_cosi	0.099	1	trunc_normal 0 1 0.099 0.105	$\cos{i_b}$	
+        b_epoch	2456155.967	1	trunc_normal 0 1e12 2456155.96734 0.00042 	$T_{0;b}$	$\mathrm{BJD}$
+        b_period	3.547851	1	trunc_normal 0 1e12 3.547851 1.5e-5	$P_b$	$\mathrm{d}$
+        b_K	0.1257	1	trunc_normal 0 1 0.1257 0.0471	$K_b$	$\mathrm{km/s}$
+        b_q	1	0	none	$M_b / M_\star$	
+        b_f_c	0	0	none	$\sqrt{e_b} \cos{\omega_b}$	
+        b_f_s	0	0	none	$\sqrt{e_b} \sin{\omega_b}$	
+        #TTVs					
+        b_ttv_TESS	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{TESS}$	$\mathrm{d}$
+        b_ttv_HATS	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{HATS}$	$\mathrm{d}$
+        b_ttv_FTS_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{FTS_i}$	$\mathrm{d}$
+        b_ttv_GROND_g	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_g}$	$\mathrm{d}$
+        b_ttv_GROND_r	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_r}$	$\mathrm{d}$
+        b_ttv_GROND_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_i}$	$\mathrm{d}$
+        b_ttv_GROND_z	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_i}$	$\mathrm{d}$
+        #Period changes					
+        b_pv_TESS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{TESS}$	$\mathrm{d}$
+        b_pv_HATS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{HATS}$	$\mathrm{d}$
+        b_pv_FTS_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{FTS_i}$	$\mathrm{d}$
+        b_pv_GROND_g	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_g}$	$\mathrm{d}$
+        b_pv_GROND_r	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_r}$	$\mathrm{d}$
+        b_pv_GROND_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_i}$	$\mathrm{d}$
+        b_pv_GROND_z	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_i}$	$\mathrm{d}$
+        #errors (overall scaling) per instrument					
+        log_err_flux_TESS	-5.993	1	trunc_normal -23 0 -5.993 0.086	$\log{\sigma} (F_\mathrm{TESS})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_HATS	-4.972	1	trunc_normal -23 0 -4.972 0.099	$\log{\sigma} (F_\mathrm{HATS})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_FTS_i	-6	1	trunc_normal -23 0 -6.0 0.19	$\log{\sigma} (F_\mathrm{FTS_i})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_GROND_g	-7.2	1	trunc_normal -23 0 -7.20 0.26	$\log{\sigma} (F_\mathrm{GROND_g})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_GROND_r	-7.49	1	trunc_normal -23 0 -7.49 0.26	$\log{\sigma} (F_\mathrm{GROND_r})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_GROND_i	-7.47	1	trunc_normal -23 0 -7.47 0.28	$\log{\sigma} (F_\mathrm{GROND_i})$	$\log{\mathrm{(rel. flux)}}$
+        log_err_flux_GROND_z	-7.09	1	trunc_normal -23 0 -7.09 0.27	$\log{\sigma} (F_\mathrm{GROND_z})$	$\log{\mathrm{(rel. flux)}}$
+        log_jitter_rv_AAT	-2.7	1	trunc_normal -23 0 -2.7 1.8	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{AAT})$	$\log{\mathrm{km/s}}$
+        log_jitter_rv_Coralie	-2.7	1	trunc_normal -23 0 -2.7 1.5	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Coralie})$	$\log{\mathrm{km/s}}$
+        log_jitter_rv_FEROS	-5	1	trunc_normal -23 0 -5 15	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{FEROS})$	$\log{\mathrm{km/s}}$
+        '''
+        
+        
     
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,names=True)
         
@@ -441,10 +518,13 @@ class Basement():
                 if planet+'_geom_albedo_'+inst not in self.params:
                     self.params[planet+'_geom_albedo_'+inst] = 1e-12 #this is to avoid a bug in ellc
                     
+        for planet in self.settings['planets_rv']:
             if planet+'_q' not in self.params:
                 self.params[planet+'_q'] = 1.
             if planet+'_K' not in self.params:
                 self.params[planet+'_K'] = 0.
+                
+        for planet in self.settings['planets_all']:
             if planet+'_f_c' not in self.params:
                 self.params[planet+'_f_c'] = 0.
             if planet+'_f_s' not in self.params:

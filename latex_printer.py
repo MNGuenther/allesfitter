@@ -50,3 +50,13 @@ def round_tex(x, err_low, err_up, mode=None):
         return txt
     else:
         return txt, std_notation(mode,digs)
+
+def round_txt_separately(x, err_low, err_up):
+    if np.isnan(x):
+        return 'NaN'
+    y = np.min(( np.abs(err_low), np.abs(err_up) ))
+    digs = extra_digits(x,y) + 2
+    txt1 = std_notation(x,digs) 
+    txt2 = std_notation(err_low,2) 
+    txt3 = std_notation(err_up,2)
+    return txt1, txt2, txt3

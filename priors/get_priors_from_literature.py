@@ -14,6 +14,8 @@ Email: maxgue@mit.edu
 Web: www.mnguenther.com
 """
 
+from __future__ import print_function, division, absolute_import
+
 #::: plotting settings
 import seaborn as sns
 sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
@@ -25,7 +27,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from .simulate_PDF import simulate_PDF as spdf
-from .latex_printer import round_tex
+from ..latex_printer import round_tex
 
 
 
@@ -33,7 +35,7 @@ from .latex_printer import round_tex
 ###############################################################################
 #::: calculations and output
 ###############################################################################
-def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
+def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000, quiet=False):
     '''
     Inputs:
     -------
@@ -58,7 +60,7 @@ def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
     i = (82.80, 0.17, 0.17)
     a_over_Rstar = (5.851, 0.038, 0.037)
     Rp_over_Rstar = (0.14075, 0.00035, 0.00035)
-    get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar
+    get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar)
     '''
     
     #::: calculate cosi
@@ -67,7 +69,7 @@ def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
         plt.title('i')
         cosi = np.cos(np.deg2rad(i))
         ll, median, ul = np.percentile(cosi, [16,50,84])
-        print 'cosi =', round_tex(median, median-ll, ul-median)
+        if not quiet: print('cosi =', round_tex(median, median-ll, ul-median))
     
     
     #::: calculate (R_star+R_p)/a, R_star/a, and R_p/a
@@ -80,15 +82,43 @@ def get_priors_from_literature(i, a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
         
         Rstar_over_a = 1./a_over_Rstar 
         ll, median, ul = np.percentile(Rstar_over_a, [16,50,84])
-        print 'Rstar_over_a =', round_tex(median, median-ll, ul-median)
+        if not quiet: print('Rstar_over_a =', round_tex(median, median-ll, ul-median))
         
         Rsuma = Rstar_over_a * (1. + Rp_over_Rstar)
         ll, median, ul = np.percentile(Rsuma, [16,50,84])
-        print 'Rsuma =', round_tex(median, median-ll, ul-median)
+        if not quiet: print('Rsuma =', round_tex(median, median-ll, ul-median))
         
         Rp_over_a = Rp_over_Rstar / a_over_Rstar
         ll, median, ul = np.percentile(Rp_over_a, [16,50,84])
-        print 'Rp_over_a =', round_tex(median, median-ll, ul-median)
+        if not quiet: print('Rp_over_a =', round_tex(median, median-ll, ul-median))
+
+    
+    
+
+def get_cosi_from_i(i, Nsamples=10000):
+    i = spdf(i[0], i[1], i[2], size=Nsamples, plot=False)
+    cosi = np.cos(np.deg2rad(i))
+    ll, median, ul = np.percentile(cosi, [16,50,84])
+    return median, median-ll, ul-median
 
 
+
+
+def get_Rsuma_from_a_over_Rstar(a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
+    a_over_Rstar = spdf(a_over_Rstar[0], a_over_Rstar[1], a_over_Rstar[2], size=Nsamples, plot=False)
+    Rstar_over_a = 1./a_over_Rstar 
+    Rp_over_Rstar = spdf(Rp_over_Rstar[0], Rp_over_Rstar[1], Rp_over_Rstar[2], size=Nsamples, plot=False)
+    Rsuma = Rstar_over_a * (1. + Rp_over_Rstar)
+    ll, median, ul = np.percentile(Rsuma, [16,50,84])
+    return median, median-ll, ul-median
+    
+
+
+
+def get_Rsuma_from_Rstar_over_a(Rstar_over_a, Rp_over_Rstar, Nsamples=10000):
+    Rstar_over_a = spdf(Rstar_over_a[0], Rstar_over_a[1], Rstar_over_a[2], size=Nsamples, plot=False)
+    Rp_over_Rstar = spdf(Rp_over_Rstar[0], Rp_over_Rstar[1], Rp_over_Rstar[2], size=Nsamples, plot=False)
+    Rsuma = Rstar_over_a * (1. + Rp_over_Rstar)
+    ll, median, ul = np.percentile(Rsuma, [16,50,84])
+    return median, median-ll, ul-median
     

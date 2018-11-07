@@ -4,7 +4,7 @@
 Created on Fri Oct  5 14:18:20 2018
 
 @author:
-Dr. Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
@@ -22,13 +22,22 @@ sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_
 sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
+#::: modules
+import os
+
+#:::: allesfitter modules
 from .mcmc import mcmc_fit
 from .nested_sampling import ns_fit
 from .general_output import get_labels, get_initial_guess_gp
 from .nested_sampling_output import get_ns_samples, ns_output
 from .mcmc_output import get_mcmc_samples, mcmc_output
-from .get_priors_from_literature import get_priors_from_literature
+from .priors.get_priors_from_literature import get_priors_from_literature
+from .priors.get_priors_from_data import get_priors_from_data
 from .postprocessing.nested_sampling_compare_logZ import ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
 
-__version__ = '0.2.1'
+def GUI():
+    allesfitter_path = os.path.dirname( os.path.realpath(__file__) )
+    os.system( 'jupyter notebook "' + os.path.join(allesfitter_path,'GUI.ipynb') + '"')
+
+__version__ = '0.3.0'

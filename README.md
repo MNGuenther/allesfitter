@@ -18,8 +18,8 @@ If you use *allesfitter* or parts of it in your work, please cite *Günther et a
 2. Crash course
 3. Installation
 4. Tutorial 
-   4.1 Setting things up
-   4.2 Running the fit
+    4.1 Setting things up
+    4.2 Running the fit
 5. Examples
 6. Performance & timing
 References
@@ -44,16 +44,16 @@ Open the `examples/crash_course` folder. You will see the file `run.py` and the 
 ### `run.py`
 This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example, using Nested Sampling:
 
-    import allesfitter
-    allesfitter.ns_fit('allesfit_Leonardo')
-    allesfitter.ns_output('allesfit_Leonardo')
+import allesfitter
+allesfitter.ns_fit('allesfit_Leonardo')
+allesfitter.ns_output('allesfit_Leonardo')
 
 Or, if you're the MCMC kind of person:
 
-    import allesfitter
-    allesfitter.mcmc_fit('allesfit_Leonardo')
-    allesfitter.mcmc_output('allesfit_Leonardo')
-    
+import allesfitter
+allesfitter.mcmc_fit('allesfit_Leonardo')
+allesfitter.mcmc_output('allesfit_Leonardo')
+
 ### `allesfit_Leonardo`: 
 
 This folder is an example of fitting the following data set: `Leonardo.csv` (discovery photometry). Time, flux and flux error are given in a comma-separated .csv file.
@@ -69,10 +69,10 @@ Finally, when *allesfitter* runs, it creates the subfolder `results`. It contain
 
 This is an example of fitting the following four data sets:
 
-  - Leonardo.csv (discovery photometry)
-  - Michelangelo.csv (follow-up photometry)
-  - Donatello.csv (decent RV data)
-  - Raphael.csv (good RV data)
+- Leonardo.csv (discovery photometry)
+- Michelangelo.csv (follow-up photometry)
+- Donatello.csv (decent RV data)
+- Raphael.csv (good RV data)
 
 Explore the `settings.csv` and `params.csv` files to see how to include this additional data into the fit.
 
@@ -84,13 +84,18 @@ For now...
 - git clone https://github.com/MNGuenther/allesfitter into your PYTHONPATH.
 - git clone https://github.com/MNGuenther/lichtkurven into your PYTHONPATH.
 - (soon to be pip-installable)
- 
+
 Also...
 
-- pip install emcee>=3.0.0 (if you want to run MCMCs)
-- git clone https://github.com/joshspeagle/dynesty.git (>=0.9.2b) into your PYTHONPATH (if you want to run Nested Sampling)
-- pip install celerite>=0.3.0 (if you want to run Gaussian Processes)
-- pip install corner>=2.0.1
+- pip install ellc (>=1.8.0)
+- (this requires that a Fortran compiler is installed. If it is missing, you can use e.g. homebrew with "brew install gcc" to install one.)
+- pip install corner (>=2.0.1)
+- pip install emcee (>=3.0.0) 
+- (if you want to run MCMCs)
+- git clone https://github.com/joshspeagle/dynesty.git (>=0.9.2b) into your PYTHONPATH 
+- (if you want to run Nested Sampling)
+- pip install celerite (>=0.3.0 )
+- (if you want to run Gaussian Processes)
 
 
 ## 4. Tutorial
@@ -98,11 +103,11 @@ Also...
 ### 4.1 Settings things up
 The file structure is as follows:
 - datadir
-  * settings.csv
-  * params.csv
-  * tel1.csv
-  * tel2.csv
-  * ...		
+* settings.csv
+* params.csv
+* tel1.csv
+* tel2.csv
+* ...        
 
 #### datadir
 For example, datadir = "users/johnwayne/tess_1b".
@@ -121,11 +126,11 @@ For example, datadir = "users/johnwayne/tess_1b".
 All these telescope data files must be named exactly like the telesopes listed in settings.csv. So for example "TESS.csv", "HARPS.csv", and so on. The code will automatically search for these file names in the given directory.
 
 Photometric instruments must contain three columns:
-	time	flux	flux_err
+time    flux    flux_err
 
 RV instruments must contain three columns:
-	time	rv	rv_err
-  
+time    rv    rv_err
+
 The time unit has to be days, preferably BJD. It does not matter if it is JD/HJD/BJD, but it *must* be homogenous between all data sets tel1.csv etc. and the parameters (epoch) in params.csv.
 
 
@@ -154,55 +159,57 @@ How the TMNT data set was simulated.
 #### a)
 Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:
 
-    ns_modus,dynamic
-    ns_nlive,500
-    ns_bound,single
-    ns_sample,unif vs. rwalk
-    ns_tol,0.01
-    
-    ndim = 8
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,unif vs. rwalk
+ns_tol,0.01
 
-    allesfit_Leonardo_unif/: 
-	    75 minutes, 27k samples, logZ = 545.42 +- 0.14
-    allesfit_Leonardo_rwalk/: 
-	    31 minutes, 24k samples, logZ = 545.36 +- 0.14
+ndim = 8
+
+allesfit_Leonardo_unif/: 
+75 minutes, 27k samples, logZ = 545.42 +- 0.14
+allesfit_Leonardo_rwalk/: 
+31 minutes, 24k samples, logZ = 545.36 +- 0.14
 
 #### b)
 Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:
 
-    ns_modus,dynamic
-    ns_nlive,500
-    ns_bound,single
-    ns_sample,(compared below)
-    ns_tol,0.01
-    
-    ndim = 8
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,(compared below)
+ns_tol,0.01
 
-    allesfit_all_TMNT_unif/: 
-	    > 24h, aborted 
-    allesfit_all_TMNT_rwalk/: 
-	    1.3h, 35111 samples, logZ = 1234.26 +- 0.23
-    allesfit_all_TMNT_slice/: 
-	    > 24h, aborted 
-    allesfit_all_TMNT_rslice/: 
-	    1h, 28074 samples, logZ = 1233.66 +- 0.23
-    allesfit_all_TMNT_hslice/: 
-	    16.4h, 30925 samples, logZ = 1231.49 +- 0.23
+ndim = 8
 
- - `unif` does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.
- - `rwalk` runs fast, and finds the true solution. It shows quite "conservative" (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.
- - `slice` is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.
+allesfit_all_TMNT_unif/: 
+> 24h, aborted 
+allesfit_all_TMNT_rwalk/: 
+1.3h, 35111 samples, logZ = 1234.26 +- 0.23
+allesfit_all_TMNT_slice/: 
+> 24h, aborted 
+allesfit_all_TMNT_rslice/: 
+1h, 28074 samples, logZ = 1233.66 +- 0.23
+allesfit_all_TMNT_hslice/: 
+16.4h, 30925 samples, logZ = 1231.49 +- 0.23
+
+- `unif` does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.
+- `rwalk` runs fast, and finds the true solution. It shows quite "conservative" (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.
+- `slice` is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.
 - `rslice` runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.
 - `hslice` is very slow and gives somewhat funky posteriors / traceplots.
 
 ## References
 
- - Maxted, P. F. L. (2016), Astronomy and Astrophysics, 591, A111
- - Foreman-Mackey, D., Hogg, D. W., Lang, D. & Goodman, J. (2013), Publications of the Astronomical Society of the Pacific, 125, 306
- - Foreman-Mackey, D., Agol, E., Ambikasaran, S. & Angus, R. (2017), The Astronomical Journal, 154, 220
- - Hunter J. D., 2007, Comput. Sci. Eng., 9, 90
- - Jones E. et al., 2001, SciPy: Open Source Scientific tools for Python. Available at: http://www.scipy.org/
- - Rossum G., 1995, Technical Report, Python Reference Manual, Amsterdam, The Netherlands
- - van der Walt S., Colbert S. C., Varoquaux G., 2011, Comput. Sci. Eng., 13, 22
+- Maxted, P. F. L. (2016), Astronomy and Astrophysics, 591, A111
+- Foreman-Mackey, D., Hogg, D. W., Lang, D. & Goodman, J. (2013), Publications of the Astronomical Society of the Pacific, 125, 306
+- Foreman-Mackey, D., Agol, E., Ambikasaran, S. & Angus, R. (2017), The Astronomical Journal, 154, 220
+- Hunter J. D., 2007, Comput. Sci. Eng., 9, 90
+- Jones E. et al., 2001, SciPy: Open Source Scientific tools for Python. Available at: http://www.scipy.org/
+- Rossum G., 1995, Technical Report, Python Reference Manual, Amsterdam, The Netherlands
+- van der Walt S., Colbert S. C., Varoquaux G., 2011, Comput. Sci. Eng., 13, 22
+
+
 
 

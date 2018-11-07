@@ -32,7 +32,7 @@ warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
 #::: my modules
-from lichtkurven import lightcurve_tools as lct
+from exoplanets.lightcurves import lightcurve_tools as lct
 
 #::: allesfitter modules
 from . import config
