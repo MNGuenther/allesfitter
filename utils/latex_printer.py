@@ -4,12 +4,14 @@
 Created on Mon Jan 22 10:47:38 2018
 
 @author:
-Maximilian N. Guenther
-Battcock Centre for Experimental Astrophysics,
-Cavendish Laboratory,
-JJ Thomson Avenue
-Cambridge CB3 0HE
-Email: mg719@cam.ac.uk
+Maximilian N. Günther
+MIT Kavli Institute for Astrophysics and Space Research, 
+Massachusetts Institute of Technology,
+77 Massachusetts Avenue,
+Cambridge, MA 02109, 
+USA
+Email: maxgue@mit.edu
+Web: www.mnguenther.com
 """
 
 import numpy as np

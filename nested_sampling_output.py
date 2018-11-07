@@ -4,7 +4,7 @@
 Created on Fri Oct  5 14:28:55 2018
 
 @author:
-Dr. Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
@@ -34,8 +34,8 @@ from dynesty import plotting as dyplot
 from . import config
 from . import deriver
 from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
-from .colormaputil import truncate_colormap
-from .latex_printer import round_tex
+from .utils.colormaputil import truncate_colormap
+from .utils.latex_printer import round_tex
                      
 
     

@@ -1,6 +1,15 @@
-#...............................................................................
-""" new colormaps from old: stack, truncate builtin cmaps / files / numpy arrays
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Credit & source: https://gist.github.com/salotz/4f585aac1adb6b14305c
+"""
 
+
+
+
+from __future__ import division
+
+""" new colormaps from old: stack, truncate builtin cmaps / files / numpy arrays
 What's a colormap or cmap in matplotlib ?
 Mainly a bar or array of 256 colors, rgb or rgba values 0 .. 1,
 used in
@@ -9,21 +18,18 @@ used in
 Cmaps can be indexed with () like
     cmap( .25 ),  cmap( [0, .25, .5] ),  cmap( np.linspace( ... ))
 to get rgb values.
-
 The functions below return cmaps:
     get_cmap(): "Blues" ... builtins / filename / numpy array
     array_cmap(): a numpy array, n x 3 or 4  ints 0..255 or floats 0..1
     truncate_colormap(): subset
     stack_colormap(): A B -> bottom half, A, top half B.
     band_colormap(): e.g. 10 bands
-
 See also
     http://matplotlib.org/api/colors_api.html   $matplotlib/colors.py
     http://matplotlib.org/api/cm_api.html       $matplotlib/cm.py
     http://en.wikipedia.org/wiki/Indexed_color
 """
 
-from __future__ import division
 import numpy as np
 from matplotlib import pyplot as pl, cm, colors
 
@@ -128,4 +134,4 @@ if __name__ == "__main__":
         im = pl.imshow( A, cmap=cmap, interpolation="nearest" )  # nearest: big squares
             # imshow_mouse_z
         pl.colorbar( im )
-        pl.show()
+pl.show()

@@ -4,7 +4,7 @@
 Created on Fri Sep 28 15:19:30 2018
 
 @author:
-Dr. Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
@@ -24,7 +24,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import os
-import collections
+#import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -32,7 +32,7 @@ from corner import corner
 
 #::: allesfitter modules
 from . import config
-from . import latex_printer
+from .utils import latex_printer
 from .general_output import logprint
 
 #::: constants

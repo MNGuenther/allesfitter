@@ -4,7 +4,7 @@
 Created on Fri Oct  5 01:10:51 2018
 
 @author:
-Dr. Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
@@ -32,11 +32,11 @@ warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
 #::: my modules
-from exoplanets.lightcurves import lightcurve_tools as lct
+from exoworlds.lightcurves import lightcurve_tools as lct
 
 #::: allesfitter modules
 from . import config
-from . import latex_printer
+from .utils import latex_printer
 from .computer import update_params,\
                      calculate_model, rv_fct,\
                      calculate_baseline, calculate_yerr_w
@@ -390,14 +390,6 @@ def show_initial_guess():
     
     
 ###############################################################################
-#::: derive all astrophysical values from the MCMC .h5 file, and save output files
-###############################################################################
-#def derive(datadir):
-#    deriver.derive(datadir)
-    
-    
-    
-###############################################################################
 #::: get latex labels
 ###############################################################################
 def get_labels(datadir, as_type='dic'):
@@ -413,49 +405,3 @@ def get_labels(datadir, as_type='dic'):
             labels_dic[key] = config.BASEMENT.labels[ind][0]
         return labels_dic
     
-    
-    
-###############################################################################
-#::: get a good initial guess for the GP params and inv_sigma2
-###############################################################################
-def get_initial_guess_gp(datadir):
-    import celerite
-    from celerite import terms
-    from scipy.optimize import minimize
-    from .computer import update_params
-    
-    config.init(datadir)
-    base = config.BASEMENT
-    params = update_params(base.theta_0)
-    
-    for inst in base.settings['inst_phot']:
-        key = 'flux'
-        model = calculate_model(params, inst, key, xx=None)
-        x = base.data[inst]['time']
-        y = base.data[inst][key] - model
-#        yerr_weights = config.BASEMENT.data[inst]['err_scales_'+key]
-        yerr = np.nanstd(y) #overwrite yerr; works better for removing smooth global trends
-        
-        kernel = terms.Matern32Term(log_sigma=1., log_rho=1.)
-        gp = celerite.GP(kernel, mean=np.nanmean(y)) 
-        gp.compute(x, yerr=yerr) #constrain on x/y/yerr
-         
-        def neg_log_like(gp_params, y, gp):
-            gp.set_parameter_vector(gp_params)
-            return -gp.log_likelihood(y)
-        
-        def grad_neg_log_like(gp_params, y, gp):
-            gp.set_parameter_vector(gp_params)
-            return -gp.grad_log_likelihood(y)[1]
-        
-        initial_params = gp.get_parameter_vector()
-        bounds = gp.get_parameter_bounds()
-        soln = minimize(neg_log_like, initial_params, jac=grad_neg_log_like,
-                        method="L-BFGS-B", bounds=bounds, args=(y, gp))
-#        gp.set_parameter_vector(soln.x)
-        
-        inv_sigma2_w = calculate_inv_sigma2_w(params, inst, key)
-    
-        print('baseline_gp1_'+key+'_'+inst + ':', soln.x[0])
-        print('baseline_gp2_'+key+'_'+inst + ':', soln.x[1])
-        print('inv_sigma2_'+key+'_'+inst + ':', np.nanmean(inv_sigma2_w))

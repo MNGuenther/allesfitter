@@ -4,7 +4,7 @@
 Created on Fri Oct  5 01:05:28 2018
 
 @author:
-Dr. Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
@@ -165,7 +165,7 @@ def ns_fit(datadir):
             
         t1 = timer()
         timedynestydynamic = (t1-t0)
-        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {} hours".format(int(timedynestydynamic/60./60.)))
+        logprint("\nTime taken to run 'dynesty' (in dynamic mode) is {:.2f} hours".format(timedynestydynamic/60./60.))
 
 
     #::: pickle-save the 'results' class

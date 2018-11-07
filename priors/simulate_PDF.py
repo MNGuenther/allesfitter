@@ -23,12 +23,15 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import fsolve, minimize
-from scipy.stats import norm, skewnorm
-import math
+from scipy.optimize import minimize
+from scipy.stats import skewnorm
+
+
 
 
 np.random.seed(42)
+
+
 
 
 def simulate_PDF(median, lower_err, upper_err, size=1, plot=True):

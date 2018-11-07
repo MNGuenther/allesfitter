@@ -4,7 +4,7 @@
 Created on Tue Oct 30 12:14:51 2018
 
 @author:
-Maximilian N. Guenther
+Maximilian N. Günther
 MIT Kavli Institute for Astrophysics and Space Research, 
 Massachusetts Institute of Technology,
 77 Massachusetts Avenue,
