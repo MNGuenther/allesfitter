@@ -34,6 +34,7 @@ from corner import corner
 from . import config
 from .utils import latex_printer
 from .general_output import logprint
+from .priors.simulate_PDF import simulate_PDF
 
 #::: constants
 M_earth = 5.9742e+24 	#kg 	Earth mass
@@ -82,8 +83,9 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     buf = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, comments='#' )
     star = {}
-    star['R_star'] = buf['R_star'] + buf['R_star_err']*np.random.randn(N_samples)
-    star['M_star'] = buf['M_star'] + buf['M_star_err']*np.random.randn(N_samples)
+    star['R_star'] = simulate_PDF(buf['R_star'], buf['R_star_lerr'], buf['R_star_uerr'], size=N_samples, plot=False)
+    star['M_star'] = simulate_PDF(buf['M_star'], buf['M_star_lerr'], buf['M_star_uerr'], size=N_samples, plot=False)
+    
     
     
     ###############################################################################
@@ -120,13 +122,16 @@ def derive(samples, mode, output_units='jup'):
         derived_samples[planet+'_w'] = arcsin_d( get_params(planet+'_f_s') / np.sqrt(derived_samples[planet+'_e']) ) #in deg
         
         #::: mass related
-        a_1 = 0.019771142 * get_params(planet+'_K') * get_params(planet+'_period') * np.sqrt(1. - derived_samples[planet+'_e']**2)/sin_d(derived_samples[planet+'_i'])
-#        derived_samples[planet+'_a_rv'] = (1.+1./ellc_params[planet+'_q'])*a_1
-        derived_samples[planet+'_q'] = 1./(( derived_samples[planet+'_a'] / a_1 ) - 1.)
-        if suffix=='earth':
-            derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_earth #in M_earth
-        elif suffix=='jup':
-            derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_jup #in M_jup
+        if planet+'_K' in config.BASEMENT.params:
+            a_1 = 0.019771142 * get_params(planet+'_K') * get_params(planet+'_period') * np.sqrt(1. - derived_samples[planet+'_e']**2)/sin_d(derived_samples[planet+'_i'])
+    #        derived_samples[planet+'_a_rv'] = (1.+1./ellc_params[planet+'_q'])*a_1
+            derived_samples[planet+'_q'] = 1./(( derived_samples[planet+'_a'] / a_1 ) - 1.)
+            if suffix=='earth':
+                derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_earth #in M_earth
+            elif suffix=='jup':
+                derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_jup #in M_jup
+        else:
+            derived_samples[planet+'_M_planet'] = None
             
         #transit timing related
         derived_samples[planet+'_dt_occ'] = get_params(planet+'_period')/2. * (1. + 4./np.pi * derived_samples[planet+'_e'] * cos_d(derived_samples[planet+'_w'])  ) #approximation

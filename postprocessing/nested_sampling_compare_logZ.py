@@ -84,7 +84,7 @@ def ns_plot_bayes_factors(run_names, labels):
         
     #::: plot
     index = np.arange(len(delta_logZ))
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(3*len(run_names),4))
     ax.bar(index, delta_logZ, edgecolor='b')
     ax.errorbar(index, delta_logZ, yerr=delta_logZ_err, color='k', linestyle='none', markersize=0, capsize=2, elinewidth=5, zorder=10)
     ax.set_xticks(index)

@@ -41,7 +41,7 @@ from .utils.latex_printer import round_tex
     
 
 ###############################################################################
-#::: draw samples from the MCMC save.5 (internally in the code)
+#::: draw samples from the ns results (internally in the code)
 ###############################################################################
 def draw_ns_samples(results, Nsamples=None):
     weights = np.exp(results['logwt'] - results['logz'][-1])

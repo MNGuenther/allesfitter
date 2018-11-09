@@ -14,8 +14,11 @@ Email: maxgue@mit.edu
 Web: www.mnguenther.com
 """
 
+from __future__ import print_function, division, absolute_import
+
+#::: modules
 import numpy as np
-from to_precision import std_notation
+from .to_precision import std_notation
 
 
 
