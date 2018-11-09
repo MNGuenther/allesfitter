@@ -64,7 +64,7 @@ def get_cmap( cmap, name=None, n=256 ):
     """
     if isinstance( cmap, colors.Colormap ):
         return cmap
-    if isinstance( cmap, basestring ):
+    if isinstance( cmap, str ):
         if cmap in cm.cmap_d:
             return pl.get_cmap( cmap )  # "Blues" ...
         A = np.loadtxt( cmap, delimiter=None )  # None: white space
