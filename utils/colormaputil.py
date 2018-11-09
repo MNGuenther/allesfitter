@@ -126,7 +126,7 @@ if __name__ == "__main__":
     exec( "\n".join( sys.argv[1:] ))
     np.set_printoptions( 2, threshold=100, edgeitems=10, linewidth=100, suppress=True )
 
-    print cmap.name, "\n", cmap( np.arange( 120, 136 ) / 256 ).T
+    print(cmap.name, "\n", cmap( np.arange( 120, 136 ) / 256 ).T)
     save_cmap( cmap.name + ".tmp", cmap )
 
     if plot:
