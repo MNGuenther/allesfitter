@@ -5,6 +5,7 @@ Credit & source: https://bitbucket.org/william_rusnack/to-precision/src/master/
 """
 
 
+from __future__ import print_function, division, absolute_import
 
 
 __author__ = '''William Rusnack github.com/BebeSparkelSparkel linkedin.com/in/williamrusnack williamrusnack@gmail.com
