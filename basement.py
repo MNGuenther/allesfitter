@@ -274,6 +274,21 @@ class Basement():
                 raise ValueError(string)
 
 
+            
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Phase variations
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if ('phase_variations' in self.settings.keys()) and len(self.settings['phase_variations']):
+            self.settings['phase_variations'] = set_bool(self.settings['phase_variations'])
+            if self.settings['phase_variations']==True:                
+                print('The user set phase_variations==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
+                self.settings['fast_fit'] = 'False'
+                self.settings['secondary_eclipse'] = 'True'
+        else:
+            self.settings['phase_variations'] = False
+            
+            
+            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Fast fit
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -284,6 +299,7 @@ class Basement():
         else:
             self.settings['fast_fit_width'] = 8./24.
                 
+            
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Secondary eclipse
@@ -502,21 +518,34 @@ class Basement():
         else:
             self.truths = np.nan * np.ones(len(self.allkeys))
             
-        self.params = collections.OrderedDict()           #len(all rows in params.csv)
-        self.params['user-given:'] = ''
+            
+        self.params = collections.OrderedDict()                                #len(all rows in params.csv)
+        self.params['user-given:'] = ''                                        #just for printing
         for i,key in enumerate(self.allkeys):
-            self.params[key] = np.float(buf['value'][i])
-         
+            #::: if it's not a "coupled parameter", then use the given value
+            if buf['value'][i] not in self.allkeys:
+                self.params[key] = np.float(buf['value'][i])
+            #::: if it's a "coupled parameter", then write the string of the key it is coupled to
+            else:
+                self.params[key] = buf['value'][i]
+                
         #::: automatically set default params if they were not given
-        self.params['automatically set:'] = ''
+        self.params['automatically set:'] = ''                                 #just for printing
         for planet in self.settings['planets_phot']:
             for inst in self.settings['inst_phot']:
                 if 'light_3_'+inst not in self.params:
                     self.params['light_3_'+inst] = 0.
-                if planet+'_sbratio_'+inst not in self.params:
-                    self.params[planet+'_sbratio_'+inst] = 1e-12 #this is to avoid a bug in ellc
-                if planet+'_geom_albedo_'+inst not in self.params:
-                    self.params[planet+'_geom_albedo_'+inst] = 1e-12 #this is to avoid a bug in ellc
+                if (planet+'_sbratio_'+inst not in self.params):
+                    self.params[planet+'_sbratio_'+inst] = 0
+                if (planet+'_geom_albedo_'+inst not in self.params):
+                    self.params[planet+'_geom_albedo_'+inst] = 0 
+                    
+                #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
+                if (self.params[planet+'_sbratio_'+inst] == 0) and (self.params[planet+'_geom_albedo_'+inst] > 0):
+                    self.params[planet+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
+                if (self.params[planet+'_sbratio_'+inst] > 0) and (self.params[planet+'_geom_albedo_'+inst] == 0):
+                    self.params[planet+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                    
                     
         for planet in self.settings['planets_rv']:
             if planet+'_q' not in self.params:
@@ -530,7 +559,21 @@ class Basement():
             if planet+'_f_s' not in self.params:
                 self.params[planet+'_f_s'] = 0.
                 
+        
+        #::: coupled params
+        if 'coupled_with' in buf.dtype.names:
+            self.coupled_with = buf['coupled_with']
+        else:
+            self.coupled_with = [None]*len(self.allkeys)
             
+        #::: deal with coupled params
+        for i, key in enumerate(self.allkeys):
+            if isinstance(self.coupled_with[i], str) and (len(self.coupled_with[i])>0):
+                self.params[key] = self.params[self.coupled_with[i]]           #luser proof: automatically set the values of the params coupled to another param
+                buf['fit'][i] = 0                                              #luser proof: automatically set fit=0 for the params coupled to another param
+        
+        
+        #::: mark to be fitted params
         self.ind_fit = (buf['fit']==1)                  #len(all rows in params.csv)
         
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)

@@ -41,16 +41,16 @@ from .general_output import afplot, save_table, save_latex_table, logprint
 ###############################################################################
 #::: draw samples from the MCMC save.5 (internally in the code)
 ###############################################################################
-def draw_mcmc_samples(sampler, Nsamples=None):
+def draw_mcmc_posterior_samples(sampler, Nsamples=None):
     '''
     Default: return all possible sampels
     Set e.g. Nsamples=20 for plotting
     '''
 #    global config.BASEMENT
-    samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
+    posterior_samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
     if Nsamples:
-        samples = samples[np.random.randint(len(samples), size=20)]
-    return samples
+        posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=20)]
+    return posterior_samples
 
 
 
@@ -170,9 +170,9 @@ def mcmc_output(datadir):
     print_autocorr(reader)
 
     #::: plot the fit
-    samples = draw_mcmc_samples(reader, Nsamples=20) #only 20 samples for plotting
+    posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
     for planet in config.BASEMENT.settings['planets_all']:
-        fig, axes = afplot(samples, planet)
+        fig, axes = afplot(posterior_samples, planet)
         fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
         plt.close(fig)
     
@@ -187,13 +187,13 @@ def mcmc_output(datadir):
     plt.close(fig)
 
     #::: save the tables
-    samples = draw_mcmc_samples(reader) #all samples
-    save_table(samples, 'mcmc')
-    save_latex_table(samples, 'mcmc')
+    posterior_samples = draw_mcmc_posterior_samples(reader) #all samples
+    save_table(posterior_samples, 'mcmc')
+    save_latex_table(posterior_samples, 'mcmc')
     
     #::: derive values (using stellar parameters from params_star.csv)
     if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-        deriver.derive(samples, 'mcmc')
+        deriver.derive(posterior_samples, 'mcmc')
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
@@ -207,17 +207,17 @@ def mcmc_output(datadir):
 ###############################################################################
 #::: get MCMC samples (for top-level user)
 ###############################################################################
-def get_mcmc_samples(datadir, Nsamples=None, QL=False, as_type='dic'):
+def get_mcmc_posterior_samples(datadir, Nsamples=None, QL=False, as_type='dic'):
     config.init(datadir, QL=QL)
     reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'save.h5'), read_only=True )
-    samples = draw_mcmc_samples(reader, Nsamples=Nsamples) #only 20 samples for plotting
+    posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=Nsamples) #only 20 samples for plotting
     
     if as_type=='2d_array':
-        return samples
+        return posterior_samples
     
     elif as_type=='dic':
-        samples_dic = {}
+        posterior_samples_dic = {}
         for key in config.BASEMENT.fitkeys:
             ind = np.where(config.BASEMENT.fitkeys==key)[0]
-            samples_dic[key] = samples[:,ind].flatten()
-        return samples_dic
+            posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
+        return posterior_samples_dic

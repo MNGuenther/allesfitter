@@ -55,6 +55,12 @@ def update_params(theta, phased=False):
         params[key] = theta[i]   
     
     
+    #::: deal with coupled params before updates
+    for i, key in enumerate(config.BASEMENT.allkeys):
+        if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
+            params[key] = params[config.BASEMENT.coupled_with[i]]
+            
+    
     #::: phase-folded? (it's important to have this before calculating the semi-major axis!)
     if phased:
         for planet in config.BASEMENT.settings['planets_all']:
@@ -105,6 +111,7 @@ def update_params(theta, phased=False):
             else:
                 params[planet+'_heat_2_'+inst] = params[planet+'_geom_albedo_'+inst]/2.
     
+    
     #::: RV
     for planet in config.BASEMENT.settings['planets_rv']:
         for inst in config.BASEMENT.settings['inst_rv']:
@@ -116,6 +123,13 @@ def update_params(theta, phased=False):
         ecc = params[planet+'_f_s']**2 + params[planet+'_f_c']**2
         a_1 = 0.019771142 * params[planet+'_K'] * params[planet+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[planet+'_incl']*np.pi/180.)
         params[planet+'_a'] = (1.+1./params[planet+'_q'])*a_1
+        
+        
+    #::: deal with coupled params after updates
+    for i, key in enumerate(config.BASEMENT.allkeys):
+        if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
+            params[key] = params[config.BASEMENT.coupled_with[i]]
+        
         
     return params
 

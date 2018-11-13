@@ -26,7 +26,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 import matplotlib.pyplot as plt
 
 #::: allesfitter modules
-from .. import get_mcmc_samples, get_ns_samples, get_labels
+from .. import get_mcmc_posterior_samples, get_ns_posterior_samples, get_labels
 
 
 
@@ -91,9 +91,9 @@ def plot_violins(datadirs, labels, key, mode):
     all_paramslabels = {}
     for datadir, label in zip(datadirs, labels):
         if mode=='mcmc':        
-            all_params[label] = get_mcmc_samples(datadir, as_type='dic')
+            all_params[label] = get_mcmc_posterior_samples(datadir, as_type='dic')
         elif mode=='ns':
-            all_params[label] = get_ns_samples(datadir, as_type='dic')
+            all_params[label] = get_ns_posterior_samples(datadir, as_type='dic')
         all_paramslabels[label] = get_labels(datadir, as_type='dic')
         
     fig, ax = plt.subplots()

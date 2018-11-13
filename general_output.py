@@ -81,7 +81,11 @@ def afplot(samples, planet):
       
     N_inst = len(config.BASEMENT.settings['inst_all'])
     
-    if config.BASEMENT.settings['secondary_eclipse']:
+    
+    if config.BASEMENT.settings['phase_variations']:
+        fig, axes = plt.subplots(N_inst,5,figsize=(6*5,4*N_inst))
+        styles = ['full','phase','phase_variation','phasezoom','phasezoom_occ']
+    elif config.BASEMENT.settings['secondary_eclipse']:
         fig, axes = plt.subplots(N_inst,4,figsize=(6*4,4*N_inst))
         styles = ['full','phase','phasezoom','phasezoom_occ']
     else:
@@ -157,7 +161,7 @@ def plot_1(ax, samples, inst, planet, style):
         #::: plot data, not phase
         ax.errorbar( x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
         if config.BASEMENT.settings['color_plot']:
-            ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 ) 
+            ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 ) 
         ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
         
         #::: plot model + baseline, not phased
@@ -169,7 +173,7 @@ def plot_1(ax, samples, inst, planet, style):
             p = update_params(s)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, model+baseline, 'r-', alpha=0.1, zorder=10, rasterized=True )
+            ax.plot( xx, model+baseline, 'r-', alpha=0.1, rasterized=True, zorder=12 )
             
             
     ###############################################################################
@@ -197,7 +201,7 @@ def plot_1(ax, samples, inst, planet, style):
         
         
         #::: if RV, need to take care of multiple planets
-        #TODO: make this upwards compatible fo rmultiple planets ('d', 'e', etc)
+        #TODO: make this upwards compatible for >=3 planets ('d', 'e', etc)
         if (inst in config.BASEMENT.settings['inst_rv']) & (planet=='c'):
             model = rv_fct(params_median, inst, 'b')[0]
             y -= model
@@ -206,9 +210,9 @@ def plot_1(ax, samples, inst, planet, style):
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
+                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )            
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
@@ -217,20 +221,28 @@ def plot_1(ax, samples, inst, planet, style):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = rv_fct(p, inst, 'c', xx=xx)[0]
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, rasterized=True, zorder=12 )
             
         
         #::: if photometry
         else: 
-            #data, phased        
+            #data, phased     
+            if 'phase_variation' in style:
+                dt = 0.01                
+            else:
+                dt = 0.002
+                
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True )
+                if 'phase_variation' not in style: 
+                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
+                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
+                else:
+                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=True, zorder=11 )                    
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )  
                 if config.BASEMENT.settings['color_plot']:
-                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=9 )          
+                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
     
             #model, phased
@@ -239,13 +251,15 @@ def plot_1(ax, samples, inst, planet, style):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, zorder=10, rasterized=True )
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, rasterized=True, zorder=12 )
              
         
         #::: zoom?        
         if 'phasezoom' in style:     ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
-        if 'phasezoom_occ' in style: ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], ylim=[0.999,1.001], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
-
+        if 'phasezoom_occ' in style: ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], ylim=[0.999,1.0005], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+        
+        #::: zoom onto phase variations?
+        if 'phase_variation' in style: ax.set( ylim=[0.9999,1.0001] )
 
     
 ###############################################################################

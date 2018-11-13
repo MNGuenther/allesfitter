@@ -30,8 +30,8 @@ from .mcmc import mcmc_fit
 from .nested_sampling import ns_fit
 
 from .general_output import get_labels
-from .nested_sampling_output import get_ns_samples, ns_output
-from .mcmc_output import get_mcmc_samples, mcmc_output
+from .nested_sampling_output import get_ns_posterior_samples, ns_output
+from .mcmc_output import get_mcmc_posterior_samples, mcmc_output
 
 from .priors import transform_priors
 from .priors.estimate_noise import estimate_noise
