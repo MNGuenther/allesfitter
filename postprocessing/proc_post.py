@@ -31,6 +31,7 @@ strgkind = sys.argv[2]
 strgtimestmp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 print('Post-processing comparison pipeline for the previously TESS exoplanets started at %s...' % strgtimestmp)
     
+
 print('Will analyze:')
 print(strgplan)
 
