@@ -1,0 +1,20 @@
+#name,value,fit,bounds,label,unit,truth
+#limb darkening coefficients per instrument,,,,,,
+ldc_q1_Leonardo,0.5,1,uniform 0 1,$q_{1;\mathrm{Leonardo}}$,,0.3
+ldc_q2_Leonardo,0.5,1,uniform 0 1,$q_{2;\mathrm{Leonardo}}$,,0.1
+ldc_q1_Michelangelo_TTV,0.5,1,uniform 0 1,$q_{1;\mathrm{Michelangelo_{TTV}}}$,,0.5
+ldc_q2_Michelangelo_TTV,0.5,1,uniform 0 1,$q_{2;\mathrm{Michelangelo_{TTV}}}$,,0.4
+#planet b astrophysical params,,,,,,
+b_rsuma,0.12,1,trunc_normal 0 1 0.12 0.02,$(R_\star + R_b) / a_b$,,0.11
+b_rr,0.103,1,trunc_normal 0 1 0.103 0.02,$R_b / R_\star$,,0.1
+b_cosi,0,1,trunc_normal 0 1 0 0.05,$\cos{i_b}$,,0.01745
+b_epoch,1.097,1,trunc_normal 0 1e12 1.097 0.01,$T_{0;b}$,$\mathrm{BJD}$,1.1
+b_period,3.401,1,trunc_normal 0 1e12 3.401 0.01,$P_b$,$\mathrm{d}$,3.4
+b_K,0.11,1,trunc_normal 0 1 0.11 0.01,$K_b$,$\mathrm{km/s}$,0.1
+#TTV per data set,,,,,,
+ttv_Michelangelo_TTV,0,1,uniform -0.01 0.01,$TTV_\mathrm{Michelangelo_{TTV}}$,$\mathrm{d}$,0.003472222222222222
+#errors (overall scaling) per instrument,,,,,,
+log_err_flux_Leonardo,-6,1,trunc_normal -23 0 -6 1,$\log{\sigma_\mathrm{Leonardo}}$,,NaN
+log_err_flux_Michelangelo_TTV,-6,1,trunc_normal -23 0 -6 1,$\log{\sigma_\mathrm{Michelangelo_{TTV}}}$,,NaN
+log_jitter_rv_Donatello,-3,1,trunc_normal -23 0 -3 1,$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$,$\mathrm{km/s}$,NaN
+log_jitter_rv_Raphael,-3,1,trunc_normal -23 0 -3 1,$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$,$\mathrm{km/s}$,NaN

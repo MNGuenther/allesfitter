@@ -59,16 +59,23 @@ def ns_lnlike(theta):
 #        inv_sigma2_w = calculate_inv_sigma2_w(params, inst, key, residuals=residuals)
 #        lnlike_1 = -0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))
 #        return lnlike_1
+#    
+#    print('****')
+#    print(params)
+#    try:
+    for inst in config.BASEMENT.settings['inst_phot']:
+        lnlike += calculate_lnlike(params, inst, 'flux') #lnlike_1(inst, 'flux')
     
-    try:
-        for inst in config.BASEMENT.settings['inst_phot']:
-            lnlike += calculate_lnlike(params, inst, 'flux') #lnlike_1(inst, 'flux')
+    for inst in config.BASEMENT.settings['inst_rv']:
+        lnlike += calculate_lnlike(params, inst, 'rv') #lnlike_1(inst, 'rv')
+#    except:
+#        lnlike = -np.inf
         
-        for inst in config.BASEMENT.settings['inst_rv']:
-            lnlike += calculate_lnlike(params, inst, 'rv') #lnlike_1(inst, 'rv')
-    except:
+    if np.isnan(lnlike) or np.isinf(lnlike):
         lnlike = -np.inf
         
+#    print('****')
+#    print(lnlike)
 #    now = timer() #Time after it finished
 #    print("lnlike took: ", now-then, " seconds")
     return lnlike
@@ -80,7 +87,6 @@ def ns_lnlike(theta):
 ###############################################################################
 def ns_prior_transform(utheta):
 #    global config.BASEMENT
-    
     theta = np.zeros_like(utheta)*np.nan
     for i in range(len(theta)):
         if config.BASEMENT.bounds[i][0]=='uniform':

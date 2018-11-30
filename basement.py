@@ -76,7 +76,9 @@ class Basement():
         self.load_settings()
         self.load_params()
         self.load_data()
-        self.change_epoch()
+        
+        if self.settings['shift_epoch']:
+            self.change_epoch()
         
         #::: if baseline model == sample_GP, set up a GP object for photometric data
 #        self.setup_GPs()
@@ -129,8 +131,8 @@ class Basement():
         ###############################################################################
         # General settings
         ###############################################################################
-        planets_phot 
-        planets_rv
+        companions_phot 
+        companions_rv
         inst_phot
         inst_rv
         ###############################################################################
@@ -219,15 +221,25 @@ class Basement():
             
         rows = np.genfromtxt( os.path.join(self.datadir,'settings.csv'), dtype=None, delimiter=',' )
 
+        #::: make backwards compatible
+        for i, row in enumerate(rows):
+#            print(row)
+            name = row[0]
+            if name[:7]=='planets':
+                rows[i][0] = 'companions'+name[7:]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0])
+            if name[:6]=='ld_law':
+                rows[i][0] = 'host_ld_law'+name[6:]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0])
+                
 #        self.settings = {r[0]:r[1] for r in rows}
         self.settings = collections.OrderedDict( [('user-given:','')]+[ (r[0],r[1]) for r in rows ]+[('automatically set:','')] )
-        
-        
+
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: General settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for key in ['planets_phot', 'planets_rv', 'inst_phot', 'inst_rv']:
+        for key in ['companions_phot', 'companions_rv', 'inst_phot', 'inst_rv']:
             if key not in self.settings:
                 self.settings[key] = []
             elif len(self.settings[key]): 
@@ -235,24 +247,30 @@ class Basement():
             else:                       
                 self.settings[key] = []
         
-        self.settings['planets_all']  = list(np.unique(self.settings['planets_phot']+self.settings['planets_rv'])) #sorted by b, c, d...
+        self.settings['companions_all']  = list(np.unique(self.settings['companions_phot']+self.settings['companions_rv'])) #sorted by b, c, d...
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
     
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Epoch settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for planet in self.settings['planets_all']:
-            if 'inst_for_'+planet+'_epoch' not in self.settings:
-                self.settings['inst_for_'+planet+'_epoch'] = 'all'
+        if 'shift_epoch' in self.settings:
+            self.settings['shift_epoch'] = set_bool(self.settings['shift_epoch'] )
+        else:
+            self.settings['shift_epoch'] = False
+            
+            
+        for companion in self.settings['companions_all']:
+            if 'inst_for_'+companion+'_epoch' not in self.settings:
+                self.settings['inst_for_'+companion+'_epoch'] = 'all'
         
-            if self.settings['inst_for_'+planet+'_epoch'] in ['all','none']:
-                self.settings['inst_for_'+planet+'_epoch'] = self.settings['inst_all']
+            if self.settings['inst_for_'+companion+'_epoch'] in ['all','none']:
+                self.settings['inst_for_'+companion+'_epoch'] = self.settings['inst_all']
             else:
-                if len(self.settings['inst_for_'+planet+'_epoch']): 
-                    self.settings['inst_for_'+planet+'_epoch'] = str(self.settings['inst_for_'+planet+'_epoch']).split(' ')
+                if len(self.settings['inst_for_'+companion+'_epoch']): 
+                    self.settings['inst_for_'+companion+'_epoch'] = str(self.settings['inst_for_'+companion+'_epoch']).split(' ')
                 else:                       
-                    self.settings['inst_for_'+planet+'_epoch'] = []
+                    self.settings['inst_for_'+companion+'_epoch'] = []
         
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -356,12 +374,35 @@ class Basement():
         
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: Limb darkening laws
+        #::: host & companion grids, limb darkening laws, shapes
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for inst in self.settings['inst_phot']:
-            if 'ld_law_'+inst not in self.settings: 
-                self.settings['ld_law_'+inst] = 'quad'
+        for companion in self.settings['companions_all']:
+            for inst in self.settings['inst_all']:
                 
+                if 'host_grid_'+inst not in self.settings: 
+                    self.settings['host_grid_'+inst] = 'default'
+                    
+                if companion+'_grid_'+inst not in self.settings: 
+                    self.settings[companion+'_grid_'+inst] = 'default'
+                    
+                if 'host_ld_law_'+inst not in self.settings or len(self.settings['host_ld_law_'+inst])==0 or self.settings['host_ld_law_'+inst]=='None': 
+                    self.settings['host_ld_law_'+inst] = None
+                    
+                if companion+'_ld_law_'+inst not in self.settings: 
+                    self.settings[companion+'_ld_law_'+inst] = None
+                
+                if 'host_shape_'+inst not in self.settings: 
+                    self.settings['host_shape_'+inst] = 'sphere'
+                    
+                if companion+'_shape_'+inst not in self.settings: 
+                    self.settings[companion+'_shape_'+inst] = 'sphere'
+                    
+                    
+        for companion in self.settings['companions_rv']:
+            for inst in self.settings['inst_rv']:
+                if companion+'_flux_weighted_'+inst not in self.settings: 
+                    self.settings['flux_weighted_'+inst] = False
+        
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Baselines
@@ -425,7 +466,33 @@ class Basement():
                     raise ValueError('"t_exp_n_int_'+inst+'" must be >= 1, but is given as '+str(self.settings['t_exp_n_int_'+inst])+' in params.csv')
             else:
                 self.settings['t_exp_n_int_'+inst] = None
-                
+  
+    
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Number of spots
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_all']:
+            if 'host_N_spots_'+inst in self.settings and len(self.settings['host_N_spots_'+inst]):
+                self.settings['host_N_spots_'+inst] = int(self.settings['host_N_spots_'+inst])
+            else:
+                self.settings['host_N_spots_'+inst] = 0
+        
+            for companion in self.settings['companions_all']:
+                if companion+'_N_spots'+inst in self.settings:
+                    self.settings[companion+'_N_spots_'+inst] = int(self.settings[companion+'_N_spots_'+inst])
+                else:
+                    self.settings[companion+'_N_spots_'+inst] = 0
+                    
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Number of flares
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'N_flares' in self.settings:
+            self.settings['N_flares'] = int(self.settings['N_flares'])
+        else:
+            self.settings['N_flares'] = 0
+        
+        
         
                 
     ###############################################################################
@@ -434,15 +501,15 @@ class Basement():
     def load_params(self):
         '''
         #name	value	fit	bounds	label	unit
-        #b_: planet name; _key : flux/rv/centd; _inst : instrument name					
+        #b_: companion name; _key : flux/rv/centd; _inst : instrument name					
         #dilution per instrument					
-        light_3_TESS	0	0	none	$D_\mathrm{TESS}$	
-        light_3_HATS	0.14	1	trunc_normal 0 1 0.14 0.1	$D_\mathrm{HATS}$	
-        light_3_FTS_i	0	0	none	$D_\mathrm{FTS_i}$	
-        light_3_GROND_g	0	0	none	$D_\mathrm{GROND_g}$	
-        light_3_GROND_r	0	0	none	$D_\mathrm{GROND_r}$	
-        light_3_GROND_i	0	0	none	$D_\mathrm{GROND_i}$	
-        light_3_GROND_z	0	0	none	$D_\mathrm{GROND_i}$	
+        dil_TESS	0	0	none	$D_\mathrm{TESS}$	
+        dil_HATS	0.14	1	trunc_normal 0 1 0.14 0.1	$D_\mathrm{HATS}$	
+        dil_FTS_i	0	0	none	$D_\mathrm{FTS_i}$	
+        dil_GROND_g	0	0	none	$D_\mathrm{GROND_g}$	
+        dil_GROND_r	0	0	none	$D_\mathrm{GROND_r}$	
+        dil_GROND_i	0	0	none	$D_\mathrm{GROND_i}$	
+        dil_GROND_z	0	0	none	$D_\mathrm{GROND_i}$	
         #limb darkening coefficients per instrument					
         ldc_q1_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
         ldc_q2_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
@@ -458,7 +525,7 @@ class Basement():
         ldc_q2_GROND_i	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_i}}$	
         ldc_q1_GROND_z	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_z}}$	
         ldc_q2_GROND_z	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_z}}$	
-        #brightness per instrument per planet					
+        #brightness per instrument per companion					
         b_sbratio_TESS	0	0	none	$J_{b;\mathrm{TESS}}$	
         b_sbratio_HATS	0	0	none	$J_{b;\mathrm{HATS}}$	
         b_sbratio_FTS_i	0	0	none	$J_{b;\mathrm{FTS_i}}$	
@@ -466,7 +533,7 @@ class Basement():
         b_sbratio_GROND_r	0	0	none	$J_{b;\mathrm{GROND_r}}$	
         b_sbratio_GROND_i	0	0	none	$J_{b;\mathrm{GROND_i}}$	
         b_sbratio_GROND_z	0	0	none	$J_{b;\mathrm{GROND_z}}$	
-        #planet b astrophysical params					
+        #companion b astrophysical params					
         b_rsuma	0.178	1	trunc_normal 0 1 0.178 0.066	$(R_\star + R_b) / a_b$	
         b_rr	0.1011	1	trunc_normal 0 1 0.1011 0.0018	$R_b / R_\star$	
         b_cosi	0.099	1	trunc_normal 0 1 0.099 0.105	$\cos{i_b}$	
@@ -509,6 +576,17 @@ class Basement():
     
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,names=True)
         
+        #::: make backwards compatible
+        for i, name in enumerate(buf['name']):
+            if name[:7]=='light_3':
+                buf['name'][i] = 'dil_'+name[8:]
+        
+        for i, name in enumerate(buf['name']):
+            if name[:3]=='ldc':
+                buf['name'][i] = 'host_'+name
+                
+                
+        #::: proceed...                    
         self.allkeys = buf['name'] #len(all rows in params.csv)
         self.labels = buf['label'] #len(all rows in params.csv)
         self.units = buf['unit']   #len(all rows in params.csv)
@@ -529,36 +607,120 @@ class Basement():
             else:
                 self.params[key] = buf['value'][i]
                 
+                
         #::: automatically set default params if they were not given
         self.params['automatically set:'] = ''                                 #just for printing
-        for planet in self.settings['planets_phot']:
-            for inst in self.settings['inst_phot']:
-                if 'light_3_'+inst not in self.params:
-                    self.params['light_3_'+inst] = 0.
-                if (planet+'_sbratio_'+inst not in self.params):
-                    self.params[planet+'_sbratio_'+inst] = 0
-                if (planet+'_geom_albedo_'+inst not in self.params):
-                    self.params[planet+'_geom_albedo_'+inst] = 0 
+        for companion in self.settings['companions_all']:
+            for inst in self.settings['inst_all']:
+                
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: ellc defaults
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                if 'dil_'+inst not in self.params:
+                    self.params['dil_'+inst] = 0.
+                
+                if companion+'_sbratio_'+inst not in self.params:
+                    self.params[companion+'_sbratio_'+inst] = 0.               
                     
+                if companion+'_a' not in self.params:
+                    self.params[companion+'_a'] = None
+                    
+                if companion+'_q' not in self.params:
+                    self.params[companion+'_q'] = 1.
+                    
+                if companion+'_K' not in self.params:
+                    self.params[companion+'_K'] = 0.
+                
+                if companion+'_f_c' not in self.params:
+                    self.params[companion+'_f_c'] = 0.
+                    
+                if companion+'_f_s' not in self.params:
+                    self.params[companion+'_f_s'] = 0.
+                    
+                if 'host_ldc_'+inst not in self.params:
+                    self.params['host_ldc_'+inst] = None
+                    
+                if companion+'_ldc_'+inst not in self.params:
+                    self.params[companion+'_ldc_'+inst] = None
+                    
+                if 'host_gdc_'+inst not in self.params:
+                    self.params['host_gdc_'+inst] = None
+                    
+                if companion+'_gdc_'+inst not in self.params:
+                    self.params[companion+'_gdc_'+inst] = None
+                    
+                if 'didt_'+inst not in self.params:
+                    self.params['didt_'+inst] = None
+                    
+                if 'domdt_'+inst not in self.params:
+                    self.params['domdt_'+inst] = None
+                    
+                if 'host_rotfac_'+inst not in self.params:
+                    self.params['host_rotfac_'+inst] = 1.
+                    
+                if companion+'_rotfac_'+inst not in self.params:
+                    self.params[companion+'_rotfac_'+inst] = 1.
+                    
+                if 'host_hf_'+inst not in self.params:
+                    self.params['host_hf_'+inst] = 1.5
+                    
+                if companion+'_hf_'+inst not in self.params:
+                    self.params[companion+'_hf_'+inst] = 1.5
+                    
+                if 'host_bfac_'+inst not in self.params:
+                    self.params['host_bfac_'+inst] = None
+                    
+                if companion+'_bfac_'+inst not in self.params:
+                    self.params[companion+'_bfac_'+inst] = None
+                    
+                if 'host_geom_albedo_'+inst not in self.params:
+                    self.params['host_geom_albedo_'+inst] = 0
+                    
+                if companion+'_geom_albedo_'+inst not in self.params:
+                    self.params[companion+'_geom_albedo_'+inst] = 0
+                    
+                if 'host_lambda_'+inst not in self.params:
+                    self.params['host_lambda_'+inst] = None
+                    
+                if companion+'_lambda_'+inst not in self.params:
+                    self.params[companion+'_lambda_'+inst] = None
+                    
+                if 'host_vsini_'+inst not in self.params:
+                    self.params['host_vsini_'+inst] = None
+                    
+                if companion+'_vsini_'+inst not in self.params:
+                    self.params[companion+'_vsini_'+inst] = None
+                    
+                if 'host_spots_'+inst not in self.params:
+                    self.params['host_spots_'+inst] = None
+                    
+                if companion+'_spots_'+inst not in self.params:
+                    self.params[companion+'_spots_'+inst] = None
+                    
+                    
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: calculate number of spots
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#                self.settings['host_N_spots_'+inst] = int( sum('host_spot_'+inst in s for s in self.params.keys())/4. )
+#                self.settings[companion+'_N_spots_'+inst] = int( sum(companion+'_spots_'+inst in s for s in self.params.keys())/4. )
+                    
+                
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: ttvs
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                if 'ttv_'+inst not in self.params:
+                    self.params['ttv_'+inst] = 0.
+                    
+                    
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
-                if (self.params[planet+'_sbratio_'+inst] == 0) and (self.params[planet+'_geom_albedo_'+inst] > 0):
-                    self.params[planet+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
-                if (self.params[planet+'_sbratio_'+inst] > 0) and (self.params[planet+'_geom_albedo_'+inst] == 0):
-                    self.params[planet+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
+                    self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
+                if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
+                    self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
                     
-                    
-        for planet in self.settings['planets_rv']:
-            if planet+'_q' not in self.params:
-                self.params[planet+'_q'] = 1.
-            if planet+'_K' not in self.params:
-                self.params[planet+'_K'] = 0.
-                
-        for planet in self.settings['planets_all']:
-            if planet+'_f_c' not in self.params:
-                self.params[planet+'_f_c'] = 0.
-            if planet+'_f_s' not in self.params:
-                self.params[planet+'_f_s'] = 0.
-                
+
         
         #::: coupled params
         if 'coupled_with' in buf.dtype.names:
@@ -566,11 +728,13 @@ class Basement():
         else:
             self.coupled_with = [None]*len(self.allkeys)
             
+            
         #::: deal with coupled params
         for i, key in enumerate(self.allkeys):
             if isinstance(self.coupled_with[i], str) and (len(self.coupled_with[i])>0):
                 self.params[key] = self.params[self.coupled_with[i]]           #luser proof: automatically set the values of the params coupled to another param
                 buf['fit'][i] = 0                                              #luser proof: automatically set fit=0 for the params coupled to another param
+        
         
         
         #::: mark to be fitted params
@@ -595,7 +759,7 @@ class Basement():
             elif item[0] in ['trunc_normal']:
                 self.bounds[i] = [ item[0], np.float(item[1]), np.float(item[2]), np.float(item[3]), np.float(item[4]) ]
             else:
-                raise ValueError('Bounds have to be "uniform" or "normal". Input from "params.csv" was "'+self.bounds[i][0]+'".')
+                raise ValueError('Bounds have to be "uniform", "normal" or "trunc_normal". Input from "params.csv" was "'+self.bounds[i][0]+'".')
     
         self.ndim = len(self.theta_0)                   #len(ndim)
 
@@ -616,9 +780,11 @@ class Basement():
         '''
         self.data = {}
         for inst in self.settings['inst_phot']:
-            time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
+            time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)     
+            if any(np.isnan(time)) or any(np.isnan(flux)) or any(np.isnan(flux_err)):
+                raise ValueError('There are NaN values in "'+inst+'.csv". Please exclude these rows from the file and restart.')
             if not all(np.diff(time)>0):
-                raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
+                raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
             if self.settings['fast_fit']: 
                 time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err)
             self.data[inst] = {
@@ -645,10 +811,10 @@ class Basement():
     def change_epoch(self):
         
         #::: change epoch entry from params.csv to set epoch into the middle of the range
-        for planet in self.settings['planets_all']:
+        for companion in self.settings['companions_all']:
             #::: get data time range
             all_data = []
-            for inst in self.settings['inst_for_'+planet+'_epoch']:
+            for inst in self.settings['inst_for_'+companion+'_epoch']:
                 all_data += list(self.data[inst]['time'])
             start = np.nanmin( all_data )
             end = np.nanmax( all_data )
@@ -657,8 +823,8 @@ class Basement():
 #            plt.figure()
 #            plt.plot(all_data, np.ones_like(all_data), 'bo')
             
-            first_epoch = 1.*self.params[planet+'_epoch']
-            period      = 1.*self.params[planet+'_period']
+            first_epoch = 1.*self.params[companion+'_epoch']
+            period      = 1.*self.params[companion+'_period']
             
 #            plt.axvline(first_epoch, color='r', lw=2)
             
@@ -675,10 +841,10 @@ class Basement():
             epoch_for_fit = first_epoch + epoch_shift
             
             #::: update params
-            self.params[planet+'_epoch'] = 1.*epoch_for_fit
+            self.params[companion+'_epoch'] = 1.*epoch_for_fit
             
             #::: update theta, bounds and fittruths
-            ind_epoch_fitkeys = np.where(self.fitkeys==planet+'_epoch')[0]
+            ind_epoch_fitkeys = np.where(self.fitkeys==companion+'_epoch')[0]
             if len(ind_epoch_fitkeys):
                 ind_epoch_fitkeys = ind_epoch_fitkeys[0]
                 buf = 1.*self.theta_0[ind_epoch_fitkeys]
@@ -715,7 +881,7 @@ class Basement():
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
            
             #::: print output (for testing only)
-#            print('\nSetting epoch for planet '+planet)
+#            print('\nSetting epoch for companion '+companion)
 #            print('\tfirst epoch, from params.csv file:', first_epoch)
 #            
 #            print('\nOrbital cycles since then:', int( (end-start) / period))
@@ -737,9 +903,9 @@ class Basement():
     def reduce_phot_data(self, time, flux, flux_err):
         ind_in = []
               
-        for planet in self.settings['planets_phot']:
-            epoch  = self.params[planet+'_epoch']
-            period = self.params[planet+'_period']
+        for companion in self.settings['companions_phot']:
+            epoch  = self.params[companion+'_epoch']
+            period = self.params[companion+'_period']
             width  = self.settings['fast_fit_width']
             if self.settings['secondary_eclipse']:
                 ind_ecl1, ind_ecl2, _ = index_eclipses(time,epoch,period,width,width) #TODO: currently this assumes width_occ == width_tra

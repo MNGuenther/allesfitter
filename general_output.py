@@ -60,17 +60,42 @@ def logprint(*text):
 ###############################################################################
 #::: draw samples from the initial guess
 ###############################################################################
-def draw_initial_guess_samples(Nsamples=20):
+def draw_initial_guess_samples(Nsamples=1):
 #    global config.BASEMENT
-    samples = config.BASEMENT.theta_0 + config.BASEMENT.init_err * np.random.randn(Nsamples, len(config.BASEMENT.theta_0))    
+    if Nsamples==1:
+        samples = np.array([config.BASEMENT.theta_0])
+    else:
+        samples = config.BASEMENT.theta_0 + config.BASEMENT.init_err * np.random.randn(Nsamples, len(config.BASEMENT.theta_0))    
     return samples
         
     
     
 ###############################################################################
+#::: plot all data in one panel
+###############################################################################
+def plot_panel(datadir):
+    
+    config.init(datadir)
+    
+    fig, axes = plt.subplots(2,1,figsize=(20,10))
+    
+    for inst in config.BASEMENT.settings['inst_phot']:
+        axes[0].plot(config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['flux'], marker='.', ls='none', label=inst)
+
+    for inst in config.BASEMENT.settings['inst_rv']:
+        axes[1].plot(config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['rv'], marker='.', ls='none', label=inst)
+        
+    axes[0].legend()
+    axes[1].legend()
+    
+    return fig, axes
+        
+
+
+###############################################################################
 #::: plot
 ###############################################################################
-def afplot(samples, planet):
+def afplot(samples, companion):
     '''
     Inputs:
     -------
@@ -82,7 +107,10 @@ def afplot(samples, planet):
     N_inst = len(config.BASEMENT.settings['inst_all'])
     
     
-    if config.BASEMENT.settings['phase_variations']:
+    if 'do_not_phase_fold' in config.BASEMENT.settings and config.BASEMENT.settings['do_not_phase_fold']:
+        fig, axes = plt.subplots(N_inst,1,figsize=(6*1,4*N_inst))
+        styles = ['full']
+    elif config.BASEMENT.settings['phase_variations']:
         fig, axes = plt.subplots(N_inst,5,figsize=(6*5,4*N_inst))
         styles = ['full','phase','phase_variation','phasezoom','phasezoom_occ']
     elif config.BASEMENT.settings['secondary_eclipse']:
@@ -95,20 +123,21 @@ def afplot(samples, planet):
     
     for i,inst in enumerate(config.BASEMENT.settings['inst_all']):
         for j,style in enumerate(styles):
+#            print(i,j,inst,style)
             #::: don't phase-fold single day photometric follow-up
-            if ('phase' in style) & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
-                axes[i,j].axis('off')
+#            if (style=='phase') & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
+#                axes[i,j].axis('off')
             #::: don't zoom onto RV data
-            elif ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
+            if ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
                 axes[i,j].axis('off')
-            #::: don't plot if the planet is not covered by an instrument
-            elif (inst in config.BASEMENT.settings['inst_phot']) & (planet not in config.BASEMENT.settings['planets_phot']):
+            #::: don't plot if the companion is not covered by an instrument
+            elif (inst in config.BASEMENT.settings['inst_phot']) & (companion not in config.BASEMENT.settings['companions_phot']):
                 axes[i,j].axis('off')
-            #::: don't plot if the planet is not covered by an instrument
-            elif (inst in config.BASEMENT.settings['inst_rv']) & (planet not in config.BASEMENT.settings['planets_rv']):
+            #::: don't plot if the companion is not covered by an instrument
+            elif (inst in config.BASEMENT.settings['inst_rv']) & (companion not in config.BASEMENT.settings['companions_rv']):
                 axes[i,j].axis('off')
             else:
-                plot_1(axes[i,j], samples, inst, planet, style)
+                plot_1(axes[i,j], samples, inst, companion, style)
 
     plt.tight_layout()
     return fig, axes
@@ -118,11 +147,11 @@ def afplot(samples, planet):
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, samples, inst, planet, style):
+def plot_1(ax, samples, inst, companion, style):
     '''
     Inputs:
     -------
-        planet : str (optional)
+        companion : str (optional)
             only needed if style=='_phase' or '_phasezoom'
             None, 'b', 'c', etc.
             
@@ -145,13 +174,19 @@ def plot_1(ax, samples, inst, planet, style):
     else:
         raise ValueError('inst should be listed in inst_phot or inst_rv...')
     
+    
+    if samples.shape[0]==1:
+        alpha = 1.
+    else:
+        alpha = 0.1
+        
 
     ###############################################################################
-    # not phased
+    # full time series, not phased
     # plot the 'undetrended' data
     # plot each sampled model + its baseline 
     ###############################################################################
-    if 'phase' not in style:
+    if style=='full':
         
         #::: set it up
         x = config.BASEMENT.data[inst]['time']
@@ -173,7 +208,7 @@ def plot_1(ax, samples, inst, planet, style):
             p = update_params(s)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, model+baseline, 'r-', alpha=0.1, rasterized=True, zorder=12 )
+            ax.plot( xx, model+baseline, 'r-', alpha=alpha, rasterized=True, zorder=12 )
             
             
     ###############################################################################
@@ -195,44 +230,50 @@ def plot_1(ax, samples, inst, planet, style):
         
         #::: zoom?
         if 'phasezoom' in style: 
-            zoomfactor = params_median[planet+'_period']*24.
+            zoomfactor = params_median[companion+'_period']*24.
         else: 
             zoomfactor = 1.
         
         
-        #::: if RV, need to take care of multiple planets
-        #TODO: make this upwards compatible for >=3 planets ('d', 'e', etc)
-        if (inst in config.BASEMENT.settings['inst_rv']) & (planet=='c'):
-            model = rv_fct(params_median, inst, 'b')[0]
-            y -= model
+        #::: if RV
+        #::: need to take care of multiple companions
+        if (inst in config.BASEMENT.settings['inst_rv']):
+            
+            for other_companion in config.BASEMENT.settings['companions_rv']:
+                if companion!=other_companion:
+                    model = rv_fct(params_median, inst, other_companion)[0]
+                    y -= model
             
             #data, phased        
-            phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
+            phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )            
-            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
+            ax.set(xlabel='Phase', ylabel=r'$\Delta$ '+ylabel, title=inst+', companion '+companion+' only')
     
             #model, phased
             xx = np.linspace( -0.25, 0.75, 1000)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
-                model = rv_fct(p, inst, 'c', xx=xx)[0]
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, rasterized=True, zorder=12 )
+                model = rv_fct(p, inst, companion, xx=xx)[0]
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, rasterized=True, zorder=12 )
             
         
         #::: if photometry
-        else: 
-            #data, phased     
+        elif (inst in config.BASEMENT.settings['inst_phot']):
+            #data, phased  
             if 'phase_variation' in style:
                 dt = 0.01                
+#            elif (x[-1] - x[0]) < 1.:
+#                dt = 0.00001 #i.e. do not bin
+#                print('here')
             else:
                 dt = 0.002
                 
-            phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[planet+'_period'], params_median[planet+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
+            phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
                 if 'phase_variation' not in style: 
                     ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
@@ -243,15 +284,20 @@ def plot_1(ax, samples, inst, planet, style):
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )  
                 if config.BASEMENT.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 )          
-            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', planet '+planet)
+            ax.set(xlabel='Phase', ylabel=r'$\Delta$ '+ylabel, title=inst+', companion '+companion)
     
             #model, phased
-            xx = np.linspace( -0.25, 0.75, 1000)
+            if style=='phasezoom':
+                xx = np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)
+            elif style=='phasezoom_occ':
+                xx = np.linspace( (-4.+zoomfactor/2.)/zoomfactor, (4.+zoomfactor/2.)/zoomfactor, 1000)
+            else:
+                xx = np.linspace( -0.25, 0.75, 1000)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=0.1, rasterized=True, zorder=12 )
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, rasterized=True, zorder=12 )
              
         
         #::: zoom?        
@@ -349,7 +395,7 @@ def save_latex_table(samples, mode):
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def show_initial_guess():
+def show_initial_guess(do_logprint=True, return_figs=False):
     '''
     Inputs:
     -------
@@ -365,27 +411,29 @@ def show_initial_guess():
     '''
 #    global config.BASEMENT
             
-    logprint('\nSettings:')
-    logprint('--------------------------')
-    for key in config.BASEMENT.settings:
-        if config.BASEMENT.settings[key]!='':
-            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.settings[key]))
-        else:
-            logprint('\n{0: <30}'.format(key))
-
-    logprint('\nParameters:')
-    logprint('--------------------------')    
-    for i, key in enumerate(config.BASEMENT.params):
-        if key in config.BASEMENT.fitkeys: 
-            ind = np.where( config.BASEMENT.fitkeys == key )[0][0]
-            logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('free'), '{0: <30}'.format(config.BASEMENT.bounds[ind]) )
-        else: 
-            if config.BASEMENT.params[key]!='':
-                logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('set'))
+    if do_logprint:
+        
+        logprint('\nSettings:')
+        logprint('--------------------------')
+        for key in config.BASEMENT.settings:
+            if config.BASEMENT.settings[key]!='':
+                logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.settings[key]))
             else:
                 logprint('\n{0: <30}'.format(key))
     
-    logprint('\nndim:', config.BASEMENT.ndim)
+        logprint('\nParameters:')
+        logprint('--------------------------')    
+        for i, key in enumerate(config.BASEMENT.params):
+            if key in config.BASEMENT.fitkeys: 
+                ind = np.where( config.BASEMENT.fitkeys == key )[0][0]
+                logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('free'), '{0: <30}'.format(config.BASEMENT.bounds[ind]) )
+            else: 
+                if config.BASEMENT.params[key]!='':
+                    logprint('{0: <30}'.format(key), '{0: <15}'.format(config.BASEMENT.params[key]), '{0: <5}'.format('set'))
+                else:
+                    logprint('\n{0: <30}'.format(key))
+        
+        logprint('\nndim:', config.BASEMENT.ndim)
                 
         
 #    print '\nLikelihoods:'
@@ -396,11 +444,20 @@ def show_initial_guess():
         
 
     samples = draw_initial_guess_samples()
-    for planet in config.BASEMENT.settings['planets_all']:
-        fig, axes = afplot(samples, planet)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
-        plt.close(fig)
     
+    if return_figs==False:
+        for companion in config.BASEMENT.settings['companions_all']:
+                fig, axes = afplot(samples, companion)
+                fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
+                plt.close(fig)
+    
+    else:
+        fig_list = []
+        for companion in config.BASEMENT.settings['companions_all']:
+            fig, axes = afplot(samples, companion)
+            fig_list.append(fig)
+        return fig_list
+            
     
     
 ###############################################################################

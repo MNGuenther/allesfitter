@@ -66,7 +66,7 @@ def derive(samples, mode, output_units='jup'):
         each key contains all the samples derived from the MCMC samples 
         (not mean values, but pure samples!)
         i = inclination 
-        R1a = R1/a, radius planet over semiamplitude
+        R1a = R1/a, radius companion over semiamplitude
         R2a = R2/a, radius star over semiamplitude
         Ttot = T_{1-4}, total transit width 
         Tfull = T_{2-3}, full transit width
@@ -93,12 +93,16 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     #::: derive all the params
     ###############################################################################
-    planets = config.BASEMENT.settings['planets_all']
+    companions = config.BASEMENT.settings['companions_all']
     
     def get_params(key):
         ind = np.where(config.BASEMENT.fitkeys==key)[0]
         if len(ind)==1: return samples[:,ind].flatten() #if it was fitted for
-        else: return config.BASEMENT.params[key] #else take the input value
+        else: 
+            try:
+                return config.BASEMENT.params[key] #else take the input value
+            except KeyError:
+                return np.nan
         
     def sin_d(alpha): return np.sin(np.deg2rad(alpha))
     def cos_d(alpha): return np.cos(np.deg2rad(alpha))
@@ -106,70 +110,70 @@ def derive(samples, mode, output_units='jup'):
     def arccos_d(x): return np.rad2deg(np.arccos(x))
 
     derived_samples = {}
-    for planet in planets:
+    for companion in companions:
         
         #::: radii
-        derived_samples[planet+'_R_star/a'] = get_params(planet+'_rsuma') / (1. + get_params(planet+'_rr'))
-        derived_samples[planet+'_R_planet/a'] = get_params(planet+'_rsuma') * get_params(planet+'_rr') / (1. + get_params(planet+'_rr'))
-        derived_samples[planet+'_R_planet'] = star['R_star'] * get_params(planet+'_rr') * R_sun / R_earth #in R_earth
+        derived_samples[companion+'_R_star/a'] = get_params(companion+'_rsuma') / (1. + get_params(companion+'_rr'))
+        derived_samples[companion+'_R_companion/a'] = get_params(companion+'_rsuma') * get_params(companion+'_rr') / (1. + get_params(companion+'_rr'))
+        derived_samples[companion+'_R_companion'] = star['R_star'] * get_params(companion+'_rr') * R_sun / R_earth #in R_earth
         suffix='earth'
-        if np.mean(derived_samples[planet+'_R_planet']) > 8.: #if R_planet > 8 R_earth, convert to R_jup
-            derived_samples[planet+'_R_planet'] = derived_samples[planet+'_R_planet'] * R_earth / R_jup #in R_jup
+        if np.mean(derived_samples[companion+'_R_companion']) > 8.: #if R_companion > 8 R_earth, convert to R_jup
+            derived_samples[companion+'_R_companion'] = derived_samples[companion+'_R_companion'] * R_earth / R_jup #in R_jup
             suffix='jup'
-        derived_samples[planet+'_depth_undiluted'] = 1e3*get_params(planet+'_rr')**2 #in mmag
+        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in mmag
 
 
         #::: orbit
-        derived_samples[planet+'_a'] = star['R_star'] / derived_samples[planet+'_R_star/a']                
-        derived_samples[planet+'_i'] = arccos_d(get_params(planet+'_cosi')) #in deg
-        derived_samples[planet+'_e'] = get_params(planet+'_f_s')**2 + get_params(planet+'_f_c')**2
-        derived_samples[planet+'_e_sinw'] = get_params(planet+'_f_s') * np.sqrt(derived_samples[planet+'_e'])
-        derived_samples[planet+'_e_cosw'] = get_params(planet+'_f_c') * np.sqrt(derived_samples[planet+'_e'])
-        derived_samples[planet+'_w'] = arccos_d( get_params(planet+'_f_c') / np.sqrt(derived_samples[planet+'_e']) ) #in deg, from 0 to 180
+        derived_samples[companion+'_a'] = star['R_star'] / derived_samples[companion+'_R_star/a']                
+        derived_samples[companion+'_i'] = arccos_d(get_params(companion+'_cosi')) #in deg
+        derived_samples[companion+'_e'] = get_params(companion+'_f_s')**2 + get_params(companion+'_f_c')**2
+        derived_samples[companion+'_e_sinw'] = get_params(companion+'_f_s') * np.sqrt(derived_samples[companion+'_e'])
+        derived_samples[companion+'_e_cosw'] = get_params(companion+'_f_c') * np.sqrt(derived_samples[companion+'_e'])
+        derived_samples[companion+'_w'] = arccos_d( get_params(companion+'_f_c') / np.sqrt(derived_samples[companion+'_e']) ) #in deg, from 0 to 180
         
         
         #::: mass
-        if planet+'_K' in config.BASEMENT.params:
-            a_1 = 0.019771142 * get_params(planet+'_K') * get_params(planet+'_period') * np.sqrt(1. - derived_samples[planet+'_e']**2)/sin_d(derived_samples[planet+'_i'])
-    #        derived_samples[planet+'_a_rv'] = (1.+1./ellc_params[planet+'_q'])*a_1
-            derived_samples[planet+'_q'] = 1./(( derived_samples[planet+'_a'] / a_1 ) - 1.)
+        if companion+'_K' in config.BASEMENT.params:
+            a_1 = 0.019771142 * get_params(companion+'_K') * get_params(companion+'_period') * np.sqrt(1. - derived_samples[companion+'_e']**2)/sin_d(derived_samples[companion+'_i'])
+    #        derived_samples[companion+'_a_rv'] = (1.+1./ellc_params[companion+'_q'])*a_1
+            derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a'] / a_1 ) - 1.)
             if suffix=='earth':
-                derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_earth #in M_earth
+                derived_samples[companion+'_M_companion'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun / M_earth #in M_earth
             elif suffix=='jup':
-                derived_samples[planet+'_M_planet'] = derived_samples[planet+'_q'] * star['M_star'] * M_sun / M_jup #in M_jup
+                derived_samples[companion+'_M_companion'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun / M_jup #in M_jup
         else:
-            derived_samples[planet+'_M_planet'] = None
+            derived_samples[companion+'_M_companion'] = None
             
             
         #::: time of occultation    
         if config.BASEMENT.settings['secondary_eclipse'] is True:
-            derived_samples[planet+'_dt_occ'] = get_params(planet+'_period')/2. * (1. + 4./np.pi * derived_samples[planet+'_e'] * cos_d(derived_samples[planet+'_w'])  ) #approximation
+            derived_samples[companion+'_dt_occ'] = get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation
         else:
-            derived_samples[planet+'_dt_occ'] = None
+            derived_samples[companion+'_dt_occ'] = None
         
         #::: impact params
-        derived_samples[planet+'_b_tra'] = (1./derived_samples[planet+'_R_star/a']) * get_params(planet+'_cosi') * ( (1.-derived_samples[planet+'_e']**2) / ( 1.+derived_samples[planet+'_e']*sin_d(derived_samples[planet+'_w']) ) )
+        derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.+derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
          
         if config.BASEMENT.settings['secondary_eclipse'] is True:
-            derived_samples[planet+'_b_occ'] = (1./derived_samples[planet+'_R_star/a']) * get_params(planet+'_cosi') * ( (1.-derived_samples[planet+'_e']**2) / ( 1.-derived_samples[planet+'_e']*sin_d(derived_samples[planet+'_w']) ) )
+            derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.-derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
         else:
-            derived_samples[planet+'_b_occ'] = None
+            derived_samples[companion+'_b_occ'] = None
         
         #::: transit duration 
-        derived_samples[planet+'_T_tra_tot'] = get_params(planet+'_period')/np.pi *24.  \
-                                  * np.arcsin( derived_samples[planet+'_R_star/a'] \
-                                             * np.sqrt( (1.+get_params(planet+'_rr'))**2 - derived_samples[planet+'_b_tra']**2 )\
-                                             / sin_d(derived_samples[planet+'_i']) ) #in h
-        derived_samples[planet+'_T_tra_full'] = get_params(planet+'_period')/np.pi *24.  \
-                                  * np.arcsin( derived_samples[planet+'_R_star/a'] \
-                                             * np.sqrt( (1.-get_params(planet+'_rr'))**2 - derived_samples[planet+'_b_tra']**2 )\
-                                             / sin_d(derived_samples[planet+'_i']) ) #in h
+        derived_samples[companion+'_T_tra_tot'] = get_params(companion+'_period')/np.pi *24.  \
+                                  * np.arcsin( derived_samples[companion+'_R_star/a'] \
+                                             * np.sqrt( (1.+get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 )\
+                                             / sin_d(derived_samples[companion+'_i']) ) #in h
+        derived_samples[companion+'_T_tra_full'] = get_params(companion+'_period')/np.pi *24.  \
+                                  * np.arcsin( derived_samples[companion+'_R_star/a'] \
+                                             * np.sqrt( (1.-get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 )\
+                                             / sin_d(derived_samples[companion+'_i']) ) #in h
                                   
 
         #::: secondary eclipse / occultation depth (per inst)
         for inst in config.BASEMENT.settings['inst_phot']:
-            derived_samples[planet+'_depth_occ_max_diluted_'+inst]  = np.zeros(N_samples)*np.nan
-            derived_samples[planet+'_depth_occ_norm_diluted_'+inst] = np.zeros(N_samples)*np.nan
+            derived_samples[companion+'_depth_occ_max_diluted_'+inst]  = np.zeros(N_samples)*np.nan
+            derived_samples[companion+'_depth_occ_norm_diluted_'+inst] = np.zeros(N_samples)*np.nan
             
             if config.BASEMENT.settings['secondary_eclipse'] is True:
                     logprint('Deriving occultation depths from model curves...')
@@ -178,18 +182,17 @@ def derive(samples, mode, output_units='jup'):
                         s = samples[i,:]
                         p = update_params(s, phased=True)
                         model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-                        derived_samples[planet+'_depth_occ_max_diluted_'+inst][i] = ( np.max(model) - np.min(model) ) * 1e6 #in ppm
-                        derived_samples[planet+'_depth_occ_norm_diluted_'+inst][i] = ( 1. - np.min(model) ) * 1e6 #in ppm
+                        derived_samples[companion+'_depth_occ_max_diluted_'+inst][i] = ( np.max(model) - np.min(model) ) * 1e6 #in ppm
+                        derived_samples[companion+'_depth_occ_norm_diluted_'+inst][i] = ( 1. - np.min(model) ) * 1e6 #in ppm
                     
     
-    #::: undiluted (not per planets; per inst)
-    for inst in config.BASEMENT.settings['inst_phot']:
-        dil = get_params('light_3_'+inst)
-#        if np.mean(dil)<0.5: dil = 1-dil
-        derived_samples[planet+'_depth_diluted_'+inst] = derived_samples[planet+'_depth_undiluted'] * (1. - dil) #in mmag
-        derived_samples[planet+'_depth_occ_max_undiluted_'+inst] = derived_samples[planet+'_depth_occ_max_diluted_'+inst] / (1. - dil) #in ppm
-        derived_samples[planet+'_depth_occ_norm_undiluted_'+inst] = derived_samples[planet+'_depth_occ_norm_diluted_'+inst] / (1. - dil) #in ppm
-        
+        #::: undiluted (not per companions; per inst)
+        for inst in config.BASEMENT.settings['inst_phot']:
+            dil = get_params('light_3_'+inst)
+        #        if np.mean(dil)<0.5: dil = 1-dil
+            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in mmag
+            derived_samples[companion+'_depth_occ_max_undiluted_'+inst] = derived_samples[companion+'_depth_occ_max_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_depth_occ_norm_undiluted_'+inst] = derived_samples[companion+'_depth_occ_norm_diluted_'+inst] / (1. - dil) #in ppm
         
     
     ###############################################################################
@@ -198,39 +201,39 @@ def derive(samples, mode, output_units='jup'):
     names = []
     labels = []
     units = []
-    for planet in planets:
-        for name,label,unit in zip( [planet+'_R_star/a'                 , planet+'_R_planet/a'                            , planet+'_R_planet'             , planet+'_a'              , planet+'_i'                , planet+'_e'                , planet+'_w'                   , planet+'_M_planet'         , planet+'_b_tra'               , planet+'_b_occ'               , planet+'_T_tra_tot'          , planet+'_T_tra_full'              ],\
-                                    ['$R_\star/a_\mathrm{'+planet+'}$' , '$R_\mathrm{'+planet+'}/a_\mathrm{'+planet+'}$', '$R_\mathrm{'+planet+'}$'       , '$a_\mathrm{'+planet+'}$' , '$i_\mathrm{'+planet+'}$'  , '$e_\mathrm{'+planet+'}$'   , '$\omega_\mathrm{'+planet+'}$', '$M_\mathrm{'+planet+'}$'   , '$b_\mathrm{tra;'+planet+'}$', '$b_\mathrm{occ;'+planet+'}$', '$T_\mathrm{tot;'+planet+'}$', '$T_\mathrm{full;'+planet+'}$'    ],\
+    for companion in companions:
+        for name,label,unit in zip( [companion+'_R_star/a'                 , companion+'_R_companion/a'                            , companion+'_R_companion'             , companion+'_a'              , companion+'_i'                , companion+'_e'                , companion+'_w'                   , companion+'_M_companion'         , companion+'_b_tra'               , companion+'_b_occ'               , companion+'_T_tra_tot'          , companion+'_T_tra_full'              ],\
+                                    ['$R_\star/a_\mathrm{'+companion+'}$' , '$R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$', '$R_\mathrm{'+companion+'}$'       , '$a_\mathrm{'+companion+'}$' , '$i_\mathrm{'+companion+'}$'  , '$e_\mathrm{'+companion+'}$'   , '$\omega_\mathrm{'+companion+'}$', '$M_\mathrm{'+companion+'}$'   , '$b_\mathrm{tra;'+companion+'}$', '$b_\mathrm{occ;'+companion+'}$', '$T_\mathrm{tot;'+companion+'}$', '$T_\mathrm{full;'+companion+'}$'    ],\
                                     ['-'                                , '-'                                             , '$\mathrm{R_{'+suffix+'}}$'    , '$\mathrm{R_{\odot}}$'   , 'deg'                      , '-'                        , 'deg'                         , '$\mathrm{M_{'+suffix+'}}$'  , '-'                           , '-'                           , 'h'                          , 'h'                               ]):
             names.append(name) 
             labels.append(label)
             units.append(unit)
             
-        names.append( planet+'_depth_undiluted' )
+        names.append( companion+'_depth_undiluted' )
         labels.append( '$\delta_\mathrm{undil}$' )
-        units.append( '\mathrm{mmag}' )
+        units.append( '$\mathrm{mmag}$' )
             
         for inst in config.BASEMENT.settings['inst_phot']:
             
-            names.append( planet+'_depth_diluted_'+inst )
+            names.append( companion+'_depth_diluted_'+inst )
             labels.append( '$\delta_\mathrm{dil; '+inst+'}$' )
-            units.append( '\mathrm{mmag}' )
+            units.append( '$\mathrm{mmag}$' )
             
-            names.append( planet+'_depth_occ_max_undiluted_'+inst )
+            names.append( companion+'_depth_occ_max_undiluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; max; undil; '+inst+'}$' )
-            units.append( '\mathrm{mmag}' )
+            units.append( '$\mathrm{mmag}$' )
             
-            names.append( planet+'_depth_occ_norm_undiluted_'+inst )
+            names.append( companion+'_depth_occ_norm_undiluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; norm; undil; '+inst+'}$' )
-            units.append( '\mathrm{mmag}' )
+            units.append( '$\mathrm{mmag}$' )
             
-            names.append( planet+'_depth_occ_max_diluted_'+inst )
+            names.append( companion+'_depth_occ_max_diluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; max; dil; '+inst+'}$' )
-            units.append( '\mathrm{mmag}' )
+            units.append( '$\mathrm{mmag}$' )
             
-            names.append( planet+'_depth_occ_norm_diluted_'+inst )
+            names.append( companion+'_depth_occ_norm_diluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; norm; dil; '+inst+'}$' )
-            units.append( '\mathrm{mmag}' )
+            units.append( '$\mathrm{mmag}$' )
             
             
             

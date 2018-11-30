@@ -1,0 +1,38 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+planets_phot,b
+planets_rv,b
+inst_phot,Leonardo Michelangelo_TTV
+inst_rv,Donatello Raphael
+fast_fit,TRUE
+multiprocess,TRUE
+multiprocess_cores,4
+#####################################,
+# Nested Sampling settings,
+#####################################,
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,rwalk
+ns_tol,0.01
+###############################################################################,
+# Limb darkening settings,
+###############################################################################,
+ld_law_Leonardo,quad
+ld_law_Michelangelo_TTV,quad
+###############################################################################,
+# Baseline settings,
+###############################################################################,
+baseline_flux_Leonardo,hybrid_spline
+baseline_flux_Michelangelo_TTV,hybrid_spline
+baseline_flux_Donatello,hybrid_offset
+baseline_flux_Raphael,hybrid_offset
+###############################################################################,
+# Error settings,
+###############################################################################,
+error_flux_Leonardo,sample
+error_flux_Michelangelo_TTV,sample
+error_flux_Donatello,sample
+error_flux_Raphael,sample

@@ -50,7 +50,6 @@ def draw_ns_posterior_samples(results, Nsamples=None):
     '''
     weights = np.exp(results['logwt'] - results['logz'][-1])
     posterior_samples = dyutils.resample_equal(results['samples'], weights)    
-    #samples = results['samples']
     if Nsamples:
         posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=Nsamples)]
     return posterior_samples
@@ -94,9 +93,9 @@ def ns_output(datadir):
         
     #::: plot the fit        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
-    for planet in config.BASEMENT.settings['planets_all']:
-        fig, axes = afplot(posterior_samples_for_plot, planet)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
+    for companion in config.BASEMENT.settings['companions_all']:
+        fig, axes = afplot(posterior_samples_for_plot, companion)
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
         plt.close(fig)
 
 
@@ -124,13 +123,13 @@ def ns_output(datadir):
     results2 = results.copy()                    
     posterior_samples2 = draw_ns_posterior_samples(results2)                               # all weighted posterior_samples
     params_median2, params_ll2, params_ul2 = get_params_from_samples(posterior_samples2)     # params drawn form these posterior_samples                              #only needed for plots (subtract epoch offset)  
-    for planet in config.BASEMENT.settings['planets_all']:
+    for companion in config.BASEMENT.settings['companions_all']:
         
-        if planet+'_epoch' in config.BASEMENT.fitkeys:
-            ind    = np.where(config.BASEMENT.fitkeys==planet+'_epoch')[0][0]
-            results2['samples'][:,ind] -= int(params_median[planet+'_epoch']) #np.round(params_median[planet+'_epoch'],decimals=0)
-            units[ind] = str(units[ind]+'-'+str(int(params_median[planet+'_epoch']))+'d') #np.format_float_positional(params_median[planet+'_epoch'],0)+'d')
-            config.BASEMENT.fittruths[ind] -= int(params_median[planet+'_epoch'])
+        if companion+'_epoch' in config.BASEMENT.fitkeys:
+            ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
+            results2['samples'][:,ind] -= int(params_median[companion+'_epoch']) #np.round(params_median[companion+'_epoch'],decimals=0)
+            units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d') #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
+            config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
                 
     for i,l in enumerate(labels):
         if units[i]!='':

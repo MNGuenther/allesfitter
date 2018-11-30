@@ -1,0 +1,30 @@
+#name,value,fit,bounds,label,unit,truth
+#dilution per instrument,,,,,,
+light_3_KSint,0,0,trunc_normal 0 1 0 0,$D_\mathrm{KSint}$,,
+#limb darkening coefficients per instrument,,,,,,
+ldc_q1_KSint,0.5,1,uniform 0 1,$q_{1; \mathrm{KSint}}$,,
+ldc_q2_KSint,0.5,1,uniform 0 1,$q_{2; \mathrm{KSint}}$,,
+#brightness ratio and albedo per instrument per planet,,,,,,
+b_sbratio_KSint,0,0,trunc_normal 0 1 0 0,$J_{b; \mathrm{KSint}}$,,
+b_geom_albedo_KSint,0,0,uniform 0 1,$A_{\mathrm{geom; }b; \mathrm{KSint}}$,,
+#planet b astrophysical params,,,,,,
+b_rr,0.1,0,trunc_normal 0 1 0.100 0.050,$R_b / R_\star$,,
+b_rsuma,0.396,0,trunc_normal 0 1 0.396 0.057,$(R_\star + R_b) / a_b$,,
+b_cosi,0,0,trunc_normal 0 1 0 0.0,$\cos{i_b}$,,
+b_epoch,0.25,0,trunc_normal 0 1e12 0.250 0.050,$T_{0;b}$,$\mathrm{BJD}$,
+b_period,1,0,trunc_normal 0 1e12 1.000 0.050,$P_b$,$\mathrm{d}$,
+b_f_c,0,0,trunc_normal -1 1 0.0 0.0,$\sqrt{e_b} \cos{\omega_b}$,,
+b_f_s,0,0,trunc_normal -1 1 0.0 0.0,$\sqrt{e_b} \sin{\omega_b}$,,
+#rotation,,,,,,
+rotfac_1,0.04,1,uniform 0 1,$\mathrm{rotation}$,,0.041841004184100423
+#spots,,,,,,
+spots_1_long_1,174,1,trunc_normal 0 360 174 20,$\mathrm{spot: long. 1}$,$\deg$,176.23430962343096
+spots_1_lat_1,0,1,trunc_normal 0 360 0 20,$\mathrm{spot: lat. 1}$,$\deg$,0
+spots_1_size_1,5.5,1,trunc_normal 0 100 5.5 2,$\mathrm{spot: size 1}$,$\deg$,5.739170477266787
+spots_1_brightness_1,0.4,1,trunc_normal 0 1 0.4 0.1,$\mathrm{spot: brightness 1}$,,0.5
+spots_1_long_2,120,1,trunc_normal 0 360 120 20,$\mathrm{spot: long. 2}$,$\deg$,116.23430962343096
+spots_1_lat_2,0,1,trunc_normal 0 360 0 20,$\mathrm{spot: lat. 2}$,$\deg$,0
+spots_1_size_2,8.3,1,trunc_normal 0 100 8.3 2,$\mathrm{spot: size 2}$,$\deg$,8.11641272572196
+spots_1_brightness_2,0.6,1,trunc_normal 0 1 0.6 0.1,$\mathrm{spot: brightness 2}$,,0.5
+#errors per instrument,,,,,,
+log_err_flux_KSint,-7,1,trunc_normal -23 0 -7 2,$\log{\sigma_\mathrm{KSint}}$,,

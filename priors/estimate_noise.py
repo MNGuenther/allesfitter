@@ -80,10 +80,10 @@ def estimate_noise(datadir):
         model = calculate_model(params, inst, key)
         data_minus_model = config.BASEMENT.data[inst][key] - model
         gp_decor(
-                     time, data_minus_model, 
-                     multiprocess=config.BASEMENT.settings['multiprocess'], multiprocess_cores=config.BASEMENT.settings['multiprocess_cores'],
-                     outdir=outdir, fname=fname, fname_summary=fname_summary
-                     )
+                 time, data_minus_model, 
+                 multiprocess=config.BASEMENT.settings['multiprocess'], multiprocess_cores=config.BASEMENT.settings['multiprocess_cores'],
+                 outdir=outdir, fname=fname, fname_summary=fname_summary
+                 )
                 
     
         

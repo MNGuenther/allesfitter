@@ -171,9 +171,9 @@ def mcmc_output(datadir):
 
     #::: plot the fit
     posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
-    for planet in config.BASEMENT.settings['planets_all']:
-        fig, axes = afplot(posterior_samples, planet)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+planet+'.jpg'), dpi=100, bbox_inches='tight' )
+    for companion in config.BASEMENT.settings['companions_all']:
+        fig, axes = afplot(posterior_samples, companion)
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
         plt.close(fig)
     
     #::: plot the chains

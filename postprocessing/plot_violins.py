@@ -23,6 +23,7 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
+import numpy as np
 import matplotlib.pyplot as plt
 
 #::: allesfitter modules
@@ -96,10 +97,16 @@ def plot_violins(datadirs, labels, key, mode):
             all_params[label] = get_ns_posterior_samples(datadir, as_type='dic')
         all_paramslabels[label] = get_labels(datadir, as_type='dic')
         
-    fig, ax = plt.subplots()
-    violinlist = [all_params[l][key] for l in labels]
+    xsize= max(6, 1.5*len(labels))
+    fig, ax = plt.subplots(figsize=(xsize,4))
+    violinlist = []
+    for l in labels:
+        if key in all_params[l]:
+            violinlist.append( all_params[l][key] )
+        else:
+            violinlist.append( np.ones(10)*np.nan )
     positionlist = range(len(labels))
-    ax.violinplot(violinlist, positions=[0,1,2], showmedians=True, showextrema=False)
+    ax.violinplot(violinlist, positions=positionlist, showmedians=True, showextrema=False)
     ax.set_xticks(positionlist)
     ax.set_xticklabels(labels)
     ax.set_ylabel(all_paramslabels[labels[0]][key])

@@ -1,0 +1,19 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$(R_\star + R_b) / a_b$ & $0.0$ & & (fixed) \\ 
+$R_b / R_\star$ & $0.0$ & & (fixed) \\ 
+$\cos{i_b}$ & $0.0$ & & (fixed) \\ 
+$T_{0;b}$ & $0.0$ & $\mathrm{BJD}$& (fixed) \\ 
+$P_b$ & $0.0$ & $\mathrm{d}$& (fixed) \\ 
+flare_tpeak_1 & $0.2986\pm0.0012$ & & \\ 
+flare_fwhm_1 & $0.1144\pm0.0051$ & & \\ 
+flare_ampl_1 & $0.01254\pm0.00029$ & & \\ 
+flare_tpeak_2 & $0.5002_{-0.0016}^{+0.0017}$ & & \\ 
+flare_fwhm_2 & $0.0390_{-0.0064}^{+0.0071}$ & & \\ 
+flare_ampl_2 & $0.00473_{-0.00048}^{+0.00050}$ & & \\ 
+flare_tpeak_3 & $1.3913_{-0.0031}^{+0.0027}$ & & \\ 
+flare_fwhm_3 & $0.203\pm0.012$ & & \\ 
+flare_ampl_3 & $0.00687\pm0.00022$ & & \\ 
+$\log{\sigma_\mathrm{FLARONARDO}}$ & $-6.922\pm0.022$ & & \\ 

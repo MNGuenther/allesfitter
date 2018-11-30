@@ -40,6 +40,9 @@ except ImportError:
 
 #allesfitter modules
 from . import config
+from .appaloosa.aflare import aflare1
+
+
 
 
 
@@ -48,6 +51,7 @@ from . import config
 #::: convert input params into ellc params
 ###############################################################################  
 def update_params(theta, phased=False):
+    
     params = config.BASEMENT.params.copy()
     
     #::: first, sync over from theta
@@ -63,73 +67,95 @@ def update_params(theta, phased=False):
     
     #::: phase-folded? (it's important to have this before calculating the semi-major axis!)
     if phased:
-        for planet in config.BASEMENT.settings['planets_all']:
-            params[planet+'_epoch'] = 0.
-            params[planet+'_period'] = 1.
+        for companion in config.BASEMENT.settings['companions_all']:
+            params[companion+'_epoch'] = 0.
+            params[companion+'_period'] = 1.
     
     
     #::: general params (used for both photometry and RV)
-    for planet in config.BASEMENT.settings['planets_all']:
+    for companion in config.BASEMENT.settings['companions_all']:
+        
         #::: incl
-        params[planet+'_incl'] = np.arccos( params[planet+'_cosi'] )/np.pi*180.
+        params[companion+'_incl'] = np.arccos( params[companion+'_cosi'] )/np.pi*180.
         
         
     #::: photometry
-    for planet in config.BASEMENT.settings['planets_phot']:
+    for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
+            
             #::: errors
             key='flux'
             params['err_'+key+'_'+inst] = np.exp( params['log_err_'+key+'_'+inst] )
             
-            #::: R_1/a and R_2/a
-            params[planet+'_radius_1'] = params[planet+'_rsuma'] / (1. + params[planet+'_rr'])
-            params[planet+'_radius_2'] = params[planet+'_radius_1'] * params[planet+'_rr']
+            #::: R_1/a and R_2/a --> hence dependent on each companion's orbit
+            try:
+                params[companion+'_radius_1'] = params[companion+'_rsuma'] / (1. + params[companion+'_rr'])
+                params[companion+'_radius_2'] = params[companion+'_radius_1'] * params[companion+'_rr']
+            except:
+                params[companion+'_radius_1'] = None
+                params[companion+'_radius_2'] = None
+                
+                
+    #::: limb darkening
+    for inst in config.BASEMENT.settings['inst_all']:
+        if config.BASEMENT.settings['host_ld_law_'+inst] is None:
+            params['host_ldc_'+inst] = None
             
-            #::: limb darkening
-            if config.BASEMENT.settings['ld_law_'+inst] == 'lin':
-                params['ldc_1_'+inst] = params['ldc_q1_'+inst]
-                
-            elif config.BASEMENT.settings['ld_law_'+inst] == 'quad':
-                ldc_u1 = 2.*np.sqrt(params['ldc_q1_'+inst]) * params['ldc_q2_'+inst]
-                ldc_u2 = np.sqrt(params['ldc_q1_'+inst]) * (1. - 2.*params['ldc_q2_'+inst])
-                params['ldc_1_'+inst] = [ ldc_u1, ldc_u2 ]
-                
-            elif config.BASEMENT.settings['ld_law_'+inst] == 'sing':
-                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
-                
-            else:
-                raise ValueError("Currently only 'lin' and 'quad' limb darkening implemented.")
-    
-            #::: brightness ratio
-            #::: this is to avoid a bug in ellc, where it sets reflected light to 0 if sbratio==0
-            if params[planet+'_sbratio_'+inst]==0:
-                params[planet+'_sbratio_'+inst] = 1e-12
-    
-            #::: albedo / heat_2
-            if planet+'_geom_albedo_'+inst not in params:
-                params[planet+'_heat_2_'+inst] = 0
-            else:
-                params[planet+'_heat_2_'+inst] = params[planet+'_geom_albedo_'+inst]/2.
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
+            params['host_ldc_'+inst] = params['host_ldc_q1_'+inst]
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
+            ldc_u1 = 2.*np.sqrt(params['host_ldc_q1_'+inst]) * params['host_ldc_q2_'+inst]
+            ldc_u2 = np.sqrt(params['host_ldc_q1_'+inst]) * (1. - 2.*params['host_ldc_q2_'+inst])
+            params['host_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
+            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+            
+        else:
+            print(config.BASEMENT.settings['host_ld_law_'+inst] )
+            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
     
     
     #::: RV
-    for planet in config.BASEMENT.settings['planets_rv']:
+    for companion in config.BASEMENT.settings['companions_rv']:
         for inst in config.BASEMENT.settings['inst_rv']:
+            
             #::: errors
             key='rv'
             params['jitter_'+key+'_'+inst] = np.exp( params['log_jitter_'+key+'_'+inst] )
         
         #::: semi-major axis
-        ecc = params[planet+'_f_s']**2 + params[planet+'_f_c']**2
-        a_1 = 0.019771142 * params[planet+'_K'] * params[planet+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[planet+'_incl']*np.pi/180.)
-        params[planet+'_a'] = (1.+1./params[planet+'_q'])*a_1
+        ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
+        a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
+        params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
         
         
     #::: deal with coupled params after updates
     for i, key in enumerate(config.BASEMENT.allkeys):
         if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
             params[key] = params[config.BASEMENT.coupled_with[i]]
+            
+            
+    #::: spots?
+    for companion in config.BASEMENT.settings['companions_all']:
+        for inst in config.BASEMENT.settings['inst_all']:
+            
+            if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
+                params['host_spots_'+inst] = [
+                                     [params['host_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                                     [params['host_spot_'+str(i)+'_lat_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                                     [params['host_spot_'+str(i)+'_size_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                                     [params['host_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ]
+                                    ]
         
+            if config.BASEMENT.settings[companion+'_N_spots_'+inst] > 0:
+                params[companion+'_spots_'+inst] = [
+                                     [params[companion+'_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
+                                     [params[companion+'_spot_'+str(i)+'_lat_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
+                                     [params[companion+'_spot_'+str(i)+'_size_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
+                                     [params[companion+'_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ]
+                                    ]
         
     return params
 
@@ -138,33 +164,80 @@ def update_params(theta, phased=False):
 ###############################################################################
 #::: flux fct
 ###############################################################################
-def flux_fct(params, inst, planet, xx=None):
+def flux_fct(params, inst, companion, xx=None):
     '''
     ! params must be updated via update_params() before calling this function !
+    
+    if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
     if xx is None:
-        xx = config.BASEMENT.data[inst]['time']
+        xx    = config.BASEMENT.data[inst]['time'] + params['ttv_'+inst]
+        t_exp = config.BASEMENT.settings['t_exp_'+inst]
+        n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
+    else:
+        t_exp = None
+        n_int = None
         
-    model_flux = ellc.lc(
-                      t_obs =       xx, 
-                      radius_1 =    params[planet+'_radius_1'], 
-                      radius_2 =    params[planet+'_radius_2'], 
-                      sbratio =     params[planet+'_sbratio_'+inst], 
-                      incl =        params[planet+'_incl'], 
-                      light_3 =     params['light_3_'+inst],
-                      t_zero =      params[planet+'_epoch'],
-                      period =      params[planet+'_period'],
-                      f_c =         params[planet+'_f_c'],
-                      f_s =         params[planet+'_f_s'],
-                      ldc_1 =       params['ldc_1_'+inst],
-#                      ldc_2 = ldc_2,
-                      ld_1 =        config.BASEMENT.settings['ld_law_'+inst],
-#                      ld_2 = 'quad',
-                      heat_2 =      params[planet+'_heat_2_'+inst],
-                      t_exp =       config.BASEMENT.settings['t_exp_'+inst],
-                      n_int =       config.BASEMENT.settings['t_exp_n_int_'+inst]
-                      )
-             
+    try:
+        #::: planet and EB transit lightcurve model
+        if params[companion+'_period'] > 0:
+            model_flux = ellc.lc(
+                              t_obs =       xx, 
+                              radius_1 =    params[companion+'_radius_1'], 
+                              radius_2 =    params[companion+'_radius_2'], 
+                              sbratio =     params[companion+'_sbratio_'+inst], 
+                              incl =        params[companion+'_incl'], 
+                              light_3 =     params['dil_'+inst],
+                              t_zero =      params[companion+'_epoch'],
+                              period =      params[companion+'_period'],
+                              a =           params[companion+'_a'],
+                              q =           params[companion+'_q'],
+                              f_c =         params[companion+'_f_c'],
+                              f_s =         params[companion+'_f_s'],
+                              ldc_1 =       params['host_ldc_'+inst],
+                              ldc_2 =       params[companion+'_ldc_'+inst],
+                              gdc_1 =       params['host_gdc_'+inst],
+                              gdc_2 =       params[companion+'_gdc_'+inst],
+                              didt =        params['didt_'+inst], 
+                              domdt =       params['domdt_'+inst], 
+                              rotfac_1 =    params['host_rotfac_'+inst], 
+                              rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                              hf_1 =        params['host_hf_'+inst], #1.5, 
+                              hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                              bfac_1 =      params['host_bfac_'+inst],
+                              bfac_2 =      params[companion+'_bfac_'+inst], 
+                              heat_1 =      params['host_geom_albedo_'+inst]/2.,
+                              heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                              lambda_1 =    params['host_lambda_'+inst], 
+                              lambda_2 =    params[companion+'_lambda_'+inst], 
+                              vsini_1 =     params['host_vsini_'+inst],
+                              vsini_2 =     params[companion+'_vsini_'+inst], 
+                              t_exp =       t_exp,
+                              n_int =       n_int,
+                              grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                              grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                              ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                              ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                              shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
+                              shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                              spots_1 =     params['host_spots_'+inst], 
+                              spots_2 =     params[companion+'_spots_'+inst], 
+                              verbose =     False
+                              )
+        else:
+            model_flux = np.ones_like(xx)
+        
+        
+        #::: flare lightcurve model
+        if config.BASEMENT.settings['N_flares'] > 0:
+            for i in range(1,config.BASEMENT.settings['N_flares']+1):
+                model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=False, uptime=10)
+
+    except:
+        for key in params:
+            print(key, '\t', params[key])
+        raise ValueError('ellc crashed for the parameters given above.')
+    
     return model_flux
     
 
@@ -172,25 +245,60 @@ def flux_fct(params, inst, planet, xx=None):
 ###############################################################################
 #::: rv fct
 ###############################################################################
-def rv_fct(params, inst, planet, xx=None):
+def rv_fct(params, inst, companion, xx=None):
     '''
     ! params must be updated via update_params() before calling this function !
     '''
     if xx is None:
-        xx = config.BASEMENT.data[inst]['time']
+        xx    = config.BASEMENT.data[inst]['time']
+        t_exp = config.BASEMENT.settings['t_exp_'+inst]
+        n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
+    else:
+        t_exp = None
+        n_int = None
     
     model_rv1, model_rv2 = ellc.rv(
-                      t_obs =   xx, 
-                      incl =    params[planet+'_incl'], 
-                      t_zero =  params[planet+'_epoch'],
-                      period =  params[planet+'_period'],
-                      a =       params[planet+'_a'],
-                      f_c =     params[planet+'_f_c'],
-                      f_s =     params[planet+'_f_s'],
-                      q =       params[planet+'_q'],
-                      flux_weighted = False,
-                      t_exp =   config.BASEMENT.settings['t_exp_'+inst],
-                      n_int =   config.BASEMENT.settings['t_exp_n_int_'+inst]
+                      t_obs =       xx, 
+                      radius_1 =    params[companion+'_radius_1'], 
+                      radius_2 =    params[companion+'_radius_2'], 
+                      sbratio =     params[companion+'_sbratio_'+inst], 
+                      incl =        params[companion+'_incl'], 
+                      t_zero =      params[companion+'_epoch'],
+                      period =      params[companion+'_period'],
+                      a =           params[companion+'_a'],
+                      q =           params[companion+'_q'],
+                      f_c =         params[companion+'_f_c'],
+                      f_s =         params[companion+'_f_s'],
+                      ldc_1 =       params['host_ldc_'+inst],
+                      ldc_2 =       params[companion+'_ldc_'+inst],
+                      gdc_1 =       params['host_gdc_'+inst],
+                      gdc_2 =       params[companion+'_gdc_'+inst],
+                      didt =        params['didt_'+inst], 
+                      domdt =       params['domdt_'+inst], 
+                      rotfac_1 =    params['host_rotfac_'+inst], 
+                      rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                      hf_1 =        params['host_hf_'+inst], #1.5, 
+                      hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                      bfac_1 =      params['host_bfac_'+inst],
+                      bfac_2 =      params[companion+'_bfac_'+inst], 
+                      heat_1 =      params['host_geom_albedo_'+inst]/2.,
+                      heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                      lambda_1 =    params['host_lambda_'+inst],
+                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      vsini_1 =     params['host_vsini_'+inst],
+                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      t_exp =       t_exp,
+                      n_int =       n_int,
+                      grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                      grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                      ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                      ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                      shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
+                      shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                      spots_1 =     params['host_spots_'+inst], 
+                      spots_2 =     params[companion+'_spots_'+inst], 
+                      flux_weighted =   config.BASEMENT.settings['flux_weighted_'+inst],
+                      verbose =     False
                       )
     
     return model_rv1, model_rv2
@@ -211,10 +319,24 @@ def calculate_lnlike(params, inst, key):
         residuals = config.BASEMENT.data[inst][key] - model - baseline
         inv_sigma2_w = 1./yerr_w**2
         
-        return -0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))
+#        print('###############################################################################')
+#        print('model',model)
+#        print('baseline',baseline)
+##        try:
+#        fig = plt.figure()
+#        plt.plot(config.BASEMENT.data[inst]['time'][0:200], config.BASEMENT.data[inst]['flux'][0:200], 'b.')
+#        plt.plot(config.BASEMENT.data[inst]['time'][0:200], model[0:200]+baseline, 'r-')
+#        plt.title( 'lnlike ' + str(-0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))) )
+#        plt.savefig( os.path.join(config.BASEMENT.outdir,'fig_'+str(params['b_period'])+'.jpg') )
+#        plt.close(fig)
+##        except:
+##            pass
+        
+        return -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w))) #use np.sum to catch any nan and then set lnlike to nan
     
     
     #::: if GP baseline sampling, use the GP lnlike instead
+    #::: this is MUCH MUCH MUUUUUCH FASTER than gp.predict
     else:
         model = calculate_model(params, inst, key)
         x = config.BASEMENT.data[inst]['time']
@@ -283,15 +405,15 @@ def calculate_model(params, inst, key, xx=None):
         
     if key=='flux':
         depth = 0.
-        for planet in config.BASEMENT.settings['planets_phot']:
-            depth += ( 1. - flux_fct(params, inst, planet, xx=xx) )
+        for companion in config.BASEMENT.settings['companions_phot']:
+            depth += ( 1. - flux_fct(params, inst, companion, xx=xx) )
         model_flux = 1. - depth
         return model_flux
     
     elif key=='rv':
         model_rv = 0.
-        for planet in config.BASEMENT.settings['planets_rv']:
-            model_rv += rv_fct(params, inst, planet, xx=xx)[0]
+        for companion in config.BASEMENT.settings['companions_rv']:
+            model_rv += rv_fct(params, inst, companion, xx=xx)[0]
         return model_rv
     
     elif (key=='centdx') | (key=='centdy'):
@@ -350,7 +472,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
         normalized error weights on y
     '''
     
-    baseline_method = config.BASEMENT.settings['baseline_'+key+'_'+inst]
+    baseline_method = config.BASEMENT.settings['baseline_'+key+'_'+inst].lower()
     return baseline_switch[baseline_method](x, y, yerr_w, xx, params, inst, key)
 
 
@@ -363,7 +485,7 @@ def baseline_hybrid_offset(*args):
     yerr_weights = yerr_w/np.nanmean(yerr_w)
     weights = 1./yerr_weights
     ind = np.isfinite(y) #np.average can't handle NaN
-    return np.average(y[ind], weights=weights[ind])
+    return np.average(y[ind], weights=weights[ind]) * np.ones_like(xx)
  
 
     
@@ -372,7 +494,7 @@ def baseline_hybrid_offset(*args):
 ###########################################################################   
 def baseline_hybrid_poly(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    polyorder = config.BASEMENT.settings['baseline_'+key+'_'+inst][-1]
+    polyorder = int(config.BASEMENT.settings['baseline_'+key+'_'+inst][-1])
     xx = (xx - x[0])/x[-1] #polyfit needs the xx-axis scaled to [0,1], otherwise it goes nuts
     x = (x - x[0])/x[-1] #polyfit needs the x-axis scaled to [0,1], otherwise it goes nuts
     if polyorder>=0:
@@ -432,7 +554,8 @@ def baseline_hybrid_GP(*args):
                     method="L-BFGS-B", bounds=bounds, args=(y, gp))
     gp.set_parameter_vector(soln.x)
     
-    baseline = gp.predict(y, xx)[0] #constrain on x/y/yerr, evaluate on xx (!)
+    baseline = gp_predict_in_chunks(gp, y, xx)[0]
+#    baseline = gp.predict(y, xx)[0] #constrain on x/y/yerr, evaluate on xx (!)
     return baseline 
 
 
@@ -464,7 +587,8 @@ def baseline_sample_GP(*args):
                                 log_rho=params['baseline_gp2_'+key+'_'+inst])
     gp = celerite.GP(kernel)
     gp.compute(x, yerr=yerr_w)
-    baseline = gp.predict(y, xx)[0]
+    baseline = gp_predict_in_chunks(gp, y, xx)[0]
+#    baseline = gp.predict(y, xx)[0]
     
 #    baseline2 = gp.predict(y, x)[0]
 #    plt.figure()
@@ -484,7 +608,7 @@ def baseline_sample_GP(*args):
 ########################################################################### 
 def baseline_none(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    return np.zeros_like(x)
+    return np.zeros_like(xx)
 
 
 
@@ -520,6 +644,23 @@ baseline_switch = \
     }
     
     
+
+    
+    
+###########################################################################
+#::: GP predict in chunks (to avoid memory crashes)
+########################################################################### 
+def gp_predict_in_chunks(gp, y, x, chunk_size=5000):
+    mu = []
+    var = []
+    for i in range( int(1.*len(x)/chunk_size)+1 ):
+        m, v = gp.predict(y, x[i*chunk_size:(i+1)*chunk_size], return_var=True)
+        mu += list(m)
+        var += list(v)
+    return np.array(mu), np.array(var)
+
+
+
     
 ################################################################################
 ##::: def calculate inv_sigma2
