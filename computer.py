@@ -40,7 +40,7 @@ except ImportError:
 
 #allesfitter modules
 from . import config
-from .appaloosa.aflare import aflare1
+from .flares.aflare import aflare1
 
 
 
