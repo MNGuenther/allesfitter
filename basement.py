@@ -922,7 +922,7 @@ class Basement():
                 ind_in += list(ind_ecl2)
             else:
                 ind_in += list(index_transits(time,epoch,period,width)[0])
-        ind_in = np.sort(ind_in)
+        ind_in = np.sort(np.unique(ind_in))
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]

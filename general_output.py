@@ -38,7 +38,7 @@ from exoworlds.lightcurves import lightcurve_tools as lct
 from . import config
 from .utils import latex_printer
 from .computer import update_params,\
-                     calculate_model, rv_fct,\
+                     calculate_model, rv_fct, flux_fct,\
                      calculate_baseline, calculate_yerr_w
                      
                      
@@ -296,7 +296,7 @@ def plot_1(ax, samples, inst, companion, style):
             for i in range(samples.shape[0]):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
-                model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, rasterized=True, zorder=12 )
              
         
