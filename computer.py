@@ -79,13 +79,16 @@ def update_params(theta, phased=False):
         params[companion+'_incl'] = np.arccos( params[companion+'_cosi'] )/np.pi*180.
         
         
-    #::: photometry
+    #::: photometric errors
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
-            
-            #::: errors
             key='flux'
             params['err_'+key+'_'+inst] = np.exp( params['log_err_'+key+'_'+inst] )
+            
+       
+    #::: radii (needed for photometry and RV)
+    for companion in config.BASEMENT.settings['companions_all']:
+        for inst in config.BASEMENT.settings['inst_all']:
             
             #::: R_1/a and R_2/a --> hence dependent on each companion's orbit
             try:
@@ -178,65 +181,72 @@ def flux_fct(params, inst, companion, xx=None):
         t_exp = None
         n_int = None
         
-    try:
-        #::: planet and EB transit lightcurve model
-        if params[companion+'_period'] > 0:
-            model_flux = ellc.lc(
-                              t_obs =       xx, 
-                              radius_1 =    params[companion+'_radius_1'], 
-                              radius_2 =    params[companion+'_radius_2'], 
-                              sbratio =     params[companion+'_sbratio_'+inst], 
-                              incl =        params[companion+'_incl'], 
-                              light_3 =     params['dil_'+inst],
-                              t_zero =      params[companion+'_epoch'],
-                              period =      params[companion+'_period'],
-                              a =           params[companion+'_a'],
-                              q =           params[companion+'_q'],
-                              f_c =         params[companion+'_f_c'],
-                              f_s =         params[companion+'_f_s'],
-                              ldc_1 =       params['host_ldc_'+inst],
-                              ldc_2 =       params[companion+'_ldc_'+inst],
-                              gdc_1 =       params['host_gdc_'+inst],
-                              gdc_2 =       params[companion+'_gdc_'+inst],
-                              didt =        params['didt_'+inst], 
-                              domdt =       params['domdt_'+inst], 
-                              rotfac_1 =    params['host_rotfac_'+inst], 
-                              rotfac_2 =    params[companion+'_rotfac_'+inst], 
-                              hf_1 =        params['host_hf_'+inst], #1.5, 
-                              hf_2 =        params[companion+'_hf_'+inst], #1.5,
-                              bfac_1 =      params['host_bfac_'+inst],
-                              bfac_2 =      params[companion+'_bfac_'+inst], 
-                              heat_1 =      params['host_geom_albedo_'+inst]/2.,
-                              heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
-                              lambda_1 =    params['host_lambda_'+inst], 
-                              lambda_2 =    params[companion+'_lambda_'+inst], 
-                              vsini_1 =     params['host_vsini_'+inst],
-                              vsini_2 =     params[companion+'_vsini_'+inst], 
-                              t_exp =       t_exp,
-                              n_int =       n_int,
-                              grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
-                              grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
-                              ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
-                              ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
-                              shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
-                              shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
-                              spots_1 =     params['host_spots_'+inst], 
-                              spots_2 =     params[companion+'_spots_'+inst], 
-                              verbose =     False
-                              )
-        else:
-            model_flux = np.ones_like(xx)
-        
-        
-        #::: flare lightcurve model
-        if config.BASEMENT.settings['N_flares'] > 0:
-            for i in range(1,config.BASEMENT.settings['N_flares']+1):
-                model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=False, uptime=10)
+#    try:
+    #::: planet and EB transit lightcurve model
+    if params[companion+'_rr'] > 0:
+        model_flux = ellc.lc(
+                          t_obs =       xx, 
+                          radius_1 =    params[companion+'_radius_1'], 
+                          radius_2 =    params[companion+'_radius_2'], 
+                          sbratio =     params[companion+'_sbratio_'+inst], 
+                          incl =        params[companion+'_incl'], 
+                          light_3 =     params['dil_'+inst],
+                          t_zero =      params[companion+'_epoch'],
+                          period =      params[companion+'_period'],
+                          a =           params[companion+'_a'],
+                          q =           params[companion+'_q'],
+                          f_c =         params[companion+'_f_c'],
+                          f_s =         params[companion+'_f_s'],
+                          ldc_1 =       params['host_ldc_'+inst],
+                          ldc_2 =       params[companion+'_ldc_'+inst],
+                          gdc_1 =       params['host_gdc_'+inst],
+                          gdc_2 =       params[companion+'_gdc_'+inst],
+                          didt =        params['didt_'+inst], 
+                          domdt =       params['domdt_'+inst], 
+                          rotfac_1 =    params['host_rotfac_'+inst], 
+                          rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                          hf_1 =        params['host_hf_'+inst], #1.5, 
+                          hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                          bfac_1 =      params['host_bfac_'+inst],
+                          bfac_2 =      params[companion+'_bfac_'+inst], 
+                          heat_1 =      params['host_geom_albedo_'+inst]/2.,
+                          heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                          lambda_1 =    params['host_lambda_'+inst], 
+                          lambda_2 =    params[companion+'_lambda_'+inst], 
+                          vsini_1 =     params['host_vsini_'+inst],
+                          vsini_2 =     params[companion+'_vsini_'+inst], 
+                          t_exp =       t_exp,
+                          n_int =       n_int,
+                          grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                          grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                          ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                          ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                          shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
+                          shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                          spots_1 =     params['host_spots_'+inst], 
+                          spots_2 =     params[companion+'_spots_'+inst], 
+                          verbose =     False
+                          )
+    else:
+        model_flux = np.ones_like(xx)
+    
+    
+    #::: flare lightcurve model
+    if config.BASEMENT.settings['N_flares'] > 0:
+        for i in range(1,config.BASEMENT.settings['N_flares']+1):
+#            print(params['flare_tpeak_'+str(i)])
+            model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
+#
+#    print(xx)
+#    print(model_flux)
+#    import matplotlib.pyplot as plt
+#    plt.figure(xx, model_flux, 'r-')
+#    err
 
-    except:
-        for key in params:
-            print(key, '\t', params[key])
-        raise ValueError('ellc crashed for the parameters given above.')
+#    except:
+#        for key in params:
+#            print(key, '\t', params[key])
+#        raise ValueError('flux_fct crashed for the parameters given above.')
     
     return model_flux
     
@@ -310,9 +320,22 @@ def rv_fct(params, inst, companion, xx=None):
 ###############################################################################  
 def calculate_lnlike(params, inst, key):
     
+    #if fitting flares, force them to be in time order
+#    if config.BASEMENT.settings['N_flares'] > 0:
+#        flare_times = [ params['flare_tpeak_'+str(i)] for i in range(1,config.BASEMENT.settings['N_flares']+1) ]
+#        if sorted(flare_times) != flare_times:
+#            return -np.inf
+        
+        
+    #::: calculate the model. if there are any NaN, return -np.inf
+    model = calculate_model(params, inst, key)
+    if any(np.isnan(model)) or any(np.isinf(model)):
+        return -np.inf
+    
+        
     #::: if no GP baseline sampling, then calculate lnlike per hand
     if config.BASEMENT.settings['baseline_'+key+'_'+inst] != 'sample_GP':
-        model = calculate_model(params, inst, key)
+        
         yerr_w = calculate_yerr_w(params, inst, key)
         baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
         
@@ -338,7 +361,6 @@ def calculate_lnlike(params, inst, key):
     #::: if GP baseline sampling, use the GP lnlike instead
     #::: this is MUCH MUCH MUUUUUCH FASTER than gp.predict
     else:
-        model = calculate_model(params, inst, key)
         x = config.BASEMENT.data[inst]['time']
         y = config.BASEMENT.data[inst][key] - model
         yerr_w = calculate_yerr_w(params, inst, key)
@@ -472,7 +494,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
         normalized error weights on y
     '''
     
-    baseline_method = config.BASEMENT.settings['baseline_'+key+'_'+inst].lower()
+    baseline_method = config.BASEMENT.settings['baseline_'+key+'_'+inst]
     return baseline_switch[baseline_method](x, y, yerr_w, xx, params, inst, key)
 
 
@@ -617,7 +639,7 @@ def baseline_none(*args):
 ###########################################################################   
 def baseline_raise_error(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    raise ValueError('Setting '+'baseline_'+key+'_'+inst+' has to be sample_offset / sample_linear / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_spline / hybrid_GP, '+\
+    raise ValueError('Setting '+'baseline_'+key+'_'+inst+' has to be sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_spline / hybrid_GP, '+\
                      "\nbut is:"+config.BASEMENT.settings['baseline_'+key+'_'+inst])
 
 

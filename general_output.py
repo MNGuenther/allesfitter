@@ -395,7 +395,7 @@ def save_latex_table(samples, mode):
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def show_initial_guess(do_logprint=True, return_figs=False):
+def show_initial_guess(do_logprint=True, initial_guess_plot=True, return_figs=False):
     '''
     Inputs:
     -------
@@ -443,20 +443,21 @@ def show_initial_guess(do_logprint=True, return_figs=False):
 #    print 'lnprob: \t', lnprob(theta_0, bounds, params, fitkeys, settings)  
         
 
-    samples = draw_initial_guess_samples()
-    
-    if return_figs==False:
-        for companion in config.BASEMENT.settings['companions_all']:
+    if initial_guess_plot==True:
+        samples = draw_initial_guess_samples()
+        
+        if return_figs==False:
+            for companion in config.BASEMENT.settings['companions_all']:
+                    fig, axes = afplot(samples, companion)
+                    fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
+                    plt.close(fig)
+        
+        else:
+            fig_list = []
+            for companion in config.BASEMENT.settings['companions_all']:
                 fig, axes = afplot(samples, companion)
-                fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
-                plt.close(fig)
-    
-    else:
-        fig_list = []
-        for companion in config.BASEMENT.settings['companions_all']:
-            fig, axes = afplot(samples, companion)
-            fig_list.append(fig)
-        return fig_list
+                fig_list.append(fig)
+            return fig_list
             
     
     

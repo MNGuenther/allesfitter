@@ -26,7 +26,12 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import pickle
+#import bzip2
+import gzip
+try:
+   import cPickle as pickle
+except:
+   import pickle
 from dynesty import utils as dyutils
 from dynesty import plotting as dyplot
 
@@ -87,8 +92,12 @@ def ns_output(datadir):
             raise ValueError('User aborted operation.')
     
     #::: load the save_ns.pickle
-    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'),'rb' ) as f:
-        results = pickle.load(f)
+#    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'),'rb' ) as f:
+#        results = pickle.load(f)
+#    f = bzip2.BZ2File(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.bz2'), 'rb')
+    f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
+    results = pickle.load(f)
+    f.close()
            
         
     #::: plot the fit        
@@ -96,9 +105,12 @@ def ns_output(datadir):
     for companion in config.BASEMENT.settings['companions_all']:
         fig, axes = afplot(posterior_samples_for_plot, companion)
         fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+companion+'.jpg'), dpi=100, bbox_inches='tight' )
+        f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'ns_fit.pickle.gz'), 'wb')
+        pickle.dump((fig,axes), f)
+        f.close()        
         plt.close(fig)
 
-
+    
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
     params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)     # params drawn form these posterior_samples
@@ -154,18 +166,23 @@ def ns_output(datadir):
 
     #::: set allesfitter titles
     for i, key in enumerate(config.BASEMENT.fitkeys):    
-#        print(params_median[key], params_ll[key], params_ul[key])
         value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
-#        print(value)
         ttitle = r'' + labels[i] + r'$=' + value + '$'
-        taxes[i,1].set_title(ttitle)
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
-        caxes[i,i].set_title(ctitle)
-    for i in range(caxes.shape[0]):
-        for j in range(caxes.shape[1]):
-            caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
-            caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
-            
+        if len(config.BASEMENT.fitkeys)>1:
+            caxes[i,i].set_title(ctitle)
+            taxes[i,1].set_title(ttitle)
+            for i in range(caxes.shape[0]):
+                for j in range(caxes.shape[1]):
+                    caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
+                    caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+        else:
+            caxes.set_title(ctitle)
+            taxes[1].set_title(ttitle)
+            caxes.xaxis.set_label_coords(0.5, -0.5)
+            caxes.yaxis.set_label_coords(-0.5, 0.5)
+        
+               
             
     #::: save and close the trace- and cornerplot
     tfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_trace.jpg'), dpi=100, bbox_inches='tight' )
@@ -187,7 +204,7 @@ def ns_output(datadir):
     
     
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)
-    
+
     
 
 ###############################################################################
@@ -195,8 +212,12 @@ def ns_output(datadir):
 ###############################################################################
 def get_ns_posterior_samples(datadir, Nsamples=None, as_type='dic'):
     config.init(datadir)
-    with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
-        results = pickle.load(f)
+#    with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
+#        results = pickle.load(f)    
+#    f = bzip2.BZ2File(os.path.join(datadir,'results','save_ns.pickle.bz2'), 'rb')
+    f = gzip.GzipFile(os.path.join(datadir,'results','save_ns.pickle.gz'), 'rb')
+    results = pickle.load(f)
+    f.close()
     posterior_samples = draw_ns_posterior_samples(results, Nsamples=Nsamples)
     
     if as_type=='2d_array':
