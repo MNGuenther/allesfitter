@@ -429,6 +429,7 @@ def calculate_model(params, inst, key, xx=None):
 #::: calculate baseline
 ###############################################################################   
 def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
+
     '''
     Inputs:
     -------
@@ -636,10 +637,10 @@ baseline_switch = \
     'hybrid_poly_5' : baseline_hybrid_poly,
     'hybrid_poly_6' : baseline_hybrid_poly,
     'hybrid_spline' : baseline_hybrid_spline,
-    'hybrid_GP'     : baseline_hybrid_GP,
+    'hybrid_gp'     : baseline_hybrid_GP,
     'sample_offset' : baseline_sample_offset,
     'sample_linear' : baseline_sample_linear,
-    'sample_GP'     : baseline_sample_GP, #only for plotting    
+    'sample_gp'     : baseline_sample_GP, #only for plotting    
     'none'          : baseline_none #only for plotting    
     }
     
