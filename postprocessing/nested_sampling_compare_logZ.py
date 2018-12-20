@@ -26,7 +26,11 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
-import pickle
+import gzip
+try:
+   import cPickle as pickle
+except:
+   import pickle
 from dynesty import utils as dyutils
 from tqdm import tqdm
 
@@ -119,21 +123,49 @@ def ns_plot_bayes_factors(run_names, labels):
 
     return fig, ax
     
- 
+
     
 def get_delta_logZ_and_delta_labels(run_names, labels):
         
+    logZ, logZ_err = get_logZ(run_names)    
+    
+    #::: calculate delta_logZ
+    delta_logZ     = np.array(logZ) - logZ[0]
+    delta_logZ_err = np.sqrt( np.array(logZ_err)**2 + np.array(logZ_err[0])**2 )
+    
+    #::: remove the null hypothesis from the plot
+    delta_logZ = delta_logZ[1:]
+    delta_logZ_err = delta_logZ_err[1:]
+    delta_labels = [ labels[i+1]+'\nvs.\n'+ labels[0] for i in range(len(delta_logZ)) ]
+    
+    return delta_logZ, delta_logZ_err, delta_labels
+
+
+
+def get_logZ(run_names):
+    
     logZ = []
     logZ_err = []
     
     for rname in run_names:
-        fname = os.path.join( rname, 'results', 'save_ns.pickle' )
-        print('--------------------------')
-        print(fname)
         
-        #::: load the save_ns.pickle
-        with open( fname,'rb' ) as f:
+        try: #new version
+            fname = os.path.join( rname, 'results', 'save_ns.pickle.gz' )
+            print('--------------------------')
+            print(fname)
+            #::: load the save_ns.pickle    
+            f = gzip.GzipFile(fname, 'rb')
             results = pickle.load(f)
+            f.close()
+            
+        except: #old version
+            fname = os.path.join( rname, 'results', 'save_ns.pickle' )
+            print('--------------------------')
+            print(fname)
+            #::: load the save_ns.pickle
+            with open( fname,'rb' ) as f:
+                results = pickle.load(f)
+        
         
         #::: get the results
         logZdynesty = results.logz[-1]        # value of logZ
@@ -155,21 +187,9 @@ def get_delta_logZ_and_delta_labels(run_names, labels):
         logZ.append(logZdynesty)
         logZ_err.append(logZerrdynesty)
         
-    
-    #::: calculate delta_logZ
-    delta_logZ     = np.array(logZ) - logZ[0]
-    delta_logZ_err = np.sqrt( np.array(logZ_err)**2 + np.array(logZ_err[0])**2 )
+    return logZ, logZ_err
     
     
-    #::: remove the null hypothesis from the plot
-    delta_logZ = delta_logZ[1:]
-    delta_logZ_err = delta_logZ_err[1:]
-    delta_labels = [ labels[i+1]+'\nvs.\n'+ labels[0] for i in range(len(delta_logZ)) ]
-    
-    return delta_logZ, delta_logZ_err, delta_labels
-
-
-
 
 def get_collective_delta_logZ_and_delta_labels(collection_of_run_names, collection_of_labels):
     '''

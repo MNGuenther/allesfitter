@@ -237,7 +237,7 @@ class Basement():
 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: General settings
+        #::: Main settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for key in ['companions_phot', 'companions_rv', 'inst_phot', 'inst_rv']:
             if key not in self.settings:
@@ -250,6 +250,15 @@ class Basement():
         self.settings['companions_all']  = list(np.unique(self.settings['companions_phot']+self.settings['companions_rv'])) #sorted by b, c, d...
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
     
+    
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: General settings
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'print_progress' in self.settings:
+            self.settings['print_progress'] = set_bool(self.settings['print_progress'] )
+        else:
+            self.settings['print_progress'] = True
+        
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Epoch settings
@@ -385,7 +394,7 @@ class Basement():
                 if companion+'_grid_'+inst not in self.settings: 
                     self.settings[companion+'_grid_'+inst] = 'default'
                     
-                if 'host_ld_law_'+inst not in self.settings or len(self.settings['host_ld_law_'+inst])==0 or self.settings['host_ld_law_'+inst]=='None': 
+                if 'host_ld_law_'+inst not in self.settings or self.settings['host_ld_law_'+inst] is None or len(self.settings['host_ld_law_'+inst])==0 or self.settings['host_ld_law_'+inst]=='None': 
                     self.settings['host_ld_law_'+inst] = None
                     
                 if companion+'_ld_law_'+inst not in self.settings: 
@@ -487,7 +496,7 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Number of flares
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        if 'N_flares' in self.settings:
+        if 'N_flares' in self.settings and len(self.settings['N_flares'])>0:
             self.settings['N_flares'] = int(self.settings['N_flares'])
         else:
             self.settings['N_flares'] = 0
@@ -913,7 +922,7 @@ class Basement():
                 ind_in += list(ind_ecl2)
             else:
                 ind_in += list(index_transits(time,epoch,period,width)[0])
-        ind_in = np.sort(ind_in)
+        ind_in = np.sort(np.unique(ind_in))
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]

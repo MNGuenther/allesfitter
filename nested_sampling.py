@@ -24,7 +24,12 @@ from scipy.special import ndtri
 from scipy.stats import truncnorm
 from multiprocessing import Pool
 from contextlib import closing
-import pickle
+#import bzip2
+import gzip
+try:
+   import cPickle as pickle
+except:
+   import pickle
 from time import time as timer
 
 #::: warnings
@@ -139,12 +144,12 @@ def ns_fit(datadir):
                 sampler = dynesty.NestedSampler(ns_lnlike, ns_prior_transform, ndim, 
                                                 pool=pool, queue_size=config.BASEMENT.settings['multiprocess_cores'], 
                                                 bound=bound, sample=sample, nlive=nlive)
-                sampler.run_nested(dlogz=tol, print_progress=True)
+                sampler.run_nested(dlogz=tol, print_progress=config.BASEMENT.settings['print_progress'])
             
         else:
             sampler = dynesty.NestedSampler(ns_lnlike, ns_prior_transform, ndim,
                                             bound=bound, sample=sample, nlive=nlive)
-            sampler.run_nested(dlogz=tol, print_progress=True)
+            sampler.run_nested(dlogz=tol, print_progress=config.BASEMENT.settings['print_progress'])
             
         t1 = timer()
         timedynesty = (t1-t0)
@@ -162,12 +167,12 @@ def ns_fit(datadir):
                 sampler = dynesty.DynamicNestedSampler(ns_lnlike, ns_prior_transform, ndim, 
                                                        pool=pool, queue_size=config.BASEMENT.settings['multiprocess_cores'], 
                                                        bound=bound, sample=sample)
-                sampler.run_nested(nlive_init=nlive, dlogz_init=tol, print_progress=True)
+                sampler.run_nested(nlive_init=nlive, dlogz_init=tol, print_progress=config.BASEMENT.settings['print_progress'])
             
         else:
             sampler = dynesty.DynamicNestedSampler(ns_lnlike, ns_prior_transform, ndim,
                                                    bound=bound, sample=sample)
-            sampler.run_nested(nlive_init=nlive, print_progress=True)
+            sampler.run_nested(nlive_init=nlive, print_progress=config.BASEMENT.settings['print_progress'])
             
         t1 = timer()
         timedynestydynamic = (t1-t0)
@@ -176,6 +181,12 @@ def ns_fit(datadir):
 
     #::: pickle-save the 'results' class
     results = sampler.results
-    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'), 'wb') as f:
-        pickle.dump(results, f)
+#    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'), 'wb') as f:
+#        pickle.dump(results, f)
+#    f = bzip2.BZ2File(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.bz2'), 'wb')
+    f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'wb')
+    pickle.dump(results, f)
+    f.close()
+
+
     
