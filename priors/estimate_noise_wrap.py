@@ -2,14 +2,14 @@ import os, csv
 import numpy as np
 from .. import config
 from . import estimate_noise
+from allesfitter.utils.latex_printer import round_txt_separately
 
-def estimate_noise_wrap():
+def estimate_noise_wrap(pathdata):
     
     print('\nEstimating errors and baselines... this will take a couple of minutes. Please be patient, you will get notified once everything is completed.\n')
     
     #::: run MCMC fit to estimate errors and baselines
-    pathdata = '/Users/tdaylan/DropboxMITTTT/knownplanets/wasp-62/allesfit_orbit/allesfit_circular_flat_mc/'
-    #estimate_noise(pathdata)
+    estimate_noise.estimate_noise(pathdata)
     
     def fwrite_params(key, label, unit, physical_bounds):
         if INPUT[key+'_bounds_type'].value == 'uniform':
@@ -90,7 +90,7 @@ def estimate_noise_wrap():
         median = priors['log_yerr_median'][i]
         err = 5.*np.max([ float(priors['log_yerr_ll'][i]), float(priors['log_yerr_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite_params('log_err_flux_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{'+inst+'}}$,')
+        fwrite('log_err_flux_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{'+inst+'}}$,')
     
     for i, inst in enumerate(config.BASEMENT.settings['inst_rv']):   
         #::: read in the summary file
@@ -103,12 +103,12 @@ def estimate_noise_wrap():
         median = priors['log_yerr_median'][i]
         err = 5.*np.max([ float(priors['log_yerr_ll'][i]), float(priors['log_yerr_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite_params('log_jitter_rv_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{jitter; '+inst+'}}$,')
+        fwrite('log_jitter_rv_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{jitter; '+inst+'}}$,')
     
     
     #::: write new rows into params.csv
     #::: baselines
-    fwrite_params('#baseline per instrument,')
+    fwrite('#baseline per instrument,')
     
     for i, inst in enumerate(config.BASEMENT.settings['inst_phot']):         
         #::: read in the summary file
@@ -121,12 +121,12 @@ def estimate_noise_wrap():
         median = priors['gp_log_sigma_median'][i]
         err = 5.*np.max([ float(priors['gp_log_sigma_ll'][i]), float(priors['gp_log_sigma_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite_params('baseline_gp1_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\sigma} ('+inst+')}$,')
+        fwrite('baseline_gp1_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\sigma} ('+inst+')}$,')
     
         median = priors['gp_log_rho_median'][i]
         err = 5.*np.max([ float(priors['gp_log_rho_ll'][i]), float(priors['gp_log_rho_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite_params('baseline_gp2_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\\rho} ('+inst+')}$,')
+        fwrite('baseline_gp2_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\\rho} ('+inst+')}$,')
 
 
 
