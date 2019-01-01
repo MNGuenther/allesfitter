@@ -307,7 +307,7 @@ def rv_fct(params, inst, companion, xx=None):
                       shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
                       spots_1 =     params['host_spots_'+inst], 
                       spots_2 =     params[companion+'_spots_'+inst], 
-                      flux_weighted =   config.BASEMENT.settings['flux_weighted_'+inst],
+                      flux_weighted =   config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
                       verbose =     False
                       )
     
