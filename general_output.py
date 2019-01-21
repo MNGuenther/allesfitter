@@ -27,6 +27,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
 import warnings
+from astropy.time import Time
+
 #import pickle
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
@@ -167,7 +169,7 @@ def plot_1(ax, samples, inst, companion, style):
     
     if inst in config.BASEMENT.settings['inst_phot']:
         key='flux'
-        ylabel='Flux'
+        ylabel='Relative Flux'
     elif inst in config.BASEMENT.settings['inst_rv']:
         key='rv'
         ylabel='RV (km/s)'
@@ -190,14 +192,19 @@ def plot_1(ax, samples, inst, companion, style):
         
         #::: set it up
         x = config.BASEMENT.data[inst]['time']
+        x = np.copy(x)
+        objttime = Time(x, format='jd', scale='utc')
+        xsave = np.copy(x)
+        x -= x[0]
+
         y = config.BASEMENT.data[inst][key]
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
         #::: plot data, not phase
-        ax.errorbar( x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
+        ax.errorbar(x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
         if config.BASEMENT.settings['color_plot']:
-            ax.scatter( x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 ) 
-        ax.set(xlabel='Time (d)', ylabel=ylabel, title=inst)
+            ax.scatter(x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 ) 
+        ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=inst)
         
         #::: plot model + baseline, not phased
         if ((x[-1] - x[0]) < 1): dt = 2./24./60. #if <1 day of data: plot with 2 min resolution
@@ -209,7 +216,7 @@ def plot_1(ax, samples, inst, companion, style):
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
             ax.plot( xx, model+baseline, 'r-', alpha=alpha, rasterized=True, zorder=12 )
-            
+        x = np.copy(xsave)
             
     ###############################################################################
     # phased - and optionally zoomed
@@ -251,7 +258,7 @@ def plot_1(ax, samples, inst, companion, style):
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )            
-            ax.set(xlabel='Phase', ylabel=r'$\Delta$ '+ylabel, title=inst+', companion '+companion+' only')
+            ax.set(xlabel='Phase', ylabel=r'Relative '+ylabel, title=inst+', companion '+companion+' only')
     
             #model, phased
             xx = np.linspace( -0.25, 0.75, 1000)
@@ -284,7 +291,7 @@ def plot_1(ax, samples, inst, companion, style):
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )  
                 if config.BASEMENT.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 )          
-            ax.set(xlabel='Phase', ylabel=r'$\Delta$ '+ylabel, title=inst+', companion '+companion)
+            ax.set(xlabel='Phase', ylabel=r'Relative '+ylabel, title=inst+', companion '+companion)
     
             #model, phased
             if style=='phasezoom':
