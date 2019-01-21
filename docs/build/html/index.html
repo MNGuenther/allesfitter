@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>allesfitter &mdash; allesfitter 0.3.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> allesfitter
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">allesfitter</a><ul>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">allesfitter</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>allesfitter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="allesfitter">
+<h1>allesfitter<a class="headerlink" href="#allesfitter" title="Permalink to this headline">¶</a></h1>
+<p>[German-ish for <em>everything-fitter</em>]</p>
+<p>[beta version]</p>
+<p><em>allesfitter</em> is a convenient wrapper around the packages <em>ellc</em> (planet and EB light curve and RV models), <em>dynesty</em> (static and dynamic nested sampling) <em>emcee</em> (Markov Chain Monte Carlo sampling) and <em>celerite</em> (Gaussian Process models).</p>
+<p><em>allesfitter</em> is suited for the analysis of multi-planet systems observed with various photometric and RV instruments. It is highly user-friendly, flexible, robust, and allows a wide choice of sampling algorithms and baseline detrending. The user defines all input parameters and settings in a text file, and <em>allesfitter</em> automatically runs the nested sampling or MCMC fit, and produces all output such as tables, latex tables, and plots.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+<p># allesfitter</p>
+<p>[German-ish for <em>everything-fitter</em>]</p>
+<p>[beta version]</p>
+<p><em>allesfitter</em> is a convenient wrapper around the packages <em>ellc</em> (planet and EB light curve and RV models), <em>dynesty</em> (static and dynamic nested sampling) <em>emcee</em> (Markov Chain Monte Carlo sampling) and <em>celerite</em> (Gaussian Process models).</p>
+<p><em>allesfitter</em> is suited for the analysis of multi-planet systems observed with various photometric and RV instruments. It is highly user-friendly, flexible, robust, and allows a wide choice of sampling algorithms and baseline detrending. The user defines all input parameters and settings in a text file, and <em>allesfitter</em> automatically runs the nested sampling or MCMC fit, and produces all output such as tables, latex tables, and plots.</p>
+<p>## Table of contents
+1. Acknowledge / cite
+2. Why <em>allesfitter</em>?
+3. Crash course</p>
+<blockquote>
+<div>3.1 Using the GUI
+3.2 Using the python console</div></blockquote>
+<ol class="arabic simple" start="4">
+<li>Installation</li>
+<li>Tutorial
+5.1 Setting things up
+5.2 Running the fit</li>
+<li>Examples</li>
+</ol>
+<p>7. Performance &amp; timing
+References</p>
+<p>## 1. Acknowledge &amp; cite</p>
+<p><strong>Contributors:</strong> Maximilian N. Günther, Tansu Daylan</p>
+<p><strong>License:</strong> The code is freely available at <a class="reference external" href="https://github.com/MNGuenther/allesfitter">https://github.com/MNGuenther/allesfitter</a> under the MIT License. Feedback and contributions are very welcome.</p>
+<p><strong>Cite:</strong> If you use <em>allesfitter</em> or parts of it in your work, please cite <em>Günther et al., in prep.</em> (link). Please also include the following acknowledgement: “This work makes use of the <em>allesfitter</em> package (<em>Günther et al., in prep.</em>), which is a convenient wrapper around the packages <em>ellc</em> (Maxted 2016), <em>aflare1.py</em> (Davenport 2014), <em>dynesty</em> (<a class="reference external" href="https://github.com/joshspeagle/dynesty">https://github.com/joshspeagle/dynesty</a>), <em>emcee</em> (Foreman-Mackey 2013) and <em>celerite</em> (Foreman-Mackey 2017). This work makes further use of the <em>python</em> programming language (Rossum 1995) and the open-source <em>python</em> packages <em>numpy</em> (van der Walt, Colbert &amp; Varoquaux 2011), <em>scipy</em> (Jones et al. 2001), <em>matplotlib</em> (Hunter 2007), <em>tqdm</em> (doi:10.5281/zenodo.1468033) and <em>seaborn</em> (<a class="reference external" href="https://seaborn.pydata.org/index.html">https://seaborn.pydata.org/index.html</a>).”</p>
+<p>## 2. Why allesfitter?
+- GUI, easy-to-use &amp; all-in-one
+- various MCMC and Nested Sampling* algorithms (static vs. dynamic, multinest, slicing, …)**
+- exoplanets &amp; eclipsing binaries.***
+- model all your photometric and radial velocity data jointly
+- various baseline and noise fitting options (sampling vs. hybrid, GPs, splines, polynomials, …)
+- click a button, get a coffee, and let <em>allesfitter</em> write your paper (it creates all latex tables and plots).</p>
+<p><a href="#id1"><span class="problematic" id="id2">*</span></a>get all that Bayesian evidence and do a meaningful model comparison! Is there evidence for an occultation? Do you see phase-variations or systematic noise patterns? Are those TTVs meaningful? Is your orbit circular or eccentric? So many questions - so much Bayesian evidence!
+<a href="#id3"><span class="problematic" id="id4">**</span></a>powered by emcee (Foreman-Mackey, 2013) and dynesty (Speagal, 2018)
+<a href="#id5"><span class="problematic" id="id6">**</span></a><a href="#id7"><span class="problematic" id="id8">*</span></a>powered by ellc (Maxted, 2016)</p>
+<p>## 3. Installation
+For now…</p>
+<ul class="simple">
+<li>git clone <a class="reference external" href="https://github.com/MNGuenther/allesfitter">https://github.com/MNGuenther/allesfitter</a> into your PYTHONPATH.</li>
+<li>git clone <a class="reference external" href="https://github.com/MNGuenther/exoworlds">https://github.com/MNGuenther/exoworlds</a> into your PYTHONPATH.</li>
+<li>(soon to be pip-installable)</li>
+</ul>
+<p>Also…</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>pip install ellc (&gt;=1.8.0)</dt>
+<dd><ul class="first last">
+<li>(this requires that a Fortran compiler is installed. If it is missing, you can use e.g. homebrew with “brew install gcc” to install one.)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>pip install corner (&gt;=2.0.1)</li>
+<li><dl class="first docutils">
+<dt>pip install emcee (&gt;=3.0.0)</dt>
+<dd><ul class="first last">
+<li>(if you want to run MCMCs)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>git clone <a class="reference external" href="https://github.com/joshspeagle/dynesty.git">https://github.com/joshspeagle/dynesty.git</a> (&gt;=0.9.2b) into your PYTHONPATH</dt>
+<dd><ul class="first last">
+<li>(if you want to run Nested Sampling)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>pip install celerite (&gt;=0.3.0 )</dt>
+<dd><ul class="first last">
+<li>(if you want to run Gaussian Processes)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>## 4. Crash course - TMNT found its first planet!</p>
+<p>Imagine your survey called “TMNT” found a planet using its photometric telescope “Leonardo”. Now you want to model it, so you can schedule follow-up with the rest of your TMNT network: Michelangelo (photometry), Donatello (RV) and Raphael (RV).</p>
+<p>### 4.1 Using the GUI
+Launch the GUI:</p>
+<blockquote>
+<div>import allesfitter
+allesfitter.GUI()</div></blockquote>
+<p>Fill out the fields step by step, as demonstrated in this YouTube tutorial (link).</p>
+<p>### 4.2 Using the python console</p>
+<p>The way <em>allesfitter</em> works is that you prepare a folder with all your data files (<cite>Leonardo.csv</cite>), a settings file (<cite>settings.csv</cite>) and a parameters file (<cite>params.csv</cite>). Then you let <em>allesfitter</em> run on that directory, and it does the rest. The GUI hides all this from you, so let’s have a look behind the scenes.</p>
+<p>Open the <cite>examples/crash_course</cite> folder. You will see the file <cite>run.py</cite> and the following two folders: <cite>allesfit_Leonardo</cite> and <cite>allesfit_all_TMNT</cite>.</p>
+<p>### <cite>run.py</cite>
+This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example, using Nested Sampling:</p>
+<blockquote>
+<div>import allesfitter
+allesfitter.ns_fit(‘allesfit_Leonardo’)
+allesfitter.ns_output(‘allesfit_Leonardo’)</div></blockquote>
+<p>Or, if you’re the MCMC kind of person:</p>
+<blockquote>
+<div>import allesfitter
+allesfitter.mcmc_fit(‘allesfit_Leonardo’)
+allesfitter.mcmc_output(‘allesfit_Leonardo’)</div></blockquote>
+<p>### <cite>allesfit_Leonardo</cite>:</p>
+<p>This folder is an example of fitting the following data set: <cite>Leonardo.csv</cite> (discovery photometry). Time, flux and flux error are given in a comma-separated .csv file.</p>
+<p><cite>settings.csv</cite>. Open it, and you will see that its minimal content are the planet letter (“b”) and instrument (“Leonardo”). All of these must match the entries in <cite>params.csv</cite> and the names of any data .csv, here we only have <cite>Leonardo.csv</cite> files. To speed up the example, we also set the fast_fit option and run on 4 cores. There are dozens of other possible settings to give the user all freedom. These are explained further in Section X below. (todo)</p>
+<p><cite>params.csv</cite>. Open it, and you will see the parameters describing the model. There are dozens of possible parameters to freeze and fit. These are further explained in Section Y below. (todo)</p>
+<p>Finally, when <em>allesfitter</em> runs, it creates the subfolder <cite>results</cite>. It contains log files, result tables, LaTex tables, plots of the inital guess and final fit, corner plots, trace plots (for Nested Sampling), chain plots (for MCMC) and an internal save file. Have a look!</p>
+<p>### <cite>allesfit_all_TMNT</cite>:</p>
+<p>This is an example of fitting the following four data sets:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Leonardo.csv (discovery photometry)</li>
+<li>Michelangelo.csv (follow-up photometry)</li>
+<li>Donatello.csv (decent RV data)</li>
+<li>Raphael.csv (good RV data)</li>
+</ul>
+</div></blockquote>
+<p>Explore the <cite>settings.csv</cite> and <cite>params.csv</cite> files to see how to include this additional data into the fit.</p>
+<p>## 5. Tutorial</p>
+<p>### 5.1 Settings things up
+The file structure is as follows:
+- datadir</p>
+<blockquote>
+<div><ul class="simple">
+<li>settings.csv</li>
+<li>params.csv</li>
+<li>tel1.csv</li>
+<li>tel2.csv</li>
+<li>…</li>
+</ul>
+</div></blockquote>
+<p>#### datadir
+For example, datadir = “users/johnwayne/tess_1b”.</p>
+<p>#### settings.csv
+- copy settings.csv from the “examples” that come with allesfitter
+- adjust as you need
+(todo)</p>
+<p>#### params.csv
+- copy params.csv from the “examples” that come with allesfitter
+- adjust as you need
+(todo)</p>
+<p>#### tel1.csv, tel2.csv, …
+All these telescope data files must be named exactly like the telesopes listed in settings.csv. So for example “TESS.csv”, “HARPS.csv”, and so on. The code will automatically search for these file names in the given directory.</p>
+<dl class="docutils">
+<dt>Photometric instruments must contain three columns:</dt>
+<dd>time    flux    flux_err</dd>
+<dt>RV instruments must contain three columns:</dt>
+<dd>time    rv      rv_err</dd>
+</dl>
+<p>The time unit has to be days, preferably BJD. It does not matter if it is JD/HJD/BJD, but it <em>must</em> be homogenous between all data sets tel1.csv etc. and the parameters (epoch) in params.csv.</p>
+<p>### 5.2 Running the fit
+- copy run.py from the “examples” that come with allesfitter
+- adjust as you need
+(todo)</p>
+<p>## 6. Examples</p>
+<p>### <cite>examples/crash_course/</cite></p>
+<p>### <cite>examples/TMNT/</cite>
+Various different fitting scenarios and different settings for the TMNT data set.</p>
+<p>### <cite>examples/simulate_data/</cite>
+How the TMNT data set was simulated.</p>
+<p>## 7. Performance &amp; timining</p>
+<p>### <cite>examples/TMNT/</cite></p>
+<p>#### a)
+Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<blockquote>
+<div><p>ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,unif vs. rwalk
+ns_tol,0.01</p>
+<p>ndim = 8</p>
+<dl class="docutils">
+<dt>allesfit_Leonardo_unif/:</dt>
+<dd>75 minutes, 27k samples, logZ = 545.42 +- 0.14</dd>
+<dt>allesfit_Leonardo_rwalk/:</dt>
+<dd>31 minutes, 24k samples, logZ = 545.36 +- 0.14</dd>
+</dl>
+</div></blockquote>
+<p>#### b)
+Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<blockquote>
+<div><blockquote>
+<div><p>ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,(compared below)
+ns_tol,0.01</p>
+<p>ndim = 8</p>
+<dl class="docutils">
+<dt>allesfit_all_TMNT_unif/:</dt>
+<dd>&gt; 24h, aborted</dd>
+<dt>allesfit_all_TMNT_rwalk/:</dt>
+<dd>1.3h, 35111 samples, logZ = 1234.26 +- 0.23</dd>
+<dt>allesfit_all_TMNT_slice/:</dt>
+<dd>&gt; 24h, aborted</dd>
+<dt>allesfit_all_TMNT_rslice/:</dt>
+<dd>1h, 28074 samples, logZ = 1233.66 +- 0.23</dd>
+<dt>allesfit_all_TMNT_hslice/:</dt>
+<dd>16.4h, 30925 samples, logZ = 1231.49 +- 0.23</dd>
+</dl>
+</div></blockquote>
+<ul class="simple">
+<li><cite>unif</cite> does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.</li>
+<li><cite>rwalk</cite> runs fast, and finds the true solution. It shows quite “conservative” (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.</li>
+<li><cite>slice</cite> is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><cite>rslice</cite> runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.</li>
+<li><cite>hslice</cite> is very slow and gives somewhat funky posteriors / traceplots.</li>
+</ul>
+<p>## References</p>
+<blockquote>
+<div><ul class="simple">
+<li>Maxted, P. F. L. (2016), Astronomy and Astrophysics, 591, A111</li>
+<li>Foreman-Mackey, D., Hogg, D. W., Lang, D. &amp; Goodman, J. (2013), Publications of the Astronomical Society of the Pacific, 125, 306</li>
+<li>Foreman-Mackey, D., Agol, E., Ambikasaran, S. &amp; Angus, R. (2017), The Astronomical Journal, 154, 220</li>
+<li>Hunter J. D., 2007, Comput. Sci. Eng., 9, 90</li>
+<li>Jones E. et al., 2001, SciPy: Open Source Scientific tools for Python. Available at: <a class="reference external" href="http://www.scipy.org/">http://www.scipy.org/</a></li>
+<li>Rossum G., 1995, Technical Report, Python Reference Manual, Amsterdam, The Netherlands</li>
+<li>van der Walt S., Colbert S. C., Varoquaux G., 2011, Comput. Sci. Eng., 13, 22</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Maximilian N. Guenther, Tansu Daylan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
