@@ -2,11 +2,11 @@ parameter & value & unit & fit/fixed \\
 \hline 
 \multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
 \hline 
-$q_{1;\mathrm{Leonardo}}$ & $0.25_{-0.15}^{+0.28}$ & & \\ 
-$q_{2;\mathrm{Leonardo}}$ & $0.30_{-0.20}^{+0.33}$ & & \\ 
-$(R_\star + R_b) / a_b$ & $0.1115_{-0.0053}^{+0.011}$ & & \\ 
-$R_b / R_\star$ & $0.1013\pm0.0014$ & & \\ 
-$\cos{i_b}$ & $0.030_{-0.018}^{+0.024}$ & & \\ 
-$T_{0;b}$ & $4.50179_{-0.00096}^{+0.00090}$ & $\mathrm{BJD}$& \\ 
-$P_b$ & $3.4013_{-0.0011}^{+0.0011}$ & $\mathrm{d}$& \\ 
-$\log{\sigma_\mathrm{Leonardo}}$ & $-6.243\pm0.075$ & & \\ 
+$q_{1;\mathrm{Leonardo}}$ & $0.51\pm0.31$ & & \\ 
+$q_{2;\mathrm{Leonardo}}$ & $0.50\pm0.32$ & & \\ 
+$(R_\star + R_b) / a_b$ & $0.1101_{-0.0059}^{+0.015}$ & & \\ 
+$R_b / R_\star$ & $0.1027_{-0.0013}^{+0.0013}$ & & \\ 
+$\cos{i_b}$ & $0.035_{-0.021}^{+0.030}$ & & \\ 
+$T_{0;b}$ & $1.1007\pm0.0012$ & $\mathrm{BJD}$& \\ 
+$P_b$ & $3.40132_{-0.00099}^{+0.00094}$ & $\mathrm{d}$& \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.240\pm0.075$ & & \\ 

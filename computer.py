@@ -365,20 +365,30 @@ def calculate_lnlike(params, inst, key):
         y = config.BASEMENT.data[inst][key] - model
         yerr_w = calculate_yerr_w(params, inst, key)
         
+#        print(params['baseline_gp1_'+key+'_'+inst])
+#        print(params['baseline_gp2_'+key+'_'+inst])
         kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
                                     log_rho=params['baseline_gp2_'+key+'_'+inst])
         gp = celerite.GP(kernel)
-        gp.compute(x, yerr=yerr_w)
-        lnlike = gp.log_likelihood(y)
+        try:
+            gp.compute(x, yerr=yerr_w)
+            lnlike = gp.log_likelihood(y)
+#            print('runs')
+#        print(lnlike)
+#        try:
+#            #::: debug
+#            baseline2 = gp.predict(y, x)[0]
+#            plt.figure()
+#            plt.plot(x,y,'k.', color='grey')
+#            plt.plot(xx,baseline,'r-', lw=2)
+#            plt.plot(x,baseline2,'ro', lw=2)
+#            plt.title(inst+' '+key+' '+str(gp.get_parameter_vector()))
+#            plt.show()
+#            raw_input('press enter to continue')
+        except:
+            lnlike = -np.inf
+#            print('fails')
         
-    #    baseline2 = gp.predict(y, x)[0]
-    #    plt.figure()
-    #    plt.plot(x,y,'k.', color='grey')
-    #    plt.plot(xx,baseline,'r-', lw=2)
-    #    plt.plot(x,baseline2,'ro', lw=2)
-    #    plt.title(inst+' '+key+' '+str(gp.get_parameter_vector()))
-    #    plt.show()
-    #    raw_input('press enter to continue')
     
         return lnlike
     

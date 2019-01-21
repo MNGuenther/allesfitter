@@ -212,12 +212,16 @@ def ns_output(datadir):
 ###############################################################################
 def get_ns_posterior_samples(datadir, Nsamples=None, as_type='dic'):
     config.init(datadir)
-#    with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
-#        results = pickle.load(f)    
-#    f = bzip2.BZ2File(os.path.join(datadir,'results','save_ns.pickle.bz2'), 'rb')
-    f = gzip.GzipFile(os.path.join(datadir,'results','save_ns.pickle.gz'), 'rb')
-    results = pickle.load(f)
-    f.close()
+    
+    try:
+        f = gzip.GzipFile(os.path.join(datadir,'results','save_ns.pickle.gz'), 'rb')
+        results = pickle.load(f)
+        f.close()
+        
+    except:
+        with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
+            results = pickle.load(f)    
+
     posterior_samples = draw_ns_posterior_samples(results, Nsamples=Nsamples)
     
     if as_type=='2d_array':

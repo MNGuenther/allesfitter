@@ -48,10 +48,13 @@ from allesfitter import config
 #::: 2D-spot map for 1 sample
 ###############################################################################
 
-def plot_publication_spots_from_posteriors(datadir, Nsamples=20, command='save'):
+def plot_publication_spots_from_posteriors(datadir, Nsamples=20, command='save', mode='default'):
     '''
     command : str
         'show', 'save', 'return', 'show and return', 'save and return'
+    mode: str
+        default : 5000 points, phase (-0.25,0.75), errorbars
+        zhan2019 : 100 points, phase (0,2), no errorbars
     '''
     
     fig, ax1, ax2, ax3 = setup_grid()
@@ -62,8 +65,11 @@ def plot_publication_spots_from_posteriors(datadir, Nsamples=20, command='save')
     for inst in config.BASEMENT.settings['inst_all']:
         if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
             
-            xx = np.linspace(config.BASEMENT.data[inst]['time'][0], config.BASEMENT.data[inst]['time'][-1], 5000)
-            
+            if mode=='default':
+                xx = np.linspace(config.BASEMENT.data[inst]['time'][0], config.BASEMENT.data[inst]['time'][-1], 5000)
+            elif mode=='zhan2019':
+                xx = np.linspace(0, 2, 10000)
+
             for i_sample, sample in tqdm(enumerate(posterior_samples)):
             
                 params = allesfitter.computer.update_params(sample)
@@ -81,18 +87,36 @@ def plot_publication_spots_from_posteriors(datadir, Nsamples=20, command='save')
                 baseline_xx = allesfitter.computer.calculate_baseline(params, inst, 'flux', xx=xx) #evaluated on xx (!)
     
                 if i_sample==0:
-                    ax1 = axplot_data(ax1, config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['flux'], flux_err=np.exp(params['log_err_flux_'+inst]))
-                    ax2 = axplot_residuals(ax2, config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['flux']-model-baseline, res_err=np.exp(params['log_err_flux_'+inst]))
-                    ax3 = axplot_spots_2d(ax3, spots)      
+                    if mode=='default':
+                        ax1 = axplot_data(ax1, config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['flux'], flux_err=np.exp(params['log_err_flux_'+inst]))
+                        ax2 = axplot_residuals(ax2, config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['flux']-model-baseline, res_err=np.exp(params['log_err_flux_'+inst]))
+                        ax3 = axplot_spots_2d(ax3, spots)  
+                    elif mode=='zhan2019':
+                        ax1 = axplot_data(ax1, 
+                                          np.concatenate(( config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['time']+1, config.BASEMENT.data[inst]['time']+2 )), 
+                                          np.concatenate(( config.BASEMENT.data[inst]['flux'], config.BASEMENT.data[inst]['flux'], config.BASEMENT.data[inst]['flux'] )), 
+                                          flux_err=None)
+                        ax2 = axplot_residuals(ax2, 
+                                               np.concatenate(( config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['time']+1, config.BASEMENT.data[inst]['time']+2 )), 
+                                               np.concatenate(( config.BASEMENT.data[inst]['flux']-model-baseline, config.BASEMENT.data[inst]['flux']-model-baseline, config.BASEMENT.data[inst]['flux']-model-baseline )), 
+                                               res_err=None)
+                        ax3 = axplot_spots_2d(ax3, spots)      
                     
                 ax1 = axplot_model(ax1, xx, model_xx+baseline_xx)  
                 
             ax1.locator_params(axis='y', nbins=5)
+            
+            if mode=='zhan2019':
+                ax1.set(xlim=[0,2])
+                ax2.set(xlim=[0,2])
         
             if 'save' in command:
                 pubdir = os.path.join(config.BASEMENT.outdir, 'pub')
                 if not os.path.exists(pubdir): os.makedirs(pubdir)
-                fig.savefig( os.path.join(pubdir,'host_spots_'+inst+'.pdf'), bbox_inches='tight' )
+                if mode=='default':
+                    fig.savefig( os.path.join(pubdir,'host_spots_'+inst+'.pdf'), bbox_inches='tight' )
+                elif mode=='zhan2019':
+                    fig.savefig( os.path.join(pubdir,'host_spots_'+inst+'_zz.pdf'), bbox_inches='tight' )
                 plt.close(fig)
     
             if 'show' in command:
