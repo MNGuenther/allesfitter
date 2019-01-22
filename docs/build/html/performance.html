@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; allesfitter 0.3.0 documentation</title>
+  <title>Performance &amp; timing &mdash; allesfitter 0.3.0 documentation</title>
   
 
   
@@ -27,7 +27,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="References" href="references.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -59,7 +61,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -76,14 +78,14 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -130,12 +132,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Performance &amp; timing</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/performance.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -147,24 +151,74 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="performance-timing">
+<h1>Performance &amp; timing<a class="headerlink" href="#performance-timing" title="Permalink to this headline">¶</a></h1>
+<p>### <cite>examples/TMNT/</cite></p>
+<p>#### a)
+Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<blockquote>
+<div><p>ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,unif vs. rwalk
+ns_tol,0.01</p>
+<p>ndim = 8</p>
+<dl class="docutils">
+<dt>allesfit_Leonardo_unif/:</dt>
+<dd>75 minutes, 27k samples, logZ = 545.42 +- 0.14</dd>
+<dt>allesfit_Leonardo_rwalk/:</dt>
+<dd>31 minutes, 24k samples, logZ = 545.36 +- 0.14</dd>
+</dl>
+</div></blockquote>
+<p>#### b)
+Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<blockquote>
+<div><blockquote>
+<div><p>ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,(compared below)
+ns_tol,0.01</p>
+<p>ndim = 8</p>
+<dl class="docutils">
+<dt>allesfit_all_TMNT_unif/:</dt>
+<dd>&gt; 24h, aborted</dd>
+<dt>allesfit_all_TMNT_rwalk/:</dt>
+<dd>1.3h, 35111 samples, logZ = 1234.26 +- 0.23</dd>
+<dt>allesfit_all_TMNT_slice/:</dt>
+<dd>&gt; 24h, aborted</dd>
+<dt>allesfit_all_TMNT_rslice/:</dt>
+<dd>1h, 28074 samples, logZ = 1233.66 +- 0.23</dd>
+<dt>allesfit_all_TMNT_hslice/:</dt>
+<dd>16.4h, 30925 samples, logZ = 1231.49 +- 0.23</dd>
+</dl>
+</div></blockquote>
+<ul class="simple">
+<li><cite>unif</cite> does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.</li>
+<li><cite>rwalk</cite> runs fast, and finds the true solution. It shows quite “conservative” (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.</li>
+<li><cite>slice</cite> is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><cite>rslice</cite> runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.</li>
+<li><cite>hslice</cite> is very slow and gives somewhat funky posteriors / traceplots.</li>
+</ul>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -197,7 +251,6 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
-        <script type="text/javascript" src="_static/searchtools.js"></script>
     
 
   
@@ -208,14 +261,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
-   
-
+  </script> 
 
 </body>
 </html>

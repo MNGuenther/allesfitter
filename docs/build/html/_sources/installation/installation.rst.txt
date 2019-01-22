@@ -1,0 +1,21 @@
+=======================================
+Installation
+=======================================
+
+For now...
+
+- git clone https://github.com/MNGuenther/allesfitter into your PYTHONPATH.
+- git clone https://github.com/MNGuenther/exoworlds into your PYTHONPATH.
+- (soon to be pip-installable)
+ 
+Also...
+
+- pip install ellc (>=1.8.0)
+	- (this requires that a Fortran compiler is installed. If it is missing, you can use e.g. homebrew with "brew install gcc" to install one.)
+- pip install corner (>=2.0.1)
+- pip install emcee (>=3.0.0) 
+	- (if you want to run MCMCs)
+- git clone https://github.com/joshspeagle/dynesty.git (>=0.9.2b) into your PYTHONPATH 
+	- (if you want to run Nested Sampling)
+- pip install celerite (>=0.3.0 )
+	- (if you want to run Gaussian Processes)
