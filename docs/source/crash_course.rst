@@ -2,76 +2,11 @@
 Crash course
 ==============================================================================
 
-TMNT found its first exoplanet!
+.. toctree::
+   :maxdepth: 1
 
-Your survey called *TMNT* found a transiting exoplanet using its photometric telescope *Leonardo*. Now you want to model it, so you can schedule follow-up observations with the rest of your TMNT network: *Michelangelo* (photometry), *Donatello* (RV) and *Raphael* (RV). 
+   crash_course_intro
+   crash_course_gui
+   crash_course_python_console
+   crash_course_advanced
 
-
-What you know
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Luckily, your nice colleagues prepared the photometric data in a neat file (Leonardo.csv). Also, the discovery report already gives you some first guess on the transit signal:
-
-Epoch: 1.09 days after start of observations
-Period: 3.41 days
-Radius of the planet / radius of the star: 0.1011
-Radius of the star / semi-major axis: 0.178
-
-
-Using the GUI 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Simply launch the GUI:
-::
-    import allesfitter
-    allesfitter.GUI()
-
-Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:
-
-.. raw:: html
-
-   <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-
-
-Using the python console 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The way *allesfitter* works is that you prepare a folder with all your data files (`Leonardo.csv`), a settings file (`settings.csv`) and a parameters file (`params.csv`). Then you let *allesfitter* run on that directory, and it does the rest. The GUI hides all this from you, so let's have a look behind the scenes.
-
-Open the `examples/crash_course` folder. You will see the file `run.py` and the following two folders: `allesfit_Leonardo` and `allesfit_all_TMNT`.
-
-### `run.py`
-This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example, using Nested Sampling:
-
-    import allesfitter
-    allesfitter.ns_fit('allesfit_Leonardo')
-    allesfitter.ns_output('allesfit_Leonardo')
-
-Or, if you're the MCMC kind of person:
-
-    import allesfitter
-    allesfitter.mcmc_fit('allesfit_Leonardo')
-    allesfitter.mcmc_output('allesfit_Leonardo')
-    
-### `allesfit_Leonardo`: 
-
-This folder is an example of fitting the following data set: `Leonardo.csv` (discovery photometry). Time, flux and flux error are given in a comma-separated .csv file.
-
-`settings.csv`. Open it, and you will see that its minimal content are the planet letter ("b") and instrument ("Leonardo"). All of these must match the entries in `params.csv` and the names of any data .csv, here we only have `Leonardo.csv` files. To speed up the example, we also set the fast_fit option and run on 4 cores. There are dozens of other possible settings to give the user all freedom. These are explained further in Section X below. (todo)
-
-`params.csv`. Open it, and you will see the parameters describing the model. There are dozens of possible parameters to freeze and fit. These are further explained in Section Y below. (todo)
-
-Finally, when *allesfitter* runs, it creates the subfolder `results`. It contains log files, result tables, LaTex tables, plots of the inital guess and final fit, corner plots, trace plots (for Nested Sampling), chain plots (for MCMC) and an internal save file. Have a look!
-
-
-### `allesfit_all_TMNT`: 
-
-This is an example of fitting the following four data sets:
-
-  - Leonardo.csv (discovery photometry)
-  - Michelangelo.csv (follow-up photometry)
-  - Donatello.csv (decent RV data)
-  - Raphael.csv (good RV data)
-
-Explore the `settings.csv` and `params.csv` files to see how to include this additional data into the fit.

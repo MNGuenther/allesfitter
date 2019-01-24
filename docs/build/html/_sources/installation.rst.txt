@@ -1,11 +1,11 @@
-=======================================
+==============================================================================
 Installation
-=======================================
+==============================================================================
 
 
 
 Installing allesfitter
----------------------------------------
+------------------------------------------------------------------------------
 
 - git clone https://github.com/MNGuenther/allesfitter into your ``PYTHONPATH``.
 - git clone https://github.com/MNGuenther/exoworlds into your ``PYTHONPATH``.
@@ -14,15 +14,31 @@ Installing allesfitter
 
 
 Requirements
----------------------------------------
+------------------------------------------------------------------------------
 
-- python >=2.7 or >=3.5
-- numpy (install via conda or pip)
-- matplotlib (install via conda or pip)
-- seaborn (install via conda or pip)
-- tqdm (install via conda or pip)
-- ellc (>=1.8.0; install via pip; this requires that a Fortran compiler is installed. If it is missing, you can use e.g. homebrew with ``brew install gcc`` to install one on Mac.)
-- dynesty (git clone https://github.com/joshspeagle/dynesty.git (>=0.9.2b) into your ``PYTHONPATH``; then install via ``run python setup.py install``; if you want Nested Sampling)
-- emcee (>=3.0.0; install via pip; if you want MCMC)
-- celerite (>=0.3.0; install via pip; if you want Gaussian Processes)
-- corner (>=2.0.1; install via pip)
+Standard packages (install via conda/pip):
+
+- python (>=2.7 or >=3.5)
+- numpy
+- scikit-learn 
+- matplotlib
+- h5py
+- seaborn
+- tqdm
+
+Special packages (install via pip):
+
+- ellc (>=1.8.0) [#f1]_
+- dynesty (>=0.9.2) [#f2]_ 
+- emcee (>=3.0rc2) [#f3]_
+- celerite (>=0.3.0) [#f4]_
+- corner (>=2.0.1) 
+
+
+
+.. rubric:: Footnotes
+
+.. [#f1] requires a Fortran compiler; on Mac, you can install one e.g. via ``brew install gcc``
+.. [#f2] optional; for Nested Sampling
+.. [#f3] optional; for MCMC
+.. [#f4] optional; for Gaussian Processes

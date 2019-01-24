@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
-    <link rel="prev" title="Crash course" href="crash_course.html" /> 
+    <link rel="next" title="Tutorials: Examples - TMNT" href="tutorials_examples_TMNT.html" />
+    <link rel="prev" title="Crash course - Advanced" href="crash_course_advanced.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,11 +84,13 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#settings-things-up">Settings things up</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running-the-fit">Running the fit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_TMNT.html">Tutorials: Examples - TMNT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_flares.html">Tutorials: Examples - Stellar Flares</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_spots.html">Tutorials: Examples - Star Spots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_phase_curves.html">Tutorials: Examples - Phase Curves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_your_first_fit.html">Tutorials: Your first allesfit</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -157,46 +159,18 @@
             
   <div class="section" id="tutorials">
 <h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="settings-things-up">
-<h2>Settings things up<a class="headerlink" href="#settings-things-up" title="Permalink to this headline">¶</a></h2>
-<p>The file structure is as follows:
-- datadir</p>
-<blockquote>
-<div><ul class="simple">
-<li>settings.csv</li>
-<li>params.csv</li>
-<li>tel1.csv</li>
-<li>tel2.csv</li>
-<li>…</li>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials_examples_TMNT.html">Tutorials: Examples - TMNT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials_examples_flares.html">Tutorials: Examples - Stellar Flares</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials_examples_spots.html">Tutorials: Examples - Star Spots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials_examples_phase_curves.html">Tutorials: Examples - Phase Curves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials_your_first_fit.html">Tutorials: Your first allesfit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_your_first_fit.html#settings-things-up">Settings things up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_your_first_fit.html#running-the-fit">Running the fit</a></li>
 </ul>
-</div></blockquote>
-<p>#### datadir
-For example, datadir = “users/johnwayne/tess_1b”.</p>
-<p>#### settings.csv
-- copy settings.csv from the “examples” that come with allesfitter
-- adjust as you need
-(todo)</p>
-<p>#### params.csv
-- copy params.csv from the “examples” that come with allesfitter
-- adjust as you need
-(todo)</p>
-<p>#### tel1.csv, tel2.csv, …
-All these telescope data files must be named exactly like the telesopes listed in settings.csv. So for example “TESS.csv”, “HARPS.csv”, and so on. The code will automatically search for these file names in the given directory.</p>
-<dl class="docutils">
-<dt>Photometric instruments must contain three columns:</dt>
-<dd>time    flux    flux_err</dd>
-<dt>RV instruments must contain three columns:</dt>
-<dd>time    rv      rv_err</dd>
-</dl>
-<p>The time unit has to be days, preferably BJD. It does not matter if it is JD/HJD/BJD, but it <em>must</em> be homogenous between all data sets tel1.csv etc. and the parameters (epoch) in params.csv.</p>
-</div>
-<div class="section" id="running-the-fit">
-<h2>Running the fit<a class="headerlink" href="#running-the-fit" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>copy run.py from the “examples” that come with allesfitter</li>
-<li>adjust as you need</li>
+</li>
 </ul>
-<p>(todo)</p>
 </div>
 </div>
 
@@ -208,10 +182,10 @@ All these telescope data files must be named exactly like the telesopes listed i
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="tutorials_examples_TMNT.html" class="btn btn-neutral float-right" title="Tutorials: Examples - TMNT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="crash_course.html" class="btn btn-neutral" title="Crash course" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="crash_course_advanced.html" class="btn btn-neutral" title="Crash course - Advanced" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -245,7 +219,7 @@ All these telescope data files must be named exactly like the telesopes listed i
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

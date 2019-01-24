@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The samplers &mdash; allesfitter 0.3.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The noise" href="why_allesfitter_the_noise.html" />
+    <link rel="prev" title="The models" href="why_allesfitter_the_models.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> allesfitter
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_graphical_user_interface.html">The graphical user interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_models.html">The models</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The samplers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bayesian-statistics-and-inference">Bayesian statistics and inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mcmc">MCMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nested-sampling">Nested sampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_noise.html">The noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_final_touch.html">The final touch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_unleash_the_bayesian_evidence.html">Unleash the Bayesian evidence…</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Top-Level Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#module-allesfitter.ns_fit">Nested Sampling fit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">allesfitter</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="why_allesfitter.html">Why allesfitter?</a> &raquo;</li>
+        
+      <li>The samplers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/why_allesfitter_the_samplers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-samplers">
+<h1>The samplers<a class="headerlink" href="#the-samplers" title="Permalink to this headline">¶</a></h1>
+<p>Choose from various MCMC and Nested Sampling algorithms (static/dynamic, multinest, polychord, slicing). Powered by emcee (Foreman-Mackey et al., 2013) and dynesty (Speagle; <a class="reference external" href="https://github.com/joshspeagle/dynesty">GitHub</a>). In the following section, adapted from Günther &amp; Daylan (in prep.), we describe the inference framework <em>allesfitter</em> uses to perform parameter estimation and model selection.</p>
+<div class="section" id="bayesian-statistics-and-inference">
+<h2>Bayesian statistics and inference<a class="headerlink" href="#bayesian-statistics-and-inference" title="Permalink to this headline">¶</a></h2>
+<p>Using Bayesian statistics, we assume that there is an underlying probability distribution over the parameters of the model <span class="math notranslate nohighlight">\(M\)</span> citep[see e.g.][]{McKay2003} and take fair samples from the posterior probability distribution given the observed photometric and RV data. Bayes’ theorem states that the posterior probability of a model $M$ with parameters <span class="math notranslate nohighlight">\(\theta$\)</span> given some observed data <span class="math notranslate nohighlight">\(D\)</span> is given by:</p>
+<p><span class="math notranslate nohighlight">\(P(\theta|M, D) = \frac{P(D|\theta, M) P(\theta| M)}{P(D|M)}\)</span>,</p>
+<p>Here, <span class="math notranslate nohighlight">\(P(D|\theta, M)\)</span> is the probability of observing the data <span class="math notranslate nohighlight">\(D\)</span> under the model $M$ with parameters <span class="math notranslate nohighlight">\(\theta\)</span> and is known as the likelihood. Furthermore, <span class="math notranslate nohighlight">\(P(\theta| M)$\)</span> is the prior probability assigned to the parameter <span class="math notranslate nohighlight">\(\theta\)</span> of model <span class="math notranslate nohighlight">\(M\)</span>. In this context, the posterior <span class="math notranslate nohighlight">\(P(\theta|M, D)\)</span> is the degree of belief about the model and its parameters updated based on observed data <span class="math notranslate nohighlight">\(D\)</span>. Finally, <span class="math notranslate nohighlight">\(P(D|M)\)</span> is the marginal likelihood, i.e., the Bayesian evidence,</p>
+<p><span class="math notranslate nohighlight">\(P(D|M) = \int P(D|\theta, M) P(\theta| M) \mathrm{d} \theta\)</span>.</p>
+<p>and quantifies the degree of belief (in the Bayesian sense of probability) one should have about a model <span class="math notranslate nohighlight">\(M\)</span> given the observed data <span class="math notranslate nohighlight">\(D\)</span>.
+Comparing different physical models, as it is often desired in exoplanet-related studies, relies on the estimation of the Bayesian evidence, <span class="math notranslate nohighlight">\(P(D|M)\)</span>.</p>
+<p>In the context of exoplanet transit modeling, the set of parameters <span class="math notranslate nohighlight">\(\theta\)</span> contains, for example, the orbital period $P$, epoch of first transit <span class="math notranslate nohighlight">\(T_0\)</span>, planet radius <span class="math notranslate nohighlight">\(R_\mathrm{p}\)</span>, stellar radius <span class="math notranslate nohighlight">\(R_\star\)</span> and more.  The observed data <span class="math notranslate nohighlight">\(D\)</span> are time series of flux and radial velocity and the times at which these measurements are taken. The choice of priors <span class="math notranslate nohighlight">\(P(\theta |M)\)</span> can be motivated by previous analyses or scaling arguments. For example, the stellar radius might be constrained by stellar models and parallax measurements by <em>Gaia</em>. <em>allesfitter</em> reflects this as a Gaussian prior on the associated variable, with mean (maximum probability) at the measured value and the standard deviation reflecting the error bars.</p>
+</div>
+<div class="section" id="mcmc">
+<h2>MCMC<a class="headerlink" href="#mcmc" title="Permalink to this headline">¶</a></h2>
+<p>A Markov chain is a memoryless sequence of elements <span class="math notranslate nohighlight">\({\theta_0, \theta_1, ..., \theta_N}, n\in \mathbb{N}\)</span> drawn from a distribution <span class="math notranslate nohighlight">\(P(\theta_{n+1}|\theta_n)\)</span>, where the realization of <span class="math notranslate nohighlight">\(\theta_{n+1}\)</span> depends only on the current state, <span class="math notranslate nohighlight">\(\theta_{n}\)</span>.
+A Markov chain can be used to draw fair samples from a probability distribution by choosing an appropriate set of proposals (i.e., transition kernels <span class="math notranslate nohighlight">\(P(\theta_{n+1}|\theta_n)\)</span>) and ensuring that the stationary distribution of the chain is the desired target probability distribution.</p>
+<p>When sampling from probability distribution functions with MCMC, initial samples are usually not drawn from the posterior due to suboptimal initialization and successive samples can be correlated. Therefore, the initial <span class="math notranslate nohighlight">\(X\)</span> samples are discarded and the chain is thinned down by a factor of <span class="math notranslate nohighlight">\(Y\)</span> to ensure that the integrated autocorrelation times of the variables are below 50.</p>
+<p>We adopt the <em>emcee</em> package, which uses affine invariant sampling (Goodman 2010). This enables efficient sampling from potentially skewed posterior probability distributions with correlated parameters. To do so, it constructs chains from the states of multiple walkers and uses leap-frog proposals to explore the parameter space.
+A detailed description of <em>emcee</em> can be found in (Foreman-Mackey et al. 2013).</p>
+<p>Samples drawn with MCMC are optimized to represent the posterior and hence, for parameter estimation.
+However, estimating the Bayesian evidence with MCMC faces significant challenges, mainly because MCMC is an optimal method for taking samples from the posterior. Calculation of the Bayesian evidence via estimators such as the harmonic mean receives significant contributions from low-posterior samples. Therefore, even though MCMC can efficiently generate samples from the posterior, it cannot accurately estimate the Bayesian evidence. This makes MCMC ineffective in providing a robust model test (Weinberg 2010).</p>
+</div>
+<div class="section" id="nested-sampling">
+<h2>Nested sampling<a class="headerlink" href="#nested-sampling" title="Permalink to this headline">¶</a></h2>
+<p>A model comparison can be addressed by using a “Nested Sampling” approach (Skilling 2004, Feroz et al. 2009, Handley et al. 2015) instead of MCMC. In fact, Nested Sampling was developed to compute the Bayesian evidence directly. In the exoplanet context, this then enables to robustly compare radial velocity models with different numbers of exoplanets (Hall et al. 2018), circular versus eccentric orbits, or limb darkening laws.</p>
+<p><em>allesfitter</em> implements the <em>dynesty</em> package (Speagle; <a class="reference external" href="https://github.com/joshspeagle/dynesty">GitHub</a>), which offers the choice between static and dynamic nested sampling, as well as multiple options such as multinest or polynest algorithms. Our default choise is dynamic nested sampling (Higson et al. 2017). This allows the number of live particles to be changed during sampling, making the integration resolution “dynamic”.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="why_allesfitter_the_noise.html" class="btn btn-neutral float-right" title="The noise" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="why_allesfitter_the_models.html" class="btn btn-neutral" title="The models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Maximilian N. Guenther, Tansu Daylan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

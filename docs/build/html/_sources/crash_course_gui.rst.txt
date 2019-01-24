@@ -1,0 +1,19 @@
+==============================================================================
+Crash course - GUI
+==============================================================================
+
+To allesfit your discovery transit using the GUI, simply launch the GUI via double click on the allesfitter executable:
+
+.. image:: _static/images/the_gui_small.gif
+   :target: _static/images/the_gui_small.gif
+
+Alternatively, launch the GUI from a Python console::
+
+    import allesfitter
+    allesfitter.GUI()
+
+Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:
+
+.. raw:: html
+
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

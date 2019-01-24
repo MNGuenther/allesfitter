@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="next" title="Crash course - Intro" href="crash_course_intro.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 
   
@@ -83,13 +83,13 @@
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Crash course</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-you-know">What you know</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-the-gui">Using the GUI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-the-python-console">Using the python console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_intro.html">Crash course - Intro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_gui.html">Crash course - GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_python_console.html">Crash course - Console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_advanced.html">Crash course - Advanced</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -158,56 +158,13 @@
             
   <div class="section" id="crash-course">
 <h1>Crash course<a class="headerlink" href="#crash-course" title="Permalink to this headline">¶</a></h1>
-<p>TMNT found its first exoplanet!</p>
-<p>Your survey called <em>TMNT</em> found a transiting exoplanet using its photometric telescope <em>Leonardo</em>. Now you want to model it, so you can schedule follow-up observations with the rest of your TMNT network: <em>Michelangelo</em> (photometry), <em>Donatello</em> (RV) and <em>Raphael</em> (RV).</p>
-<div class="section" id="what-you-know">
-<h2>What you know<a class="headerlink" href="#what-you-know" title="Permalink to this headline">¶</a></h2>
-<p>Luckily, your nice colleagues prepared the photometric data in a neat file (Leonardo.csv). Also, the discovery report already gives you some first guess on the transit signal:</p>
-<p>Epoch: 1.09 days after start of observations
-Period: 3.41 days
-Radius of the planet / radius of the star: 0.1011
-Radius of the star / semi-major axis: 0.178</p>
-</div>
-<div class="section" id="using-the-gui">
-<h2>Using the GUI<a class="headerlink" href="#using-the-gui" title="Permalink to this headline">¶</a></h2>
-<p>Simply launch the GUI:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">allesfitter</span>
-<span class="n">allesfitter</span><span class="o">.</span><span class="n">GUI</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-<div class="section" id="using-the-python-console">
-<h2>Using the python console<a class="headerlink" href="#using-the-python-console" title="Permalink to this headline">¶</a></h2>
-<p>The way <em>allesfitter</em> works is that you prepare a folder with all your data files (<cite>Leonardo.csv</cite>), a settings file (<cite>settings.csv</cite>) and a parameters file (<cite>params.csv</cite>). Then you let <em>allesfitter</em> run on that directory, and it does the rest. The GUI hides all this from you, so let’s have a look behind the scenes.</p>
-<p>Open the <cite>examples/crash_course</cite> folder. You will see the file <cite>run.py</cite> and the following two folders: <cite>allesfit_Leonardo</cite> and <cite>allesfit_all_TMNT</cite>.</p>
-<p>### <cite>run.py</cite>
-This file just contains the simple 3 lines you need to execute to run any of the examples below (after installation). For example, using Nested Sampling:</p>
-<blockquote>
-<div>import allesfitter
-allesfitter.ns_fit(‘allesfit_Leonardo’)
-allesfitter.ns_output(‘allesfit_Leonardo’)</div></blockquote>
-<p>Or, if you’re the MCMC kind of person:</p>
-<blockquote>
-<div>import allesfitter
-allesfitter.mcmc_fit(‘allesfit_Leonardo’)
-allesfitter.mcmc_output(‘allesfit_Leonardo’)</div></blockquote>
-<p>### <cite>allesfit_Leonardo</cite>:</p>
-<p>This folder is an example of fitting the following data set: <cite>Leonardo.csv</cite> (discovery photometry). Time, flux and flux error are given in a comma-separated .csv file.</p>
-<p><cite>settings.csv</cite>. Open it, and you will see that its minimal content are the planet letter (“b”) and instrument (“Leonardo”). All of these must match the entries in <cite>params.csv</cite> and the names of any data .csv, here we only have <cite>Leonardo.csv</cite> files. To speed up the example, we also set the fast_fit option and run on 4 cores. There are dozens of other possible settings to give the user all freedom. These are explained further in Section X below. (todo)</p>
-<p><cite>params.csv</cite>. Open it, and you will see the parameters describing the model. There are dozens of possible parameters to freeze and fit. These are further explained in Section Y below. (todo)</p>
-<p>Finally, when <em>allesfitter</em> runs, it creates the subfolder <cite>results</cite>. It contains log files, result tables, LaTex tables, plots of the inital guess and final fit, corner plots, trace plots (for Nested Sampling), chain plots (for MCMC) and an internal save file. Have a look!</p>
-<p>### <cite>allesfit_all_TMNT</cite>:</p>
-<p>This is an example of fitting the following four data sets:</p>
-<blockquote>
-<div><ul class="simple">
-<li>Leonardo.csv (discovery photometry)</li>
-<li>Michelangelo.csv (follow-up photometry)</li>
-<li>Donatello.csv (decent RV data)</li>
-<li>Raphael.csv (good RV data)</li>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="crash_course_intro.html">Crash course - Intro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crash_course_gui.html">Crash course - GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crash_course_python_console.html">Crash course - Console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crash_course_advanced.html">Crash course - Advanced</a></li>
 </ul>
-</div></blockquote>
-<p>Explore the <cite>settings.csv</cite> and <cite>params.csv</cite> files to see how to include this additional data into the fit.</p>
 </div>
 </div>
 
@@ -219,7 +176,7 @@ allesfitter.mcmc_output(‘allesfit_Leonardo’)</div></blockquote>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="crash_course_intro.html" class="btn btn-neutral float-right" title="Crash course - Intro" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -256,7 +213,7 @@ allesfitter.mcmc_output(‘allesfit_Leonardo’)</div></blockquote>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

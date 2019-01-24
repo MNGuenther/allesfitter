@@ -89,6 +89,8 @@
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Top-Level Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#nested-sampling-fit">Nested Sampling fit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -167,18 +169,49 @@
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>Standard packages (install via conda/pip):</p>
 <ul class="simple">
-<li>python &gt;=2.7 or &gt;=3.5</li>
-<li>numpy (install via conda or pip)</li>
-<li>matplotlib (install via conda or pip)</li>
-<li>seaborn (install via conda or pip)</li>
-<li>tqdm (install via conda or pip)</li>
-<li>ellc (&gt;=1.8.0; install via pip; this requires that a Fortran compiler is installed. If it is missing, you can use e.g. homebrew with <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gcc</span></code> to install one on Mac.)</li>
-<li>dynesty (git clone <a class="reference external" href="https://github.com/joshspeagle/dynesty.git">https://github.com/joshspeagle/dynesty.git</a> (&gt;=0.9.2b) into your <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>; then install via <code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>; if you want Nested Sampling)</li>
-<li>emcee (&gt;=3.0.0; install via pip; if you want MCMC)</li>
-<li>celerite (&gt;=0.3.0; install via pip; if you want Gaussian Processes)</li>
-<li>corner (&gt;=2.0.1; install via pip)</li>
+<li>python (&gt;=2.7 or &gt;=3.5)</li>
+<li>numpy</li>
+<li>scikit-learn</li>
+<li>matplotlib</li>
+<li>h5py</li>
+<li>seaborn</li>
+<li>tqdm</li>
 </ul>
+<p>Special packages (install via pip):</p>
+<ul class="simple">
+<li>ellc (&gt;=1.8.0) <a class="footnote-reference" href="#f1" id="id1">[1]</a></li>
+<li>dynesty (&gt;=0.9.2) <a class="footnote-reference" href="#f2" id="id2">[2]</a></li>
+<li>emcee (&gt;=3.0rc2) <a class="footnote-reference" href="#f3" id="id3">[3]</a></li>
+<li>celerite (&gt;=0.3.0) <a class="footnote-reference" href="#f4" id="id4">[4]</a></li>
+<li>corner (&gt;=2.0.1)</li>
+</ul>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>requires a Fortran compiler; on Mac, you can install one e.g. via <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gcc</span></code></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>optional; for Nested Sampling</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>optional; for MCMC</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td>optional; for Gaussian Processes</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -227,7 +260,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
     
 
   

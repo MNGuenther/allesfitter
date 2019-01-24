@@ -1,0 +1,23 @@
+================================================================================
+API
+==============================================================================
+
+
+Top-Level Interface
+==============================================================================
+
+.. automodule:: allesfitter
+    :members:
+    :undoc-members:
+    :private-members:
+    :show-inheritance:
+
+
+Nested Sampling fit
+==============================================================================
+
+.. automodule:: allesfitter.ns_fit
+    :members:
+    :undoc-members:
+    :private-members:
+    :show-inheritance:

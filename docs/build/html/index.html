@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>allesfitter &mdash; allesfitter 0.3.0 documentation</title>
+  <title>Welcome! &mdash; allesfitter 0.3.0 documentation</title>
   
 
   
@@ -83,7 +83,6 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -131,7 +130,7 @@
     
       <li><a href="#">Docs</a> &raquo;</li>
         
-      <li>allesfitter</li>
+      <li>Welcome!</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,19 +149,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="allesfitter">
-<h1>allesfitter<a class="headerlink" href="#allesfitter" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome">
+<h1>Welcome!<a class="headerlink" href="#welcome" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="_static/images/promo.gif"><img alt="_images/promo.gif" class="align-center" src="_images/promo.gif" /></a>
 <p>[German-ish for <em>everything-fitter</em>]</p>
-<p><em>allesfitter</em> (Günther &amp; Daylan, in prep.) is a public and user-friendly astronomy software package for modeling photometric and RV data. It can accommodate multiple exoplanets, multi-star systems, star spots, stellar flares, and various noise models. A graphical user interface allows to define all input. Then, <em>allesfitter</em> automatically runs a nested sampling or MCMC fit, and produces ascii tables, latex tables, and plots.</p>
-<p>For all this, <em>allesfitter</em> constructs an inference framework that unites the versatile packages <em>ellc</em> (light curve and RV models; Maxted 2016), <em>aflare</em> (flare model; Davenport et al. 2014), <em>dynesty</em> (static and dynamic nested sampling; <a class="reference external" href="https://github.com/joshspeagle/dynesty">https://github.com/joshspeagle/dynesty</a>), <em>emcee</em> (Markov Chain Monte Carlo sampling; Foreman-Mackey et al. 2013) and <em>celerite</em> (Gaussian Process models; Foreman-Mackey et al. 2017).</p>
-<p><em>allesfitter</em> is publicly available at <a class="reference external" href="https://github.com/MNGuenther/allesfitter">https://github.com/MNGuenther/allesfitter</a>, feedback and contributions are welcome.</p>
-<a class="reference external image-reference" href="_static/images/teaser.gif"><img alt="_images/teaser.gif" src="_images/teaser.gif" /></a>
+<p><em>allesfitter</em> (Günther &amp; Daylan, in prep.; <a class="reference external" href="https://github.com/MNGuenther/allesfitter">GitHub</a>) is a public and user-friendly astronomy software package for modeling photometric and RV data. It can accommodate multiple exoplanets, multi-star systems, star spots, stellar flares, and various noise models. A graphical user interface allows to define all input. Then, <em>allesfitter</em> automatically runs a nested sampling or MCMC fit, and produces ascii tables, latex tables, and plots. For all this, <em>allesfitter</em> constructs an inference framework that unites the versatile packages <em>ellc</em> (light curve and RV models; Maxted 2016), <em>aflare</em> (flare model; Davenport et al. 2014), <em>dynesty</em> (static and dynamic nested sampling; Speagle <a class="reference external" href="https://github.com/joshspeagle/dynesty">GitHub</a>), <em>emcee</em> (Markov Chain Monte Carlo sampling; Foreman-Mackey et al. 2013) and <em>celerite</em> (Gaussian Process models; Foreman-Mackey et al. 2017).</p>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter.html#unleash-the-power-of-bayesian-evidence-and-do-a-meaningful-model-comparison">Unleash the power of Bayesian evidence and do a meaningful model comparison!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_graphical_user_interface.html">The graphical user interface (GUI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_models.html">The models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_samplers.html">The samplers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_noise.html">The noise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_final_touch.html">The final touch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_unleash_the_bayesian_evidence.html">Unleash the Bayesian evidence…</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
@@ -172,24 +174,25 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="crash_course.html#what-you-know">What you know</a></li>
-<li class="toctree-l2"><a class="reference internal" href="crash_course.html#using-the-gui">Using the GUI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="crash_course.html#using-the-python-console">Using the python console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_intro.html">Crash course - Intro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_gui.html">Crash course - GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_python_console.html">Crash course - Console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crash_course_advanced.html">Crash course - Advanced</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials.html#settings-things-up">Settings things up</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials.html#running-the-fit">Running the fit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_TMNT.html">Tutorials: Examples - TMNT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_flares.html">Tutorials: Examples - Stellar Flares</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_spots.html">Tutorials: Examples - Star Spots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_examples_phase_curves.html">Tutorials: Examples - Phase Curves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials_your_first_fit.html">Tutorials: Your first allesfit</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#fitting-exoplanet-photometry-and-rv">Fitting exoplanet photometry and RV</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#fitting-phase-curves">Fitting phase curves</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#fitting-star-spots">Fitting star spots</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#fitting-stellar-flares">Fitting stellar flares</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="performance.html#test-1">Test 1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html#test-2">Test 2</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 </div>
@@ -239,7 +242,7 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References" href="references.html" />
-    <link rel="prev" title="Examples" href="examples.html" /> 
+    <link rel="prev" title="Tutorials: Your first allesfit" href="tutorials_your_first_fit.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,8 +84,11 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance &amp; timing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance &amp; timing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#test-1">Test 1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-2">Test 2</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -153,56 +156,56 @@
             
   <div class="section" id="performance-timing">
 <h1>Performance &amp; timing<a class="headerlink" href="#performance-timing" title="Permalink to this headline">¶</a></h1>
-<p>### <cite>examples/TMNT/</cite></p>
-<p>#### a)
-Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
-<blockquote>
-<div><p>ns_modus,dynamic
-ns_nlive,500
-ns_bound,single
-ns_sample,unif vs. rwalk
-ns_tol,0.01</p>
-<p>ndim = 8</p>
-<dl class="docutils">
-<dt>allesfit_Leonardo_unif/:</dt>
-<dd>75 minutes, 27k samples, logZ = 545.42 +- 0.14</dd>
-<dt>allesfit_Leonardo_rwalk/:</dt>
-<dd>31 minutes, 24k samples, logZ = 545.36 +- 0.14</dd>
-</dl>
-</div></blockquote>
-<p>#### b)
-Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
-<blockquote>
-<div><blockquote>
-<div><p>ns_modus,dynamic
-ns_nlive,500
-ns_bound,single
-ns_sample,(compared below)
-ns_tol,0.01</p>
-<p>ndim = 8</p>
-<dl class="docutils">
-<dt>allesfit_all_TMNT_unif/:</dt>
-<dd>&gt; 24h, aborted</dd>
-<dt>allesfit_all_TMNT_rwalk/:</dt>
-<dd>1.3h, 35111 samples, logZ = 1234.26 +- 0.23</dd>
-<dt>allesfit_all_TMNT_slice/:</dt>
-<dd>&gt; 24h, aborted</dd>
-<dt>allesfit_all_TMNT_rslice/:</dt>
-<dd>1h, 28074 samples, logZ = 1233.66 +- 0.23</dd>
-<dt>allesfit_all_TMNT_hslice/:</dt>
-<dd>16.4h, 30925 samples, logZ = 1231.49 +- 0.23</dd>
-</dl>
-</div></blockquote>
+<div class="section" id="test-1">
+<h2>Test 1<a class="headerlink" href="#test-1" title="Permalink to this headline">¶</a></h2>
+<p>Fitting the Leonardo discovery photometry using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ns_modus</span><span class="p">,</span><span class="n">dynamic</span>
+<span class="n">ns_nlive</span><span class="p">,</span><span class="mi">500</span>
+<span class="n">ns_bound</span><span class="p">,</span><span class="n">single</span>
+<span class="n">ns_sample</span><span class="p">,</span><span class="n">unif</span> <span class="n">vs</span><span class="o">.</span> <span class="n">rwalk</span>
+<span class="n">ns_tol</span><span class="p">,</span><span class="mf">0.01</span>
+
+<span class="n">ndim</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="n">allesfit_Leonardo_unif</span><span class="o">/</span><span class="p">:</span>
+        <span class="mi">75</span> <span class="n">minutes</span><span class="p">,</span> <span class="mi">27</span><span class="n">k</span> <span class="n">samples</span><span class="p">,</span> <span class="n">logZ</span> <span class="o">=</span> <span class="mf">545.42</span> <span class="o">+-</span> <span class="mf">0.14</span>
+<span class="n">allesfit_Leonardo_rwalk</span><span class="o">/</span><span class="p">:</span>
+        <span class="mi">31</span> <span class="n">minutes</span><span class="p">,</span> <span class="mi">24</span><span class="n">k</span> <span class="n">samples</span><span class="p">,</span> <span class="n">logZ</span> <span class="o">=</span> <span class="mf">545.36</span> <span class="o">+-</span> <span class="mf">0.14</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-2">
+<h2>Test 2<a class="headerlink" href="#test-2" title="Permalink to this headline">¶</a></h2>
+<p>Fitting all TMNT data together using Dynamic Nested Sampling, once with uniform sampling, once with random-walk sampling:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ns_modus</span><span class="p">,</span><span class="n">dynamic</span>
+<span class="n">ns_nlive</span><span class="p">,</span><span class="mi">500</span>
+<span class="n">ns_bound</span><span class="p">,</span><span class="n">single</span>
+<span class="n">ns_sample</span><span class="p">,(</span><span class="n">compared</span> <span class="n">below</span><span class="p">)</span>
+<span class="n">ns_tol</span><span class="p">,</span><span class="mf">0.01</span>
+
+<span class="n">ndim</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="n">allesfit_all_TMNT_unif</span><span class="o">/</span><span class="p">:</span>
+        <span class="o">&gt;</span> <span class="mi">24</span><span class="n">h</span><span class="p">,</span> <span class="n">aborted</span>
+<span class="n">allesfit_all_TMNT_rwalk</span><span class="o">/</span><span class="p">:</span>
+        <span class="mf">1.3</span><span class="n">h</span><span class="p">,</span> <span class="mi">35111</span> <span class="n">samples</span><span class="p">,</span> <span class="n">logZ</span> <span class="o">=</span> <span class="mf">1234.26</span> <span class="o">+-</span> <span class="mf">0.23</span>
+<span class="n">allesfit_all_TMNT_slice</span><span class="o">/</span><span class="p">:</span>
+        <span class="o">&gt;</span> <span class="mi">24</span><span class="n">h</span><span class="p">,</span> <span class="n">aborted</span>
+<span class="n">allesfit_all_TMNT_rslice</span><span class="o">/</span><span class="p">:</span>
+        <span class="mi">1</span><span class="n">h</span><span class="p">,</span> <span class="mi">28074</span> <span class="n">samples</span><span class="p">,</span> <span class="n">logZ</span> <span class="o">=</span> <span class="mf">1233.66</span> <span class="o">+-</span> <span class="mf">0.23</span>
+<span class="n">allesfit_all_TMNT_hslice</span><span class="o">/</span><span class="p">:</span>
+        <span class="mf">16.4</span><span class="n">h</span><span class="p">,</span> <span class="mi">30925</span> <span class="n">samples</span><span class="p">,</span> <span class="n">logZ</span> <span class="o">=</span> <span class="mf">1231.49</span> <span class="o">+-</span> <span class="mf">0.23</span>
+</pre></div>
+</div>
+<p>Summary:</p>
 <ul class="simple">
 <li><cite>unif</cite> does not converge within a reasonable run time for higher dimensions. It seems not applicable to our exoplanet scenarios.</li>
 <li><cite>rwalk</cite> runs fast, and finds the true solution. It shows quite “conservative” (large) posterior errorbars. This seems to be the best choice for exoplanet modelling.</li>
 <li><cite>slice</cite> is theoretically the most robust, but does not converge within a reasonable run time for higher dimensions.</li>
-</ul>
-</div></blockquote>
-<ul class="simple">
 <li><cite>rslice</cite> runs fast, but gives somewhat funky posteriors / traceplots. It seems to be overly confident while missing the true solution.</li>
 <li><cite>hslice</cite> is very slow and gives somewhat funky posteriors / traceplots.</li>
 </ul>
+</div>
 </div>
 
 
@@ -216,7 +219,7 @@ ns_tol,0.01</p>
         <a href="references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorials_your_first_fit.html" class="btn btn-neutral" title="Tutorials: Your first allesfit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -250,7 +253,7 @@ ns_tol,0.01</p>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   
