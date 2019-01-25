@@ -34,6 +34,7 @@ except:
    import pickle
 from dynesty import utils as dyutils
 from dynesty import plotting as dyplot
+import warnings
 
 #::: allesfitter modules
 from . import config
@@ -82,14 +83,18 @@ def ns_output(datadir):
     
     #::: security check
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'ns_table.csv')):
-        overwrite = raw_input('Nested Sampling output files already exists in '+config.BASEMENT.outdir+'.\n'+\
-                              'What do you want to do?\n'+\
-                              '1 : overwrite the output files\n'+\
-                              '2 : abort\n')
-        if (overwrite == '1'):
+        try:
+            overwrite = str(input('Nested Sampling output files already exists in '+config.BASEMENT.outdir+'.\n'+\
+                                  'What do you want to do?\n'+\
+                                  '1 : overwrite the output files\n'+\
+                                  '2 : abort\n'))
+            if (overwrite == '1'):
+                pass
+            else:
+                raise ValueError('User aborted operation.')
+        except EOFError:
+            warnings.warn("Nested Sampling output files already existed from a previous run, and were automatically overwritten.")
             pass
-        else:
-            raise ValueError('User aborted operation.')
     
     #::: load the save_ns.pickle
 #    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'),'rb' ) as f:
@@ -114,7 +119,6 @@ def ns_output(datadir):
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
     params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)     # params drawn form these posterior_samples
-    
     
     #::: output the results
     logprint('\nResults:')
@@ -150,7 +154,7 @@ def ns_output(datadir):
         
     #::: traceplot    
     cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
-    tfig, taxes = dyplot.traceplot(results2, labels=labels, truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim)
+    tfig, taxes = dyplot.traceplot(results2, labels=labels, truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
     plt.tight_layout()
     
     
@@ -165,7 +169,7 @@ def ns_output(datadir):
     
 
     #::: set allesfitter titles
-    for i, key in enumerate(config.BASEMENT.fitkeys):    
+    for i, key in enumerate(config.BASEMENT.fitkeys):  
         value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
         ttitle = r'' + labels[i] + r'$=' + value + '$'
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'

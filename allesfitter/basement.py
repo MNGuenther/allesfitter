@@ -751,7 +751,6 @@ class Basement():
         self.fitlabels = self.labels[ self.ind_fit ]    #len(ndim)
         self.fitunits = self.units[ self.ind_fit ]      #len(ndim)
         self.fittruths = self.truths[ self.ind_fit ]    #len(ndim)
-        
         self.theta_0 = buf['value'][ self.ind_fit ]     #len(ndim)
         
         if 'init_err' in buf.dtype.names:

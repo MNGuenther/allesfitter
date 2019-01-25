@@ -29,6 +29,7 @@ import os
 from shutil import copyfile
 import emcee
 from corner import corner
+import warnings
 
 #::: allesfitter modules
 from . import config
@@ -146,14 +147,18 @@ def mcmc_output(datadir):
     
     #::: security check
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_fit.pdf')):
-        overwrite = raw_input('MCMC output files already exists in '+config.BASEMENT.outdir+'.\n'+\
-                              'What do you want to do?\n'+\
-                              '1 : overwrite the output files\n'+\
-                              '2 : abort\n')
-        if (overwrite == '1'):
+        try:
+            overwrite = str(input('MCMC output files already exists in '+config.BASEMENT.outdir+'.\n'+\
+                                  'What do you want to do?\n'+\
+                                  '1 : overwrite the output files\n'+\
+                                  '2 : abort\n'))
+            if (overwrite == '1'):
+                pass
+            else:
+                raise ValueError('User aborted operation.')
+        except EOFError:
+            warnings.warn("MCMC output files already existed from a previous run, and were automatically overwritten.")
             pass
-        else:
-            raise ValueError('User aborted operation.')
     
     #::: load the mcmc_save.h5
     #::: copy over into tmp file (in case chain is still running and you want a quick look already)     
