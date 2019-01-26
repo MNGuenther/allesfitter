@@ -6,3 +6,4 @@ Model multiple exoplanets, eclipsing binaries, phase curves, star spots, and ste
 
 .. image:: _static/images/models.png
    :target: _static/images/models.png
+   :align: center

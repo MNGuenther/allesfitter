@@ -5,7 +5,8 @@ Tutorials
 .. toctree::
    :maxdepth: 2
 
-   tutorials_examples_TMNT
+   tutorials_behind_the_gui
+   tutorials_examples_transits_and_rvs
    tutorials_examples_flares
    tutorials_examples_spots
    tutorials_examples_phase_curves

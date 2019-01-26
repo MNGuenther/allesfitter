@@ -15,3 +15,4 @@ A GP can use different kernels and metrics to evaluate the correlation between d
 
 *allesfitter* adapts the *celerite* package, which provides series expressions of typical GP kernels. This enables a significant gain in computing time. A detailed discussion can be found in (Foreman-Mackey et al. 2017).
 By fitting hyperparameters of a GP one can model correlations in the data that cannot be explained by the null orbital model. The posterior of these hyperparameters can then be linked to physical sources, such as stellar variability, weather patterns or systematic instrumental noise.
+

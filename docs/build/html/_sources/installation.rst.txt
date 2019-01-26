@@ -3,7 +3,6 @@ Installation
 ==============================================================================
 
 
-
 Installing allesfitter
 ------------------------------------------------------------------------------
 
@@ -42,3 +41,4 @@ Special packages (install via pip):
 .. [#f2] optional; for Nested Sampling
 .. [#f3] optional; for MCMC
 .. [#f4] optional; for Gaussian Processes
+

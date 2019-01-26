@@ -17,3 +17,4 @@ Maximilian N. Günther, Tansu Daylan
 The code is freely available at https://github.com/MNGuenther/allesfitter under the MIT License. Feedback and contributions are very welcome.
 
 Thanks!
+

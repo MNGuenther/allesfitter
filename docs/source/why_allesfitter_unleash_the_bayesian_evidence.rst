@@ -15,3 +15,4 @@ So many questions. So much Bayesian evidence.
 .. image:: _static/images/img1.jpg
    :target: _static/images/img1.jpg
    :align: center
+
