@@ -33,15 +33,13 @@ from astropy.time import Time
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
-#::: my modules
-from exoworlds.lightcurves import lightcurve_tools as lct
-
 #::: allesfitter modules
 from . import config
 from .utils import latex_printer
 from .computer import update_params,\
                      calculate_model, rv_fct, flux_fct,\
                      calculate_baseline, calculate_yerr_w
+from exoworlds_rdx.lightcurves import lightcurve_tools as lct
                      
                      
                      

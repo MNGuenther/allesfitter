@@ -23,7 +23,7 @@ setup(
     #scripts=['allesfitter'],  # The name of the included script(s), and also the command used for calling it
     description = 'Wrapper for astropy and cfitsio readers for NGTS data files',
     author = 'Maximilian N. Günther & Tansu Daylan',
-    author_email = 'maxgue@mit.edu & tdaylan@mit.edu',
+    author_email = 'maxgue@mit.edu',
     url = 'https://github.com/MNGuenther/allesfitter',
     download_url = 'https://github.com/MNGuenther/allesfitter',
     classifiers = []

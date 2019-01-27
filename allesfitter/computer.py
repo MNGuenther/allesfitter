@@ -356,7 +356,7 @@ def calculate_lnlike(params, inst, key):
 ##        except:
 ##            pass
         
-        return -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w))) #use np.sum to catch any nan and then set lnlike to nan
+        return -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
     
     
     #::: if GP baseline sampling, use the GP lnlike instead

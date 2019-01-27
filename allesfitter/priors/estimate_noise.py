@@ -23,18 +23,13 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
-#import numpy as np
-#import matplotlib.pyplot as plt
 import os
-#from scipy.optimize import differential_evolution
-
-#::: my modules
-from exoworlds.lightcurves import gp_decor
-from exoworlds.rvs import estimate_jitter
 
 #::: allesfitter modules
 from .. import config
 from ..computer import update_params, calculate_model
+from ..exoworlds_rdx.lightcurves import gp_decor
+from ..exoworlds_rdx.rvs import estimate_jitter
 
 
 

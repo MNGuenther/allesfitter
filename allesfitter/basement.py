@@ -32,8 +32,8 @@ import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
-#::: my modules
-from exoworlds.lightcurves import index_transits, index_eclipses
+#::: allesfitter modules
+from exoworlds_rdx.lightcurves import index_transits, index_eclipses
 
                      
     

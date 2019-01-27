@@ -235,7 +235,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
             p = update_params(s)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, model+baseline, 'r-', alpha=alpha, rasterized=True, zorder=12 )
+            ax.plot( xx, model+baseline, 'r-', alpha=alpha, zorder=12 )
         
         if timelabel=='Time_since':
             x = np.copy(xsave)
@@ -288,11 +288,18 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = rv_fct(p, inst, companion, xx=xx)[0]
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, rasterized=True, zorder=12 )
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
             
         
         #::: if photometry
         elif (inst in config.BASEMENT.settings['inst_phot']):
+            
+            for other_companion in config.BASEMENT.settings['companions_phot']:
+                if companion!=other_companion:
+                    model = flux_fct(params_median, inst, other_companion)
+                    y -= model
+                    y += 1.
+                    
             #data, phased  
             if 'phase_variation' in style:
                 dt = 0.01                
@@ -326,7 +333,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
                 s = samples[i,:]
                 p = update_params(s, phased=True)
                 model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, rasterized=True, zorder=12 )
+                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         
         #::: zoom?        
@@ -351,8 +358,8 @@ def get_params_from_samples(samples):
 #    theta_ll = [ item[2] for item in buf ]            
     #::: instead, let us be anti-pythonic
     theta_median = np.percentile(samples, 50, axis=0)
-    theta_ul = np.percentile(samples, 16, axis=0)
-    theta_ll = np.percentile(samples, 84, axis=0)
+    theta_ul = np.percentile(samples, 84, axis=0) - theta_median
+    theta_ll = theta_median - np.percentile(samples, 16, axis=0)
     params_median = update_params(theta_median)
 #    if len(theta_ll)>0:
     params_ll = update_params(theta_ll)
@@ -380,7 +387,7 @@ def save_table(samples, mode):
     
     params, params_ll, params_ul = get_params_from_samples(samples)
     
-    with open( os.path.join(config.BASEMENT.outdir,mode+'_table.csv'), 'wb' ) as f:
+    with open( os.path.join(config.BASEMENT.outdir,mode+'_table.csv'), 'w' ) as f:
         f.write('############ Fitted parameters ############\n')
         for i, key in enumerate(config.BASEMENT.allkeys):
             if key not in config.BASEMENT.fitkeys:
@@ -408,8 +415,8 @@ def save_latex_table(samples, mode):
     
 #    derived_samples['a_AU'] = derived_samples['a']*0.00465047 #from Rsun to AU
         
-    with open(os.path.join(config.BASEMENT.outdir,mode+'_latex_table.txt'),'wb') as f,\
-         open(os.path.join(config.BASEMENT.outdir,mode+'_latex_cmd.txt'),'wb') as f_cmd:
+    with open(os.path.join(config.BASEMENT.outdir,mode+'_latex_table.txt'),'w') as f,\
+         open(os.path.join(config.BASEMENT.outdir,mode+'_latex_cmd.txt'),'w') as f_cmd:
             
         f.write('parameter & value & unit & fit/fixed \\\\ \n')
         f.write('\\hline \n')

@@ -4,7 +4,7 @@ Version: 0.8.0
 Summary: Wrapper for astropy and cfitsio readers for NGTS data files
 Home-page: https://github.com/MNGuenther/allesfitter
 Author: Maximilian N. Günther & Tansu Daylan
-Author-email: maxgue@mit.edu & tdaylan@mit.edu
+Author-email: maxgue@mit.edu
 License: UNKNOWN
 Download-URL: https://github.com/MNGuenther/allesfitter
 Description: UNKNOWN
