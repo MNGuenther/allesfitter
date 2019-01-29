@@ -39,7 +39,7 @@ from .utils import latex_printer
 from .computer import update_params,\
                      calculate_model, rv_fct, flux_fct,\
                      calculate_baseline, calculate_yerr_w
-from exoworlds_rdx.lightcurves import lightcurve_tools as lct
+from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
                      
                      
                      

@@ -24,6 +24,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
+import matplotlib.pyplot as plt
 import os, sys
 import collections
 from datetime import datetime
@@ -33,7 +34,7 @@ warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
 #::: allesfitter modules
-from exoworlds_rdx.lightcurves import index_transits, index_eclipses
+from .exoworlds_rdx.lightcurves.index_transits import index_transits, index_eclipses, get_tmid_observed_transits
 
                      
     
@@ -79,6 +80,9 @@ class Basement():
         
         if self.settings['shift_epoch']:
             self.change_epoch()
+        
+        if self.settings['fit_ttvs']:
+            self.prepare_ttv_fit()
         
         #::: if baseline model == sample_GP, set up a GP object for photometric data
 #        self.setup_GPs()
@@ -327,6 +331,18 @@ class Basement():
             self.settings['fast_fit_width'] = 8./24.
                 
             
+            
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: TTVs
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if ('fit_ttvs' in self.settings.keys()) and len(self.settings['fit_ttvs']):
+            self.settings['fit_ttvs'] = set_bool(self.settings['fit_ttvs'])
+            if (self.settings['fit_ttvs']==True) and (self.settings['fast_fit']==False):
+                raise ValueError("fit_ttvs==True, but fast_fit==False. Currently, you can only fit for TTVs if fast_fit==True. Please choose different settings.")
+        else:
+            self.settings['fit_ttvs'] = False
+        
+            
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Secondary eclipse
@@ -554,13 +570,7 @@ class Basement():
         b_f_c	0	0	none	$\sqrt{e_b} \cos{\omega_b}$	
         b_f_s	0	0	none	$\sqrt{e_b} \sin{\omega_b}$	
         #TTVs					
-        b_ttv_TESS	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{TESS}$	$\mathrm{d}$
-        b_ttv_HATS	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{HATS}$	$\mathrm{d}$
-        b_ttv_FTS_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{FTS_i}$	$\mathrm{d}$
-        b_ttv_GROND_g	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_g}$	$\mathrm{d}$
-        b_ttv_GROND_r	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_r}$	$\mathrm{d}$
-        b_ttv_GROND_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_i}$	$\mathrm{d}$
-        b_ttv_GROND_z	0	0	trunc_normal -0.04 0.04 0 0.0007	$TTV_\mathrm{GROND_i}$	$\mathrm{d}$
+        ...
         #Period changes					
         b_pv_TESS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{TESS}$	$\mathrm{d}$
         b_pv_HATS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{HATS}$	$\mathrm{d}$
@@ -715,8 +725,8 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: ttvs
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if 'ttv_'+inst not in self.params:
-                    self.params['ttv_'+inst] = 0.
+#                if 'ttv_'+inst not in self.params:
+#                    self.params['ttv_'+inst] = 0.
                     
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -924,4 +934,51 @@ class Basement():
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
         return time, flux, flux_err
+    
+    
+    
+    
+    ###############################################################################
+    #::: prepare TTV fit (if chosen)
+    ###############################################################################
+    def prepare_ttv_fit(self):
+        '''
+        this must be run *after* reduce_phot_data()
+        '''
+        
+        for companion in self.settings['companions_phot']:
+            fig, ax = plt.subplots()
+            all_times = []
+            all_flux = []
+            for inst in self.settings['inst_phot']:
+                all_times += list(self.data[inst]['time'])
+                all_flux += list(self.data[inst]['flux'])
+                ax.plot(self.data[inst]['time'], self.data[inst]['flux'],ls='none',marker='.',label=inst)
+            ax.legend()
+            
+            flux_min = np.nanmin(all_flux)
+            flux_max = np.nanmax(all_flux)
+            
+            self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(all_times,self.params[companion+'_epoch'],self.params[companion+'_period'],self.settings['fast_fit_width'])
+        
+            ax.plot( self.data[companion+'_tmid_observed_transits'], np.ones_like(self.data[companion+'_tmid_observed_transits'])*0.995*flux_min, 'k^' )
+            for i, tmid in enumerate(self.data[companion+'_tmid_observed_transits']):
+                ax.text( tmid, 0.9925*flux_min, str(i+1), ha='center' )  
+            ax.set(ylim=[0.99*flux_min, flux_max], xlabel='Time (BJD)', ylabel='Realtive Flux') 
+            if not os.path.exists( os.path.join(self.datadir,'results') ):
+                os.makedirs(os.path.join(self.datadir,'results'))
+            fig.savefig( os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf'), bbox_inches='tight' )
+            
+            
+            width = self.settings['fast_fit_width']
+            for inst in self.settings['inst_phot']:
+                time = self.data[inst]['time']
+                for i, t in enumerate(self.data[companion+'_tmid_observed_transits']):
+                    ind = np.where((time >= (t - width/2.)) & (time <= (t + width/2.)))[0]
+                    self.data[inst][companion+'_ind_time_transit_'+str(i+1)] = ind
+                    self.data[inst][companion+'_time_transit_'+str(i+1)] = time[ind]
+            
+            plt.close(fig)
+                
+                
             

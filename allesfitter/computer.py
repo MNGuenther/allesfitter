@@ -54,6 +54,13 @@ def update_params(theta, phased=False):
     
     params = config.BASEMENT.params.copy()
     
+    #::: phased?
+    if phased:
+        params['phased'] = True
+    else:
+        params['phased'] = False
+        
+    
     #::: first, sync over from theta
     for i, key in enumerate(config.BASEMENT.fitkeys):
         params[key] = theta[i]   
@@ -173,8 +180,31 @@ def flux_fct(params, inst, companion, xx=None):
     
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
+#    print('=================')
+#    print(inst)
+#    print('xx',xx)
+    if params['phased']==True:
+#        print('go phased')
+        return flux_fct_full(params, inst, companion, xx=xx)
+    
+    elif config.BASEMENT.settings['fit_ttvs']==False:
+#        print('go full')
+        return flux_fct_full(params, inst, companion, xx=xx)
+    
+    elif config.BASEMENT.settings['fit_ttvs']==True:
+#        print('go piecewise')
+        return flux_fct_piecewise(params, inst, companion, xx=xx)
+
+
+
+def flux_fct_full(params, inst, companion, xx=None):
+    '''
+    ! params must be updated via update_params() before calling this function !
+    
+    if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
+    '''
     if xx is None:
-        xx    = config.BASEMENT.data[inst]['time'] + params['ttv_'+inst]
+        xx    = config.BASEMENT.data[inst]['time']
         t_exp = config.BASEMENT.settings['t_exp_'+inst]
         n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
     else:
@@ -237,10 +267,12 @@ def flux_fct(params, inst, companion, xx=None):
 #            print(params['flare_tpeak_'+str(i)])
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
 #
+#    print(params)
 #    print(xx)
 #    print(model_flux)
 #    import matplotlib.pyplot as plt
-#    plt.figure(xx, model_flux, 'r-')
+#    plt.figure()
+#    plt.plot(xx, model_flux, 'r-')
 #    err
 
 #    except:
@@ -249,8 +281,103 @@ def flux_fct(params, inst, companion, xx=None):
 #        raise ValueError('flux_fct crashed for the parameters given above.')
     
     return model_flux
-    
 
+
+
+def flux_fct_piecewise(params, inst, companion, xx=None):
+    '''
+    Go through the time series transit by transit to fit for TTVs
+    
+    ! params must be updated via update_params() before calling this function !
+    
+    if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
+    '''
+    
+    if xx is None:
+        model_flux = np.ones_like(config.BASEMENT.data[inst]['time']) #* np.nan               
+    else:
+        model_flux = np.ones_like(xx) #* np.nan     
+    
+    
+    for n_transit in range(len(config.BASEMENT.data[companion+'_tmid_observed_transits'])):
+        
+        if xx is None:
+            ind   = config.BASEMENT.data[inst][companion+'_ind_time_transit_'+str(n_transit+1)]
+            xx_piecewise = config.BASEMENT.data[inst][companion+'_time_transit_'+str(n_transit+1)]
+            t_exp = config.BASEMENT.settings['t_exp_'+inst]
+            n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
+        else:
+            tmid = config.BASEMENT.data[companion+'_tmid_observed_transits'][n_transit]
+            width = config.BASEMENT.settings['fast_fit_width']
+            ind = np.where( (xx>=(tmid-width/2.)) \
+                          & (xx<=(tmid+width/2.)) )[0]
+            xx_piecewise = xx[ind]
+            t_exp = None
+            n_int = None
+        
+        if len(xx_piecewise)>0:
+            #::: planet and EB transit lightcurve model
+            if params[companion+'_rr'] > 0:
+                model_flux_piecewise = ellc.lc(
+                                  t_obs =       xx_piecewise, 
+                                  radius_1 =    params[companion+'_radius_1'], 
+                                  radius_2 =    params[companion+'_radius_2'], 
+                                  sbratio =     params[companion+'_sbratio_'+inst], 
+                                  incl =        params[companion+'_incl'], 
+                                  light_3 =     params['dil_'+inst],
+                                  t_zero =      params[companion+'_epoch'] + params[companion+'_ttv_transit_'+str(n_transit+1)],
+                                  period =      params[companion+'_period'],
+                                  a =           params[companion+'_a'],
+                                  q =           params[companion+'_q'],
+                                  f_c =         params[companion+'_f_c'],
+                                  f_s =         params[companion+'_f_s'],
+                                  ldc_1 =       params['host_ldc_'+inst],
+                                  ldc_2 =       params[companion+'_ldc_'+inst],
+                                  gdc_1 =       params['host_gdc_'+inst],
+                                  gdc_2 =       params[companion+'_gdc_'+inst],
+                                  didt =        params['didt_'+inst], 
+                                  domdt =       params['domdt_'+inst], 
+                                  rotfac_1 =    params['host_rotfac_'+inst], 
+                                  rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                                  hf_1 =        params['host_hf_'+inst], #1.5, 
+                                  hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                                  bfac_1 =      params['host_bfac_'+inst],
+                                  bfac_2 =      params[companion+'_bfac_'+inst], 
+                                  heat_1 =      params['host_geom_albedo_'+inst]/2.,
+                                  heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                                  lambda_1 =    params['host_lambda_'+inst], 
+                                  lambda_2 =    params[companion+'_lambda_'+inst], 
+                                  vsini_1 =     params['host_vsini_'+inst],
+                                  vsini_2 =     params[companion+'_vsini_'+inst], 
+                                  t_exp =       t_exp,
+                                  n_int =       n_int,
+                                  grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                                  grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                                  ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                                  ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                                  shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
+                                  shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                                  spots_1 =     params['host_spots_'+inst], 
+                                  spots_2 =     params[companion+'_spots_'+inst], 
+                                  verbose =     False
+                                  )
+            else:
+                model_flux_piecewise = np.ones_like(xx)
+                    
+            model_flux[ind] = model_flux_piecewise
+    
+    
+    #::: flare lightcurve model
+    if config.BASEMENT.settings['N_flares'] > 0:
+        for i in range(1,config.BASEMENT.settings['N_flares']+1):
+            model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
+    
+    
+    return model_flux     
+    
+    
+    
+    
 
 ###############################################################################
 #::: rv fct

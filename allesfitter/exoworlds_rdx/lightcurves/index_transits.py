@@ -85,3 +85,22 @@ def index_eclipses(time, epoch, period, width_1, width_2):
 
     return ind_ecl1, ind_ecl2, ind_out
     
+
+
+    
+def get_tmid_observed_transits(time, epoch, period, width):
+    '''
+    get a list of only the transit midpoints that are actually covered by the data
+    '''
+    epoch = get_first_epoch(time, epoch, period)
+    N = int( 1. * ( time[-1] - epoch ) / period ) + 1
+    tmid = np.array( [ epoch + i * period for i in range(N) ] )
+    
+    tmid_observed_transits = []
+    
+    for i,t in enumerate(tmid): 
+        mask = ((time >= (t - width/2.)) & (time <= (t + width/2.)))
+        if any(mask): 
+            tmid_observed_transits.append( tmid[i] )
+    
+    return tmid_observed_transits

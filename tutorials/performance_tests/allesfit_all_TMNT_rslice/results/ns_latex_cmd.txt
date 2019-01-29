@@ -1,0 +1,14 @@
+\newcommand{\ldcq1Leonardo}{none$=0.535_{-0.051}^{+0.040}$} 
+\newcommand{\ldcq2Leonardo}{none$=0.060_{-0.039}^{+0.043}$} 
+\newcommand{\ldcq1Michelangelo}{none$=0.385_{-0.030}^{+0.054}$} 
+\newcommand{\ldcq2Michelangelo}{none$=0.568_{-0.052}^{+0.045}$} 
+\newcommand{\brsuma}{none$=0.1116_{-0.0014}^{+0.0022}$} 
+\newcommand{\brr}{none$=0.10155_{-0.00094}^{+0.0012}$} 
+\newcommand{\bcosi}{none$=0.0342_{-0.0037}^{+0.0055}$} 
+\newcommand{\bepoch}{none$=31.70087_{-0.00043}^{+0.00039}$} 
+\newcommand{\bperiod}{none$=3.399862\pm0.000067$} 
+\newcommand{\bK}{none$=0.0980_{-0.0018}^{+0.0020}$} 
+\newcommand{\logerrfluxLeonardo}{none$=-6.230\pm0.065$} 
+\newcommand{\logerrfluxMichelangelo}{none$=-7.712\pm0.083$} 
+\newcommand{\logjitterrvDonatello}{none$=-4.71\pm0.29$} 
+\newcommand{\logjitterrvRaphael}{none$=-5.75_{-0.40}^{+0.43}$} 
