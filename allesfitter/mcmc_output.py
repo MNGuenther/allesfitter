@@ -59,7 +59,6 @@ def draw_mcmc_posterior_samples(sampler, Nsamples=None):
 #::: plot the MCMC chains
 ###############################################################################
 def plot_MCMC_chains(sampler):
-#    global config.BASEMENT
     
     chain = sampler.get_chain()
     log_prob = sampler.get_log_prob()

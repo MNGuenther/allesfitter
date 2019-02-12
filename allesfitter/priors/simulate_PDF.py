@@ -164,9 +164,9 @@ if __name__ == '__main__':
     ###########################################################################
     # ::: example inclination
     ###########################################################################
-    (median, lower_err, upper_err) = (84.3, -2.0, 1.3)
-    samples, fig = simulate_posterior_samples(median, lower_err, upper_err, size=1, plot=True)
-    print(np.percentile(samples, [16,50,84]))
+#    (median, lower_err, upper_err) = (84.3, -2.0, 1.3)
+#    samples, fig = simulate_posterior_samples(median, lower_err, upper_err, size=1, plot=True)
+#    print(np.percentile(samples, [16,50,84]))
 
 
 #    lower_err = np.abs(lower_err)

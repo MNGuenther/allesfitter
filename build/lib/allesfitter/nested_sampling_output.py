@@ -97,9 +97,6 @@ def ns_output(datadir):
             pass
     
     #::: load the save_ns.pickle
-#    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'),'rb' ) as f:
-#        results = pickle.load(f)
-#    f = bzip2.BZ2File(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.bz2'), 'rb')
     f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
     results = pickle.load(f)
     f.close()
@@ -237,3 +234,13 @@ def get_ns_posterior_samples(datadir, Nsamples=None, as_type='dic'):
             ind = np.where(config.BASEMENT.fitkeys==key)[0]
             posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
         return posterior_samples_dic
+    
+    
+ 
+###############################################################################
+#::: get NS params (for top-level user)
+###############################################################################   
+def get_ns_params(datadir):
+    posterior_samples = get_ns_posterior_samples(datadir, Nsamples=None, as_type='2d_array')  # all weighted posterior_samples
+    params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)     # params drawn form these posterior_samples
+    return params_median, params_ll, params_ul

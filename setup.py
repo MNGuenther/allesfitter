@@ -14,21 +14,26 @@ Email: maxgue@mit.edu
 Web: www.mnguenther.com
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name = 'allesfitter',      # The name of the PyPI-package.
-    packages = ['allesfitter'],
-    version = '0.8.0',    # Update the version number for new releases
-    #scripts=['allesfitter'],  # The name of the included script(s), and also the command used for calling it
-    description = 'Wrapper for astropy and cfitsio readers for NGTS data files',
+    name = 'allesfitter',
+    packages=find_packages(),
+    version = '0.8.4',
+    description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
     author_email = 'maxgue@mit.edu',
     url = 'https://github.com/MNGuenther/allesfitter',
     download_url = 'https://github.com/MNGuenther/allesfitter',
-    classifiers = []
-      #install_requires=['astropy>=1.1','fitsio>=0.9','numpy>=1.10'],
-      #include_package_data = True
+    license='MIT',
+    classifiers=[
+        'Development Status :: 4 - Beta', #3 - Alpha / 4 - Beta / 5 - Production/Stable
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+    ],
+    #install_requires=['numpy>=1.10'],
+    include_package_data = True
     )
 
 

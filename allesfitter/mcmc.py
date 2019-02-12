@@ -32,7 +32,7 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 from . import config
 from .computer import update_params,\
                       calculate_lnlike
-from .general_output import show_initial_guess, logprint
+from .general_output import logprint
 from .mcmc_output import print_autocorr
 
 
@@ -41,25 +41,16 @@ from .mcmc_output import print_autocorr
 #::: MCMC log likelihood
 ###############################################################################
 def mcmc_lnlike(theta):
-#    global config.BASEMENT
-#        then = timer() #Time before the operations start
+    
     params = update_params(theta)
     lnlike = 0
     
-#    def lnlike_1(inst, key):
-#        residuals = calculate_residuals(params, inst, key)
-#        inv_sigma2_w = calculate_inv_sigma2_w(params, inst, key, residuals=residuals)
-#        return -0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))
-    
     for inst in config.BASEMENT.settings['inst_phot']:
-        lnlike += calculate_lnlike(params, inst, 'flux') #lnlike_1(inst, 'flux')
+        lnlike += calculate_lnlike(params, inst, 'flux')
     
     for inst in config.BASEMENT.settings['inst_rv']:
-        lnlike += calculate_lnlike(params, inst, 'rv') #lnlike_1(inst, 'rv')
+        lnlike += calculate_lnlike(params, inst, 'rv')
 
-#        now = timer() #Time after it finished
-#        print("lnlike took: ", now-then, " seconds")
-#        raise ValueError('stop')
     return lnlike
 
     
@@ -68,7 +59,6 @@ def mcmc_lnlike(theta):
 #::: MCMC log prior
 ###############################################################################
 def mcmc_lnprior(theta):
-#    global config.BASEMENT
     '''
     bounds has to be list of len(theta), containing tuples of form
     ('none'), ('uniform', lower bound, upper bound), or ('normal', mean, std)
@@ -113,17 +103,15 @@ def mcmc_fit(datadir):
     #::: init
     config.init(datadir)
     
-    #::: show initial guess
-    show_initial_guess()
     
     continue_old_run = False
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5')):
-        overwrite = raw_input(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5')+\
+        overwrite = str(input(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5')+\
                               ' already exists.\n'+\
                               'What do you want to do?\n'+\
                               '1 : overwrite the save file\n'+\
                               '2 : append to the save file\n'+\
-                              '3 : abort\n')
+                              '3 : abort\n'))
         if (overwrite == '1'):
             continue_old_run = False
         elif (overwrite == '2'):

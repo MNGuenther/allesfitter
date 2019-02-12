@@ -135,22 +135,25 @@ def update_params(theta, phased=False):
             key='rv'
             params['jitter_'+key+'_'+inst] = np.exp( params['log_jitter_'+key+'_'+inst] )
         
-        #::: semi-major axis
-        ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
-        a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
-        params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
+    
+    #::: stellar density (in cgs units)
+    #::: Note: this assumes M_companion << M_star
+    params['host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
         
         
-    #::: deal with coupled params after updates
-    for i, key in enumerate(config.BASEMENT.allkeys):
-        if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
-            params[key] = params[config.BASEMENT.coupled_with[i]]
-            
-            
-    #::: spots?
+    #::: semi-major axis and spots
     for companion in config.BASEMENT.settings['companions_all']:
         for inst in config.BASEMENT.settings['inst_all']:
             
+            #::: semi-major axis
+            #::: needs to be done for all companions in case the user fixes K
+            ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
+            a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
+            params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
+            if params[companion+'_a'] == 0:
+               params[companion+'_a'] = None
+               
+            #::: host spots
             if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
                 params['host_spots_'+inst] = [
                                      [params['host_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
@@ -159,6 +162,7 @@ def update_params(theta, phased=False):
                                      [params['host_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ]
                                     ]
         
+            #::: companion spots
             if config.BASEMENT.settings[companion+'_N_spots_'+inst] > 0:
                 params[companion+'_spots_'+inst] = [
                                      [params[companion+'_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
@@ -166,6 +170,14 @@ def update_params(theta, phased=False):
                                      [params[companion+'_spot_'+str(i)+'_size_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
                                      [params[companion+'_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ]
                                     ]
+        
+        
+    #::: deal with coupled params after updates
+    for i, key in enumerate(config.BASEMENT.allkeys):
+        if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
+            params[key] = params[config.BASEMENT.coupled_with[i]]
+            
+            
         
     return params
 
@@ -180,19 +192,13 @@ def flux_fct(params, inst, companion, xx=None):
     
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
-#    print('=================')
-#    print(inst)
-#    print('xx',xx)
     if params['phased']==True:
-#        print('go phased')
         return flux_fct_full(params, inst, companion, xx=xx)
     
     elif config.BASEMENT.settings['fit_ttvs']==False:
-#        print('go full')
         return flux_fct_full(params, inst, companion, xx=xx)
     
     elif config.BASEMENT.settings['fit_ttvs']==True:
-#        print('go piecewise')
         return flux_fct_piecewise(params, inst, companion, xx=xx)
 
 
@@ -211,7 +217,7 @@ def flux_fct_full(params, inst, companion, xx=None):
         t_exp = None
         n_int = None
         
-#    try:
+        
     #::: planet and EB transit lightcurve model
     if params[companion+'_rr'] > 0:
         model_flux = ellc.lc(
@@ -264,21 +270,7 @@ def flux_fct_full(params, inst, companion, xx=None):
     #::: flare lightcurve model
     if config.BASEMENT.settings['N_flares'] > 0:
         for i in range(1,config.BASEMENT.settings['N_flares']+1):
-#            print(params['flare_tpeak_'+str(i)])
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
-#
-#    print(params)
-#    print(xx)
-#    print(model_flux)
-#    import matplotlib.pyplot as plt
-#    plt.figure()
-#    plt.plot(xx, model_flux, 'r-')
-#    err
-
-#    except:
-#        for key in params:
-#            print(key, '\t', params[key])
-#        raise ValueError('flux_fct crashed for the parameters given above.')
     
     return model_flux
 
@@ -443,17 +435,34 @@ def rv_fct(params, inst, companion, xx=None):
 
 
 
+
 ###############################################################################
-#::: calculate residuals
+#::: calculate external priors (e.g. stellar density)
+###############################################################################  
+def calculate_external_priors(params):
+    '''
+    bounds has to be list of len(theta), containing tuples of form
+    ('none'), ('uniform', lower bound, upper bound), or ('normal', mean, std)
+    '''
+    lnp = 0.        
+    
+    if 'host_density' in config.BASEMENT.external_priors:
+        b = config.BASEMENT.external_priors['host_density']
+        if b[0] == 'uniform':
+            if not (b[1] <= params['host_density'] <= b[2]): return -np.inf
+        elif b[0] == 'normal':
+            lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (params['host_density'] - b[1])**2 / (2.*b[2]**2) ) )
+        else:
+            raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
+    
+    return lnp
+
+
+
+###############################################################################
+#::: calculate lnlike
 ###############################################################################  
 def calculate_lnlike(params, inst, key):
-    
-    #if fitting flares, force them to be in time order
-#    if config.BASEMENT.settings['N_flares'] > 0:
-#        flare_times = [ params['flare_tpeak_'+str(i)] for i in range(1,config.BASEMENT.settings['N_flares']+1) ]
-#        if sorted(flare_times) != flare_times:
-#            return -np.inf
-        
         
     #::: calculate the model. if there are any NaN, return -np.inf
     model = calculate_model(params, inst, key)
@@ -470,20 +479,10 @@ def calculate_lnlike(params, inst, key):
         residuals = config.BASEMENT.data[inst][key] - model - baseline
         inv_sigma2_w = 1./yerr_w**2
         
-#        print('###############################################################################')
-#        print('model',model)
-#        print('baseline',baseline)
-##        try:
-#        fig = plt.figure()
-#        plt.plot(config.BASEMENT.data[inst]['time'][0:200], config.BASEMENT.data[inst]['flux'][0:200], 'b.')
-#        plt.plot(config.BASEMENT.data[inst]['time'][0:200], model[0:200]+baseline, 'r-')
-#        plt.title( 'lnlike ' + str(-0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))) )
-#        plt.savefig( os.path.join(config.BASEMENT.outdir,'fig_'+str(params['b_period'])+'.jpg') )
-#        plt.close(fig)
-##        except:
-##            pass
-        
-        return -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+        lnlike = -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+    
+        if any(np.isnan(residuals)):
+            raise ValueError('There are NaN in the residuals. Something horrible happened.')
     
     
     #::: if GP baseline sampling, use the GP lnlike instead
@@ -493,32 +492,20 @@ def calculate_lnlike(params, inst, key):
         y = config.BASEMENT.data[inst][key] - model
         yerr_w = calculate_yerr_w(params, inst, key)
         
-#        print(params['baseline_gp1_'+key+'_'+inst])
-#        print(params['baseline_gp2_'+key+'_'+inst])
         kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
                                     log_rho=params['baseline_gp2_'+key+'_'+inst])
         gp = celerite.GP(kernel)
         try:
             gp.compute(x, yerr=yerr_w)
             lnlike = gp.log_likelihood(y)
-#            print('runs')
-#        print(lnlike)
-#        try:
-#            #::: debug
-#            baseline2 = gp.predict(y, x)[0]
-#            plt.figure()
-#            plt.plot(x,y,'k.', color='grey')
-#            plt.plot(xx,baseline,'r-', lw=2)
-#            plt.plot(x,baseline2,'ro', lw=2)
-#            plt.title(inst+' '+key+' '+str(gp.get_parameter_vector()))
-#            plt.show()
-#            raw_input('press enter to continue')
+            
         except:
             lnlike = -np.inf
-#            print('fails')
         
     
-        return lnlike
+    lnprior_external = calculate_external_priors(params)
+    
+    return lnlike + lnprior_external
     
     
     
@@ -544,17 +531,17 @@ def calculate_yerr_w(params, inst, key):
 ################################################################################
 ##::: calculate residuals
 ################################################################################  
-#def calculate_residuals(params, inst, key):
-#    '''
-#    Note:
-#    -----
-#    No 'xx' here, because residuals can only be calculated on given data
-#    (not on an arbitrary xx grid)
-#    '''       
-#    model = calculate_model(params, inst, key)
-#    baseline = calculate_baseline(params, inst, key, model=model)
-#    residuals = config.BASEMENT.data[inst][key] - model - baseline
-#    return residuals
+def calculate_residuals(params, inst, key):
+    '''
+    Note:
+    -----
+    No 'xx' here, because residuals can only be calculated on given data
+    (not on an arbitrary xx grid)
+    '''       
+    model = calculate_model(params, inst, key)
+    baseline = calculate_baseline(params, inst, key, model=model)
+    residuals = config.BASEMENT.data[inst][key] - model - baseline
+    return residuals
 
 
     

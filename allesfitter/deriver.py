@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import pickle
 from corner import corner
 from tqdm import tqdm 
+from astropy.constants import M_earth, M_jup, M_sun, R_earth, R_jup, R_sun, au
 
 #::: allesfitter modules
 from . import config
@@ -39,16 +40,17 @@ from .priors.simulate_PDF import simulate_PDF
 from .computer import update_params, calculate_model
 
 #::: constants
-M_earth = 5.9742e+24 	#kg 	Earth mass
-M_jup   = 1.8987e+27 	#kg 	Jupiter mass
-M_sun   = 1.9891e+30 	#kg 	Solar mass
-R_earth = 6378136      #m 	Earth equatorial radius
-R_jup   = 71492000 	#m 	Jupiter equatorial radius
-R_sun   = 695508000 	#m 	Solar radius
+#M_earth = 5.9742e+24 	#kg 	Earth mass
+#M_jup   = 1.8987e+27 	#kg 	Jupiter mass
+#M_sun   = 1.9891e+30 	#kg 	Solar mass
+#R_earth = 6378136      #m 	Earth equatorial radius
+#R_jup   = 71492000 	#m 	Jupiter equatorial radius
+#R_sun   = 695508000 	#m 	Solar radius
 
 
 
-def derive(samples, mode, output_units='jup'):
+
+def derive(samples, mode):
     '''
     Derives parameter of the system using Winn 2010
     
@@ -83,10 +85,11 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     #::: stellar 'posteriors'
     ###############################################################################
-    buf = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, comments='#' )
+    buf = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
     star = {}
     star['R_star'] = simulate_PDF(buf['R_star'], buf['R_star_lerr'], buf['R_star_uerr'], size=N_samples, plot=False)
     star['M_star'] = simulate_PDF(buf['M_star'], buf['M_star_lerr'], buf['M_star_uerr'], size=N_samples, plot=False)
+    star['Teff_star'] = simulate_PDF(buf['Teff_star'], buf['Teff_star_lerr'], buf['Teff_star_uerr'], size=N_samples, plot=False)
     
     
     
@@ -115,16 +118,15 @@ def derive(samples, mode, output_units='jup'):
         #::: radii
         derived_samples[companion+'_R_star/a'] = get_params(companion+'_rsuma') / (1. + get_params(companion+'_rr'))
         derived_samples[companion+'_R_companion/a'] = get_params(companion+'_rsuma') * get_params(companion+'_rr') / (1. + get_params(companion+'_rr'))
-        derived_samples[companion+'_R_companion'] = star['R_star'] * get_params(companion+'_rr') * R_sun / R_earth #in R_earth
-        suffix='earth'
-        if np.mean(derived_samples[companion+'_R_companion']) > 8.: #if R_companion > 8 R_earth, convert to R_jup
-            derived_samples[companion+'_R_companion'] = derived_samples[companion+'_R_companion'] * R_earth / R_jup #in R_jup
-            suffix='jup'
+        derived_samples[companion+'_R_companion_(R_earth)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_earth.value #in R_earth
+        derived_samples[companion+'_R_companion_(R_jup)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_jup.value #in R_jup
+
         derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in mmag
 
 
         #::: orbit
-        derived_samples[companion+'_a'] = star['R_star'] / derived_samples[companion+'_R_star/a']                
+        derived_samples[companion+'_a_(R_sun)'] = star['R_star'] / derived_samples[companion+'_R_star/a']   
+        derived_samples[companion+'_a_(AU)'] = derived_samples[companion+'_a_(R_sun)'] * R_sun.value/au.value
         derived_samples[companion+'_i'] = arccos_d(get_params(companion+'_cosi')) #in deg
         derived_samples[companion+'_e'] = get_params(companion+'_f_s')**2 + get_params(companion+'_f_c')**2
         derived_samples[companion+'_e_sinw'] = get_params(companion+'_f_s') * np.sqrt(derived_samples[companion+'_e'])
@@ -136,13 +138,19 @@ def derive(samples, mode, output_units='jup'):
         if companion+'_K' in config.BASEMENT.params:
             a_1 = 0.019771142 * get_params(companion+'_K') * get_params(companion+'_period') * np.sqrt(1. - derived_samples[companion+'_e']**2)/sin_d(derived_samples[companion+'_i'])
     #        derived_samples[companion+'_a_rv'] = (1.+1./ellc_params[companion+'_q'])*a_1
-            derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a'] / a_1 ) - 1.)
-            if suffix=='earth':
-                derived_samples[companion+'_M_companion'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun / M_earth #in M_earth
-            elif suffix=='jup':
-                derived_samples[companion+'_M_companion'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun / M_jup #in M_jup
+            derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a_(R_sun)'] / a_1 ) - 1.)
+            derived_samples[companion+'_M_companion_(M_earth)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_earth.value #in M_earth
+            derived_samples[companion+'_M_companion_(M_jup)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_jup.value #in M_jup
         else:
             derived_samples[companion+'_M_companion'] = None
+            
+            
+        #::: surface gravity
+        #::: from Southworth+ 2007
+        if companion+'_K' in config.BASEMENT.params:
+            derived_samples[companion+'_g'] = 2*np.pi / get_params(companion+'_period') * (1.-derived_samples[companion+'_e']**2)**0.5 * get_params(companion+'_K') / (derived_samples[companion+'_R_companion/a']**2 * sin_d(derived_samples[companion+'_i']))
+        else:
+            derived_samples[companion+'_g'] = None        
             
             
         #::: time of occultation    
@@ -150,6 +158,7 @@ def derive(samples, mode, output_units='jup'):
             derived_samples[companion+'_dt_occ'] = get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation
         else:
             derived_samples[companion+'_dt_occ'] = None
+        
         
         #::: impact params
         derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.+derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
@@ -194,48 +203,108 @@ def derive(samples, mode, output_units='jup'):
             derived_samples[companion+'_depth_occ_max_undiluted_'+inst] = derived_samples[companion+'_depth_occ_max_diluted_'+inst] / (1. - dil) #in ppm
             derived_samples[companion+'_depth_occ_norm_undiluted_'+inst] = derived_samples[companion+'_depth_occ_norm_diluted_'+inst] / (1. - dil) #in ppm
         
+        
+        #::: equilibirum temperature
+        #::: currently assumes Albedo of 0.3 and Emissivity of 1
+        albedo = 0.3
+        emissivity = 1.
+        derived_samples[companion+'_Teq'] = star['Teff_star']  * ( (1.-albedo)/emissivity )**0.25 * np.sqrt(derived_samples[companion+'_R_star/a'] / 2.)
+        
+        
+        #::: period ratios (for ressonance studies)
+        if len(companions)>1:
+            for other_companion in companions:
+                if other_companion is not companion:
+                    derived_samples[companion+'_period/'+other_companion+'_period'] = get_params(companion+'_period') / get_params(other_companion+'_period')
+        
+        
     
     ###############################################################################
     #::: write keys for output
     ###############################################################################
     names = []
     labels = []
-    units = []
     for companion in companions:
-        for name,label,unit in zip( [companion+'_R_star/a'                 , companion+'_R_companion/a'                            , companion+'_R_companion'             , companion+'_a'              , companion+'_i'                , companion+'_e'                , companion+'_w'                   , companion+'_M_companion'         , companion+'_b_tra'               , companion+'_b_occ'               , companion+'_T_tra_tot'          , companion+'_T_tra_full'              ],\
-                                    ['$R_\star/a_\mathrm{'+companion+'}$' , '$R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$', '$R_\mathrm{'+companion+'}$'       , '$a_\mathrm{'+companion+'}$' , '$i_\mathrm{'+companion+'}$'  , '$e_\mathrm{'+companion+'}$'   , '$\omega_\mathrm{'+companion+'}$', '$M_\mathrm{'+companion+'}$'   , '$b_\mathrm{tra;'+companion+'}$', '$b_\mathrm{occ;'+companion+'}$', '$T_\mathrm{tot;'+companion+'}$', '$T_\mathrm{full;'+companion+'}$'    ],\
-                                    ['-'                                , '-'                                             , '$\mathrm{R_{'+suffix+'}}$'    , '$\mathrm{R_{\odot}}$'   , 'deg'                      , '-'                        , 'deg'                         , '$\mathrm{M_{'+suffix+'}}$'  , '-'                           , '-'                           , 'h'                          , 'h'                               ]):
-            names.append(name) 
-            labels.append(label)
-            units.append(unit)
             
+        names.append( companion+'_R_star/a' )
+        labels.append( '$R_\star/a_\mathrm{'+companion+'}$' )
+        
+        names.append( companion+'_R_companion/a'  )
+        labels.append( '$R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )
+        
+        names.append( companion+'_R_companion_(R_earth)' )
+        labels.append( '$R_\mathrm{'+companion+'}$ ($\mathrm{R_{\oplus}}$)' )
+        
+        names.append( companion+'_R_companion_(R_jup)' )
+        labels.append( '$R_\mathrm{'+companion+'}$ ($\mathrm{R_{jup}}$)' )
+        
+        names.append( companion+'_a_(R_sun)' )
+        labels.append( '$a_\mathrm{'+companion+'}$ ($\mathrm{R_{\odot}}$)' )
+        
+        names.append( companion+'_a_(AU)' )
+        labels.append( '$a_\mathrm{'+companion+'}$ (AU)' )
+        
+        names.append( companion+'_i' )
+        labels.append( '$i_\mathrm{'+companion+'}$ (deg)' )
+        
+        names.append( companion+'_e' )
+        labels.append( '$e_\mathrm{'+companion+'}$' )
+        
+        names.append( companion+'_w' )
+        labels.append( '$w_\mathrm{'+companion+'}$ (deg)' )
+        
+        names.append( companion+'_M_companion_(M_earth)' )
+        labels.append( '$M_\mathrm{'+companion+'}$ ($\mathrm{M_{\oplus}}$)' )
+        
+        names.append( companion+'_M_companion_(M_jup)' )
+        labels.append( '$M_\mathrm{'+companion+'}$ ($\mathrm{M_{jup}}$)' )
+        
+        names.append( companion+'_b_tra' )
+        labels.append( '$b_\mathrm{tra;'+companion+'}$' )
+        
+        names.append( companion+'_b_occ'  )
+        labels.append( '$b_\mathrm{occ;'+companion+'}$' )
+        
+        names.append( companion+'_T_tra_tot'  )
+        labels.append( '$T_\mathrm{tot;'+companion+'}$ (h)' )
+        
+        names.append( companion+'_T_tra_full' )
+        labels.append( '$T_\mathrm{full;'+companion+'}$ (h)' )
+        
+        names.append( companion+'_Teq' )
+        labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
+        
         names.append( companion+'_depth_undiluted' )
-        labels.append( '$\delta_\mathrm{undil}$' )
-        units.append( '$\mathrm{mmag}$' )
+        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (mmag)' )
             
+        
         for inst in config.BASEMENT.settings['inst_phot']:
             
             names.append( companion+'_depth_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{dil; '+inst+'}$' )
-            units.append( '$\mathrm{mmag}$' )
+            labels.append( '$\delta_\mathrm{dil; '+inst+'}$ (mmag)' )
             
             names.append( companion+'_depth_occ_max_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; max; undil; '+inst+'}$' )
-            units.append( '$\mathrm{mmag}$' )
+            labels.append( '$\delta_\mathrm{occ; max; undil; '+inst+'}$ (mmag)' )
             
             names.append( companion+'_depth_occ_norm_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; norm; undil; '+inst+'}$' )
-            units.append( '$\mathrm{mmag}$' )
+            labels.append( '$\delta_\mathrm{occ; norm; undil; '+inst+'}$ (mmag)' )
             
             names.append( companion+'_depth_occ_max_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; max; dil; '+inst+'}$' )
-            units.append( '$\mathrm{mmag}$' )
+            labels.append( '$\delta_\mathrm{occ; max; dil; '+inst+'}$ (mmag)' )
             
             names.append( companion+'_depth_occ_norm_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; norm; dil; '+inst+'}$' )
-            units.append( '$\mathrm{mmag}$' )
+            labels.append( '$\delta_\mathrm{occ; norm; dil; '+inst+'}$ (mmag)' )
             
             
+        #::: period ratios (for ressonance studies)
+        if len(companions)>1:
+            for other_companion in companions:
+                if other_companion is not companion:
+                    names.append( companion+'_period/'+other_companion+'_period' )
+                    labels.append( '$P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
+                    
+
+        
             
     ###############################################################################
     #::: delete pointless values
@@ -247,7 +316,6 @@ def derive(samples, mode, output_units='jup'):
             
     names = [ names[i] for i in ind_good ]
     labels = [ labels[i] for i in ind_good ]
-    units = [ units[i] for i in ind_good ]
     
     
             
@@ -261,25 +329,26 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     #::: save txt & latex table & latex commands
     ###############################################################################
-    with open(os.path.join(config.BASEMENT.outdir,mode+'_derived_table.csv'),'wb') as outfile,\
-         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_table.txt'),'wb') as f,\
-         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_cmd.txt'),'wb') as f_cmd:
+    with open(os.path.join(config.BASEMENT.outdir,mode+'_derived_table.csv'),'w') as outfile,\
+         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_table.txt'),'w') as f,\
+         open(os.path.join(config.BASEMENT.outdir,mode+'_derived_latex_cmd.txt'),'w') as f_cmd:
              
-        outfile.write('name,unit,value,lower_error,upper_error\n')
+        outfile.write('#property,value,lower_error,upper_error,source\n')
         
-        f.write('parameter & value & unit & - \\\\ \n')
+        f.write('Property & Value & Source \\\\ \n')
         f.write('\\hline \n')
         f.write('\\multicolumn{4}{c}{\\textit{Derived parameters}} \\\\ \n')
         f.write('\\hline \n')
         
-        for name,label,unit in zip(names, labels, units):
+        for name,label in zip(names, labels):
             ll, median, ul = np.percentile(derived_samples[name], [15.865, 50., 84.135])
-            outfile.write( str(label)+','+str(unit)+','+str(median)+','+str(median-ll)+','+str(ul-median)+'\n' )
+            outfile.write( str(label)+','+str(median)+','+str(median-ll)+','+str(ul-median)+',derived\n' )
             
             value = latex_printer.round_tex(median, median-ll, ul-median)
-            f.write( label + ' & $' + value + '$ & ' + unit +' \\\\ \n' )
+            f.write( label + ' & $' + value + '$ & derived \\\\ \n' )
             
-            f_cmd.write('\\newcommand{\\'+name.replace("_", "")+'}{'+name+'$='+value+'$} \n')
+            simplename = name.replace("_", "").replace("/", "over").replace("(", "").replace(")", "").replace("1", "one").replace("2", "two")
+            f_cmd.write('\\newcommand{\\'+simplename+'}{$'+value+'$} %'+label+' = '+value+'\n')
             
     logprint('\nSaved '+mode+'_derived_results.csv, '+mode+'_derived_latex_table.txt, and '+mode+'_derived_latex_cmd.txt')
     
@@ -288,18 +357,13 @@ def derive(samples, mode, output_units='jup'):
     ###############################################################################
     #::: plot corner
     ###############################################################################
-#    for name,unit in zip(names, units):
-#        fig = plt.figure()
-#        plt.title(name+str(len(derived_samples[name])))
-#        plt.hist(derived_samples[name])
-
     x = np.column_stack([ derived_samples[name] for name in names ])
     fig = corner(x,
                  range = [0.999]*len(names),
                  labels = names,
                  quantiles=[0.15865, 0.5, 0.84135],
                  show_titles=True, title_kwargs={"fontsize": 14})
-    fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=100, bbox_inches='tight' )
+    fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.png'), dpi=100, bbox_inches='tight' )
     plt.close(fig)
     
     logprint('\nSaved '+mode+'_derived_corner.jpg')

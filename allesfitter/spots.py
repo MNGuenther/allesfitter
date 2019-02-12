@@ -146,9 +146,6 @@ def setup_grid():
     ax3.set(xlabel='Long. (deg)', ylabel='Lat. (deg.)')
     fig.add_subplot(ax3)
     
-#    gs02 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs0[2])
-#    cax = plt.Subplot(fig, gs02[:, :])
-    
     plt.tight_layout()
     return fig, ax1, ax2, ax3
         
@@ -205,21 +202,6 @@ def axplot_spots_2d(ax, spots):
         theta = np.linspace(0, 2*np.pi, 100)
         lonv = lon + r * np.cos(theta)
         latv = lat + r * np.sin(theta)
-        
-#        lonv1 = lonv[ (lonv>0.) & (latv>-90.) ]
-#        lonv1 = lonv[ (lonv>0.) & (latv>-90.) ]
-#        
-#        lonv2 = lonv[ (lonv<0.) & (latv>-90.) ] + 360.
-#        lonv2 = lonv[ (lonv<0.) & (latv>-90.) ] + 360.
-#        
-#        lonv3 = lonv[ (lonv>0.) & (latv<-90.) ]
-#        lonv3 = lonv[ (lonv>0.) & (latv<-90.) ]
-#        
-#        lonv4 = lonv[ (lonv>0.) & (latv>-90.) ]
-#        lonv4 = lonv[ (lonv>0.) & (latv>-90.) ]
-            
-#            lonv = ( lon + r * np.cos(theta) ) % 360.
-#            latv = ( lat + r * np.sin(theta) + 90. ) % 180. - 90.
 
         cm = plt.get_cmap('coolwarm')
         color = cm(brightness/2.)
@@ -239,13 +221,6 @@ def axplot_spots_2d(ax, spots):
     
     return ax
 
-
-
-
-        
-        
-        
-        
                         
   
 
@@ -411,13 +386,4 @@ def plot_spots(spots, command='show'):
 
     elif command=='show':
         plt.show()
-    
-    
-    
-    
-    
-#if __name__ == '__main__':
-#    plot_publication_spots_from_posteriors('/Users/mx/Dropbox (MIT)/Science/TESS_rapid_rotators/HS348/allesfit_2', command='save')
-#    plot_publication_spots_from_posteriors('/Users/mx/Dropbox (MIT)/Science/TESS_rapid_rotators/TIC201789285_save/allesfit_8_spots', command='save')
-
     

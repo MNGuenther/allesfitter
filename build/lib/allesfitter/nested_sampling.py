@@ -40,7 +40,7 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 #::: allesfitter modules
 from . import config
 from .computer import update_params, calculate_lnlike
-from .general_output import show_initial_guess, logprint
+from .general_output import logprint
 
 
 
@@ -49,40 +49,20 @@ from .general_output import show_initial_guess, logprint
 #::: Nested Sampling log likelihood
 ###############################################################################
 def ns_lnlike(theta):
-#    global config.BASEMENT
     
-#    then = timer() #Time before the operations start
     params = update_params(theta)
-    
-    # normalisation
-    #TODO
     
     lnlike = 0
     
-#    def lnlike_1(inst, key):
-#        residuals = calculate_residuals(params, inst, key)
-#        inv_sigma2_w = calculate_inv_sigma2_w(params, inst, key, residuals=residuals)
-#        lnlike_1 = -0.5*(np.nansum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w)))
-#        return lnlike_1
-#    
-#    print('****')
-#    print(params)
-#    try:
     for inst in config.BASEMENT.settings['inst_phot']:
-        lnlike += calculate_lnlike(params, inst, 'flux') #lnlike_1(inst, 'flux')
+        lnlike += calculate_lnlike(params, inst, 'flux')
     
     for inst in config.BASEMENT.settings['inst_rv']:
-        lnlike += calculate_lnlike(params, inst, 'rv') #lnlike_1(inst, 'rv')
-#    except:
-#        lnlike = -np.inf
+        lnlike += calculate_lnlike(params, inst, 'rv')
         
     if np.isnan(lnlike) or np.isinf(lnlike):
         lnlike = -np.inf
         
-#    print('****')
-#    print(lnlike)
-#    now = timer() #Time after it finished
-#    print("lnlike took: ", now-then, " seconds")
     return lnlike
 
 
@@ -119,9 +99,6 @@ def ns_fit(datadir):
     
     #::: init
     config.init(datadir)
-    
-    #::: show initial guess
-    show_initial_guess()
         
         
     #::: settings
@@ -181,9 +158,6 @@ def ns_fit(datadir):
 
     #::: pickle-save the 'results' class
     results = sampler.results
-#    with open( os.path.join(config.BASEMENT.outdir,'save_ns.pickle'), 'wb') as f:
-#        pickle.dump(results, f)
-#    f = bzip2.BZ2File(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.bz2'), 'wb')
     f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'wb')
     pickle.dump(results, f)
     f.close()

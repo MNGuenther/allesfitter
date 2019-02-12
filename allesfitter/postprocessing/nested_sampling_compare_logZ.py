@@ -38,7 +38,7 @@ from tqdm import tqdm
     
     
 
-def ns_plot_bayes_factors(run_names, labels):
+def ns_plot_bayes_factors(run_names, labels, return_dlogZ=False):
     '''
     Inputs:
     -------
@@ -113,15 +113,20 @@ def ns_plot_bayes_factors(run_names, labels):
      
     #Kass and Raftery limits
 #    ax.axhspan(np.nanmin(logZ)+1,np.nanmin(logZ)+3,color='g',zorder=-1,alpha=0.3)
-    ymax = np.nanmax(list(delta_logZ)+[7])
+    
+    ymax = np.nanmax(list(1.1*delta_logZ)+[7])
     ax.axhspan(3,5,color='g',zorder=-1,alpha=0.33)
     ax.axhspan(5,ymax,color='g',zorder=-1,alpha=0.66)
-    ax.text(index[-1]+0.55,  1.5, 'no strong\nevidence',   va='center')
-    ax.text(index[-1]+0.55,  4,   'strong\nevidence',      va='center')
-    ax.text(index[-1]+0.55,  6,   'very strong\nevidence', va='center')
+    ax.text(index[-1]+0.5,  1.5, 'no strong\nevidence',   va='center')
+    ax.text(index[-1]+0.5,  4,   'strong\nevidence',      va='center')
+    ax.text(index[-1]+0.5,  np.max( [(np.max(delta_logZ)+5.)/2., 6.] ),   'very strong\nevidence', va='center')
     ax.set(ylim=[0,ymax],ylabel=r'$\Delta \log{Z}$')
 
-    return fig, ax
+    if return_dlogZ:
+        return fig, ax, delta_logZ
+    else:
+        return fig, ax
+        
     
 
     
