@@ -577,13 +577,15 @@ def save_latex_table(samples, mode):
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def show_initial_guess(datadir, do_logprint=True, do_plot=True):
+def show_initial_guess(datadir, do_logprint=True, do_plot=True, return_figs=False):
     #::: init
     config.init(datadir)
     
     #::: show initial guess
-    if do_logprint: logprint_initial_guess()
-    if do_plot: plot_initial_guess()
+    if do_logprint: 
+        logprint_initial_guess()
+    if do_plot: 
+        return plot_initial_guess(return_figs=return_figs)
     
     
 
@@ -639,23 +641,23 @@ def logprint_initial_guess():
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def plot_initial_guess(initial_guess_plot=True, return_figs=False):
+def plot_initial_guess(return_figs=False):
     
-    if initial_guess_plot==True:
-        samples = draw_initial_guess_samples()
-        
-        if return_figs==False:
-            for companion in config.BASEMENT.settings['companions_all']:
-                    fig, axes = afplot(samples, companion)
-                    fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
-                    plt.close(fig)
-        
-        else:
-            fig_list = []
-            for companion in config.BASEMENT.settings['companions_all']:
-                fig, axes = afplot(samples, companion)
-                fig_list.append(fig)
-            return fig_list
+    samples = draw_initial_guess_samples()
+    
+    if return_figs==False:
+        for companion in config.BASEMENT.settings['companions_all']:
+            fig, axes = afplot(samples, companion)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
+        return None
+    
+    else:
+        fig_list = []
+        for companion in config.BASEMENT.settings['companions_all']:
+            fig, axes = afplot(samples, companion)
+            fig_list.append(fig)
+        return fig_list
             
     
     

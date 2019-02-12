@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: allesfitter
-Version: 0.8.4
+Version: 0.8.5
 Summary: A global inference framework for photometry and RV
 Home-page: https://github.com/MNGuenther/allesfitter
 Author: Maximilian N. Günther & Tansu Daylan
