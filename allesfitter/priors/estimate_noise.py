@@ -117,7 +117,7 @@ def estimate_noise(datadir):
 ###############################################################################
 #::: get a good initial guess for the baselines, errors & jitters
 ###############################################################################
-def estimate_noise_out_of_transit(datadir, figstretch=1):
+def estimate_noise_out_of_transit(datadir, inst=None, **kwargs):
     
     #::: init
     config.init(datadir)
@@ -131,8 +131,13 @@ def estimate_noise_out_of_transit(datadir, figstretch=1):
     with open( fname_summary, 'w+' ) as f:
         f.write('#name,gp_log_sigma_median,gp_log_sigma_ll,gp_log_sigma_ul,gp_log_rho_median,gp_log_rho_ll,gp_log_rho_ul,log_yerr_median,log_yerr_ll,log_yerr_ul\n')
                   
+    if inst is None:
+        instruments = config.BASEMENT.settings['inst_phot']
+    else:
+        instruments = [inst]
+        
     #::: run               
-    for inst in config.BASEMENT.settings['inst_phot']:
+    for inst in instruments:
         
         key = 'flux'
         print('\n###############################################################################')
@@ -162,12 +167,18 @@ def estimate_noise_out_of_transit(datadir, figstretch=1):
         for i in np.arange(0, len(time), 1):
             if i not in ind_in:
                 ind_out.append(i)
+            
+        
+#        flux_err = config.BASEMENT.fulldata[inst]['err_scales_flux']
+#        X = np.column_stack((time, flux, np.ones_like(flux)))
+#        np.savetxt(inst+'_outoftransit.csv', X, delimiter=',')
                 
         gp_decor(
                  time, flux, 
                  ind_in = ind_in, ind_out=ind_out,
                  multiprocess=config.BASEMENT.settings['multiprocess'], multiprocess_cores=config.BASEMENT.settings['multiprocess_cores'],
-                 outdir=outdir, fname=fname, fname_summary=fname_summary, figstretch=figstretch
+                 outdir=outdir, fname=fname, fname_summary=fname_summary, 
+                 **kwargs
                  )
     
         

@@ -42,7 +42,7 @@ from .general_output import afplot, save_table, save_latex_table, logprint
 ###############################################################################
 #::: draw samples from the MCMC save.5 (internally in the code)
 ###############################################################################
-def draw_mcmc_posterior_samples(sampler, Nsamples=None):
+def draw_mcmc_posterior_samples(sampler, Nsamples=None, as_type='2d_array'):
     '''
     Default: return all possible sampels
     Set e.g. Nsamples=20 for plotting
@@ -51,7 +51,16 @@ def draw_mcmc_posterior_samples(sampler, Nsamples=None):
     posterior_samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
     if Nsamples:
         posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=20)]
-    return posterior_samples
+
+    if as_type=='2d_array':
+        return posterior_samples
+    
+    elif as_type=='dic':
+        posterior_samples_dic = {}
+        for key in config.BASEMENT.fitkeys:
+            ind = np.where(config.BASEMENT.fitkeys==key)[0]
+            posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
+        return posterior_samples_dic
 
 
 
@@ -71,14 +80,14 @@ def plot_MCMC_chains(sampler):
     axes[0].axvline( 1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'], color='k', linestyle='--' )
     mini = np.min(log_prob[int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']):,:])
     maxi = np.max(log_prob[int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']):,:])
-    axes[0].set( ylabel='lnprob', xlabel='steps', rasterized=True,
+    axes[0].set( title='lnprob', xlabel='steps', rasterized=True,
                  ylim=[mini, maxi] )
     axes[0].set_xticklabels( [int(label) for label in axes[0].get_xticks()*config.BASEMENT.settings['mcmc_thin_by']] )
     
     #:::plot all chains of parameters
     for i in range(config.BASEMENT.ndim):
         ax = axes[i+1]
-        ax.set(ylabel=config.BASEMENT.fitkeys[i], xlabel='steps')
+        ax.set(title=config.BASEMENT.fitkeys[i], xlabel='steps')
         ax.plot(chain[:,:,i], '-', rasterized=True)
         ax.axvline( 1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'], color='k', linestyle='--' )
 #        ax.set_xticks(ax.get_xticks()[::2])
@@ -214,14 +223,5 @@ def mcmc_output(datadir):
 def get_mcmc_posterior_samples(datadir, Nsamples=None, QL=False, as_type='dic'):
     config.init(datadir, QL=QL)
     reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'save.h5'), read_only=True )
-    posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=Nsamples) #only 20 samples for plotting
+    return draw_mcmc_posterior_samples(reader, Nsamples=Nsamples, as_type=as_type) #only 20 samples for plotting
     
-    if as_type=='2d_array':
-        return posterior_samples
-    
-    elif as_type=='dic':
-        posterior_samples_dic = {}
-        for key in config.BASEMENT.fitkeys:
-            ind = np.where(config.BASEMENT.fitkeys==key)[0]
-            posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
-        return posterior_samples_dic

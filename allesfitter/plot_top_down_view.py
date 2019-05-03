@@ -364,7 +364,8 @@ def plot_top_down_view(params_median, params_star, timestep=None, scaling=30., p
     for i, companion in enumerate(config.BASEMENT.settings['companions_all']):
         if timestep is None:
             timestep = params_median[companion+'_epoch']
-        first_epoch = get_first_epoch(timestep, params_median[companion+'_epoch'], params_median[companion+'_epoch'])
+        print(timestep)
+        first_epoch = get_first_epoch(timestep, params_median[companion+'_epoch'], params_median[companion+'_period'])
         phase = calc_phase(timestep, params_median[companion+'_period'], first_epoch)
         ecc = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
         w = np.arccos( params_median[companion+'_f_c'] / np.sqrt(ecc) ) #in rad
@@ -376,6 +377,11 @@ def plot_top_down_view(params_median, params_star, timestep=None, scaling=30., p
             sim.add(a=a, inc=inc-np.pi/2., e=ecc, omega=w, f=phase*2*np.pi)
         else:
             sim.add(a=a, inc=inc--np.pi/2., f=phase*2*np.pi)
+    
+#    print('Epoch, Period and mean anomaly, b:', sim.particles[0].M )
+#    print('Mean anomaly, c:', sim.particles[0].M )
+#    print('Mean anomaly, c:', sim.particles[0].M )
+#    err
     
     fig = OrbitPlot(sim, xlabel='AU', ylabel='AU', color=[sns.color_palette('deep')[i] for i in [0,1,3]], lw=2)
     ax = plt.gca()

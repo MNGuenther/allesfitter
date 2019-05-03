@@ -138,8 +138,10 @@ def update_params(theta, phased=False):
     
     #::: stellar density (in cgs units)
     #::: Note: this assumes M_companion << M_star
-    params['host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
-        
+    if params[companion+'_rr'] > 0:
+        params['host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
+    else:
+        params['host_density'] = None
         
     #::: semi-major axis and spots
     for companion in config.BASEMENT.settings['companions_all']:
@@ -435,6 +437,44 @@ def rv_fct(params, inst, companion, xx=None):
 
 
 
+###############################################################################
+#::: get GP kernel
+############################################################################### 
+def get_gp(params, inst, key):
+    
+    #::: kernel
+    if config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_real':
+        kernel = terms.RealTerm(log_a=params['baseline_gp_real_lna_'+key+'_'+inst], 
+                                log_c=params['baseline_gp_real_lnc_'+key+'_'+inst])
+        
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_complex':
+        kernel = terms.ComplexTerm(log_a=params['baseline_gp_complex_lna_'+key+'_'+inst], 
+                                log_b=params['baseline_gp_complex_lnb_'+key+'_'+inst], 
+                                log_c=params['baseline_gp_complex_lnc_'+key+'_'+inst], 
+                                log_d=params['baseline_gp_complex_lnd_'+key+'_'+inst])
+                  
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_Matern32':
+        kernel = terms.Matern32Term(log_sigma=params['baseline_gp_matern32_lnsigma_'+key+'_'+inst], 
+                                    log_rho=params['baseline_gp_matern32_lnrho_'+key+'_'+inst])
+        
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_SHO':
+        kernel = terms.SHOTerm(log_S0=params['baseline_gp_sho_lnS0_'+key+'_'+inst], 
+                               log_Q=params['baseline_gp_sho_lnQ_'+key+'_'+inst],
+                               log_omega0=params['baseline_gp_sho_lnomega0_'+key+'_'+inst])                               
+        
+    else: 
+        KeyError('GP settings and params do not match.')
+    
+    #::: GP and mean (simple offset)  
+    if 'baseline_gp_offset_'+key+'_'+inst in params:
+        gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst])
+    else:
+        gp = celerite.GP(kernel)
+        
+        
+    return gp
+
+
 
 ###############################################################################
 #::: calculate external priors (e.g. stellar density)
@@ -446,7 +486,7 @@ def calculate_external_priors(params):
     '''
     lnp = 0.        
     
-    if 'host_density' in config.BASEMENT.external_priors:
+    if ('host_density' in config.BASEMENT.external_priors) and (params['host_density'] is not None):
         b = config.BASEMENT.external_priors['host_density']
         if b[0] == 'uniform':
             if not (b[1] <= params['host_density'] <= b[2]): return -np.inf
@@ -471,7 +511,7 @@ def calculate_lnlike(params, inst, key):
     
         
     #::: if no GP baseline sampling, then calculate lnlike per hand
-    if config.BASEMENT.settings['baseline_'+key+'_'+inst] != 'sample_GP':
+    if config.BASEMENT.settings['baseline_'+key+'_'+inst] not in ['sample_GP_real', 'sample_GP_complex', 'sample_GP_Matern32', 'sample_GP_SHO']:
         
         yerr_w = calculate_yerr_w(params, inst, key)
         baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
@@ -492,9 +532,11 @@ def calculate_lnlike(params, inst, key):
         y = config.BASEMENT.data[inst][key] - model
         yerr_w = calculate_yerr_w(params, inst, key)
         
-        kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
-                                    log_rho=params['baseline_gp2_'+key+'_'+inst])
-        gp = celerite.GP(kernel)
+#        kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
+#                                    log_rho=params['baseline_gp2_'+key+'_'+inst])
+        
+        gp = get_gp(params, inst, key)
+    
         try:
             gp.compute(x, yerr=yerr_w)
             lnlike = gp.log_likelihood(y)
@@ -621,6 +663,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     '''
     
     baseline_method = config.BASEMENT.settings['baseline_'+key+'_'+inst]
+    
     return baseline_switch[baseline_method](x, y, yerr_w, xx, params, inst, key)
 
 
@@ -721,7 +764,10 @@ def baseline_sample_offset(*args):
 #::: sample_linear
 ########################################################################### 
 def baseline_sample_linear(*args):
-    raise ValueError('Not yet implemented.')
+    x, y, yerr_w, xx, params, inst, key = args
+    xx_norm = (xx-xx[0]) / (xx[-1]-xx[0])
+#    xx_norm = (xx-2453000.) / 5000.
+    return params['baseline_slope_'+key+'_'+inst] * xx_norm + params['baseline_offset_'+key+'_'+inst]
         
     
     
@@ -730,10 +776,7 @@ def baseline_sample_linear(*args):
 ########################################################################### 
 def baseline_sample_GP(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    
-    kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
-                                log_rho=params['baseline_gp2_'+key+'_'+inst])
-    gp = celerite.GP(kernel)
+    gp = get_gp(params, inst, key)
     gp.compute(x, yerr=yerr_w)
     baseline = gp_predict_in_chunks(gp, y, xx)[0]
 #    baseline = gp.predict(y, xx)[0]
@@ -787,10 +830,12 @@ baseline_switch = \
     'hybrid_GP'     : baseline_hybrid_GP,
     'sample_offset' : baseline_sample_offset,
     'sample_linear' : baseline_sample_linear,
-    'sample_GP'     : baseline_sample_GP, #only for plotting    
+    'sample_GP_real'         : baseline_sample_GP, #only for plotting
+    'sample_GP_complex'      : baseline_sample_GP, #only for plotting   
+    'sample_GP_Matern32'     : baseline_sample_GP, #only for plotting
+    'sample_GP_SHO'          : baseline_sample_GP, #only for plotting         
     'none'          : baseline_none #only for plotting    
     }
-    
     
 
     

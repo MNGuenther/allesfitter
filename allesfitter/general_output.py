@@ -134,11 +134,13 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
         insts = config.BASEMENT.settings['inst_phot']
 
     ally = []
-        
+    
     if ax is None:
-        fig, axes = plt.subplots(len(companions),len(insts),figsize=(4*len(insts),5*len(companions)), sharey=True, sharex=True)
+        ax_init = None
+        fig, axes = plt.subplots(len(insts),len(companions),figsize=(6*len(companions),4*len(insts)), sharey=True, sharex=True)
         axes = np.atleast_2d(axes).T
     else:
+        ax_init = ax
         axes = np.atleast_2d(ax).T
         
     for i,(companion, color) in enumerate(zip(companions, colors)):
@@ -152,11 +154,11 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
                     title=inst
                 else:
                     title=''
-            if i==len(companions)-1:
+            if j==len(insts)-1:
                 xlabel=r'$\mathrm{ T - T_0 \ (h) }$'
             else:
                 xlabel=''
-            if j==0:
+            if i==0:
                 if ppm:
                     ylabel=r'$\Delta$ Flux (ppm)'
                 else:
@@ -183,7 +185,7 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
             dt = 20./60./24. / params_median[companion+'_period']
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=True)    
-            ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
+            ax.plot( phi*zoomfactor, y, 'b.', color='silver', rasterized=True )
             ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, linestyle='none', marker='o', ms=8, color=color, capsize=0, zorder=11 )
             ax.set_xlabel(xlabel, fontsize=BIGGER_SIZE)
             ax.set_ylabel(ylabel, fontsize=BIGGER_SIZE)
@@ -225,7 +227,7 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
     
     plt.tight_layout()
 
-    if ax is None:
+    if ax_init is None:
         fig.savefig( os.path.join(config.BASEMENT.outdir,'data_panel_transits.pdf'), bbox_inches='tight' )
         return fig, axes
     else:
@@ -493,12 +495,6 @@ def get_params_from_samples(samples):
     '''
     read MCMC results and update params
     '''
-    #::: the following does not work for Python 3 anymore
-#    buf = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84], axis=0)))          
-#    theta_median = [ item[0] for item in buf ]
-#    theta_ul = [ item[1] for item in buf ]
-#    theta_ll = [ item[2] for item in buf ]            
-    #::: instead, let us be anti-pythonic
     theta_median = np.percentile(samples, 50, axis=0)
     theta_ul = np.percentile(samples, 84, axis=0) - theta_median
     theta_ll = theta_median - np.percentile(samples, 16, axis=0)
@@ -526,12 +522,13 @@ def save_table(samples, mode):
     params, params_ll, params_ul = get_params_from_samples(samples)
     
     with open( os.path.join(config.BASEMENT.outdir,mode+'_table.csv'), 'w' ) as f:
-        f.write('############ Fitted parameters ############\n')
+        f.write('#name,median,lower_error,upper_error,label,unit\n')
+        f.write('#Fitted parameters,,,\n')
         for i, key in enumerate(config.BASEMENT.allkeys):
             if key not in config.BASEMENT.fitkeys:
-                f.write(key + ',' + str(params[key]) + ',' + '(fixed),\n')
+                f.write(key + ',' + str(params[key]) + ',' + '(fixed),(fixed),'+config.BASEMENT.labels[i]+','+config.BASEMENT.units[i]+'\n')
             else:
-                f.write(key + ',' + str(params[key]) + ',' + str(params_ll[key]) + ',' + str(params_ul[key]) + '\n' )
+                f.write(key + ',' + str(params[key]) + ',' + str(params_ll[key]) + ',' + str(params_ul[key]) + ',' + config.BASEMENT.labels[i] + ',' + config.BASEMENT.units[i] + '\n' )
    
         
         
@@ -564,13 +561,13 @@ def save_latex_table(samples, mode):
         for i, key in enumerate(config.BASEMENT.allkeys):
             if key not in config.BASEMENT.fitkeys:                
                 value = str(params_median[key])
-                f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & '  + config.BASEMENT.units[i] + '& (fixed) \\\\ \n')            
-                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{'+label+'$='+value+'$} \n')
+                f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & '  + config.BASEMENT.units[i] + '& fixed \\\\ \n')            
+                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$'+value+'$} %'+label+' = '+value+'\n')
 
             else:            
                 value = latex_printer.round_tex(params_median[key], params_ll[key], params_ul[key])
-                f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & ' + config.BASEMENT.units[i] + '& \\\\ \n' )
-                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{'+label+'$='+value+'$} \n')
+                f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & ' + config.BASEMENT.units[i] + '& fit \\\\ \n' )
+                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$='+value+'$} %'+label+' = '+value+'\n')
 
 
     
@@ -660,6 +657,7 @@ def plot_initial_guess(return_figs=False):
         return fig_list
             
     
+
     
 ###############################################################################
 #::: get latex labels

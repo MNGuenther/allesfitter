@@ -24,5 +24,7 @@ Contents
    installation
    crash_course
    tutorials
+   settings.csv
+   params.csv
    performance
    references

@@ -31,6 +31,7 @@ import pickle
 from corner import corner
 from tqdm import tqdm 
 from astropy.constants import M_earth, M_jup, M_sun, R_earth, R_jup, R_sun, au
+import copy
 
 #::: allesfitter modules
 from . import config
@@ -38,6 +39,7 @@ from .utils import latex_printer
 from .general_output import logprint
 from .priors.simulate_PDF import simulate_PDF
 from .computer import update_params, calculate_model
+from .exoworlds_rdx.lightcurves.index_transits import index_transits
 
 #::: constants
 #M_earth = 5.9742e+24 	#kg 	Earth mass
@@ -132,7 +134,8 @@ def derive(samples, mode):
         derived_samples[companion+'_e_sinw'] = get_params(companion+'_f_s') * np.sqrt(derived_samples[companion+'_e'])
         derived_samples[companion+'_e_cosw'] = get_params(companion+'_f_c') * np.sqrt(derived_samples[companion+'_e'])
         derived_samples[companion+'_w'] = arccos_d( get_params(companion+'_f_c') / np.sqrt(derived_samples[companion+'_e']) ) #in deg, from 0 to 180
-        
+        if np.isnan(derived_samples[companion+'_w']):
+            derived_samples[companion+'_w'] = 0.
         
         #::: mass
         if companion+'_K' in config.BASEMENT.params:
@@ -162,7 +165,7 @@ def derive(samples, mode):
         
         #::: impact params
         derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.+derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
-         
+        
         if config.BASEMENT.settings['secondary_eclipse'] is True:
             derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.-derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
         else:
@@ -181,28 +184,131 @@ def derive(samples, mode):
 
         #::: secondary eclipse / occultation depth (per inst)
         for inst in config.BASEMENT.settings['inst_phot']:
-            derived_samples[companion+'_depth_occ_max_diluted_'+inst]  = np.zeros(N_samples)*np.nan
-            derived_samples[companion+'_depth_occ_norm_diluted_'+inst] = np.zeros(N_samples)*np.nan
+            
+            N_less_samples = 1000
+            
+            derived_samples[companion+'_depth_occ_diluted_'+inst]  = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_ampl_sbratio_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_ampl_gdc_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
             
             if config.BASEMENT.settings['secondary_eclipse'] is True:
-                    logprint('Deriving occultation depths from model curves...')
-                    xx = np.linspace( 0.25, 0.75, 500)
-                    for i in tqdm( range(N_samples) ):
-                        s = samples[i,:]
-                        p = update_params(s, phased=True)
-                        model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-                        derived_samples[companion+'_depth_occ_max_diluted_'+inst][i] = ( np.max(model) - np.min(model) ) * 1e6 #in ppm
-                        derived_samples[companion+'_depth_occ_norm_diluted_'+inst][i] = ( 1. - np.min(model) ) * 1e6 #in ppm
+                
+                def plottle(fname, title, i):
+                    if i==0:
+                        fig = plt.figure()
+                        plt.plot(xx,model,'b.')
+                        plt.title(title)
+                        fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
+                        plt.close(fig)
                     
+                logprint('Deriving occultation depths from model curves...')
+                for i in tqdm( range(N_less_samples) ):
+                    ii = np.random.randint(low=0,high=samples.shape[0])
+                    s = samples[ii,:]
+                    p = update_params(s)
+                    xx = p[companion+'_epoch'] + np.arange(-0.25*p[companion+'_period'], 0.75*p[companion+'_period'], 1./24./60.) #one full orbit without the transit (in time units), in 1 min steps
+                    ind_tr, ind_out = index_transits(xx, p[companion+'_epoch'], p[companion+'_period'], np.median(derived_samples[companion+'_T_tra_tot'])/24.) #ignore the secondary eclipse here
+                    xx = xx[ind_out]
+                    
+                    #::: occultation depth (very simplistic; only ok for exoplanets, not binaries)
+                    model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+                    plottle('phase_curve_occultation_depth.pdf', 'occultation depth', i)
+                    derived_samples[companion+'_depth_occ_diluted_'+inst][i] = ( np.max(model) - np.min(model) ) * 1e6 #in ppm
+
+
+                    #::: amplitude of ellipsoidal modulation alone (ignoring all other effects)
+                    p2 = copy.deepcopy(p)
+#                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
+#                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
+                    p2['b_sbratio_TESS'] = 0
+#                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
+#                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
+                    p2['b_geom_albedo_TESS'] = 0
+                    p2['host_gdc_TESS'] = 0
+                    p2['host_bfac_TESS'] = 0
+                    model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+                    plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', i)
+                    derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
+#                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
+#                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    
+                    
+                     #::: amplitude of sbratio modulation alone (ignoring all other effects)
+                    p2 = copy.deepcopy(p)
+                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
+                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
+#                    p2['b_sbratio_TESS'] = 0
+                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
+                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
+                    p2['b_geom_albedo_TESS'] = 0
+                    p2['host_gdc_TESS'] = 0
+                    p2['host_bfac_TESS'] = 0
+                    model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+                    plottle('phase_curve_sbratio.pdf', 'sbratio depth', i)
+                    derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
+                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
+                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    
+                    
+                     #::: amplitude of geom. albedo modulation alone (ignoring all other effects)
+                    p2 = copy.deepcopy(p)
+                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
+                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
+                    p2['b_sbratio_TESS'] = 0
+                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
+                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
+#                    p2['b_geom_albedo_TESS'] = 0
+                    p2['host_gdc_TESS'] = 0
+                    p2['host_bfac_TESS'] = 0
+                    model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+                    plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', i)
+                    derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
+                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
+                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    
+                    
+                     #::: amplitude of gravity darkening modulation alone (ignoring all other effects)
+                    p2 = copy.deepcopy(p)
+                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
+                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
+                    p2['b_sbratio_TESS'] = 0
+                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
+                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
+                    p2['b_geom_albedo_TESS'] = 0
+#                    p2['host_gdc_TESS'] = 0
+                    p2['host_bfac_TESS'] = 0
+                    model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+                    plottle('phase_curve_gdc.pdf', 'grav darkening modulation', i)
+                    derived_samples[companion+'_ampl_gdc_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
+                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
+                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    
+                    
+            #resize the arrays to match the true N_samples (by redrawing the 1000 values)
+            derived_samples[companion+'_depth_occ_diluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_diluted_'+inst], N_samples)
+            derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst], N_samples)
+            derived_samples[companion+'_ampl_sbratio_diluted_'+inst]      = np.resize(derived_samples[companion+'_ampl_sbratio_diluted_'+inst], N_samples)
+            derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst], N_samples)
+            derived_samples[companion+'_ampl_gdc_diluted_'+inst]          = np.resize(derived_samples[companion+'_ampl_gdc_diluted_'+inst], N_samples)
+
     
         #::: undiluted (not per companions; per inst)
         for inst in config.BASEMENT.settings['inst_phot']:
             dil = get_params('light_3_'+inst)
+            if np.isnan(dil):
+                dil = 0
         #        if np.mean(dil)<0.5: dil = 1-dil
-            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in mmag
-            derived_samples[companion+'_depth_occ_max_undiluted_'+inst] = derived_samples[companion+'_depth_occ_max_diluted_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_depth_occ_norm_undiluted_'+inst] = derived_samples[companion+'_depth_occ_norm_diluted_'+inst] / (1. - dil) #in ppm
         
+            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in mmag
+            
+            derived_samples[companion+'_depth_occ_undiluted_'+inst] = derived_samples[companion+'_depth_occ_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_ampl_ellipsoidal_undiluted_'+inst] = derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_ampl_sbratio_undiluted_'+inst] = derived_samples[companion+'_ampl_sbratio_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_ampl_geom_albedo_undiluted_'+inst] = derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_ampl_gdc_undiluted_'+inst] = derived_samples[companion+'_ampl_gdc_diluted_'+inst] / (1. - dil) #in ppm
+
         
         #::: equilibirum temperature
         #::: currently assumes Albedo of 0.3 and Emissivity of 1
@@ -211,12 +317,31 @@ def derive(samples, mode):
         derived_samples[companion+'_Teq'] = star['Teff_star']  * ( (1.-albedo)/emissivity )**0.25 * np.sqrt(derived_samples[companion+'_R_star/a'] / 2.)
         
         
+        #::: stellar density
+        derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
+  
+    
+        #::: stellar surface gravity (via Southworth+ 2007)
+        try:
+            derived_samples[companion+'_host_surface_gravity'] = 2. * np.pi / (get_params(companion+'_period')*86400.) * np.sqrt((1.-derived_samples[companion+'_e']**2)) * get_params(companion+'_K') / (derived_samples[companion+'_R_companion/a'])**2 / sin_d(derived_samples[companion+'_i'])
+        except:
+            derived_samples[companion+'_host_surface_gravity'] = 0.
+        
+        
         #::: period ratios (for ressonance studies)
         if len(companions)>1:
             for other_companion in companions:
                 if other_companion is not companion:
                     derived_samples[companion+'_period/'+other_companion+'_period'] = get_params(companion+'_period') / get_params(other_companion+'_period')
         
+        
+    #::: median stellar density
+    derived_samples['mean_host_density'] = []
+    for companion in companions:
+        derived_samples['mean_host_density'] += list(derived_samples[companion+'_host_density'])
+    derived_samples['mean_host_density'] = np.array(derived_samples['mean_host_density'])
+    
+    
         
     
     ###############################################################################
@@ -271,6 +396,12 @@ def derive(samples, mode):
         names.append( companion+'_T_tra_full' )
         labels.append( '$T_\mathrm{full;'+companion+'}$ (h)' )
         
+        names.append( companion+'_host_density' )
+        labels.append( '$rho_\mathrm{\star;'+companion+'}$ (cgs)' )
+    
+        names.append( companion+'_host_surface_gravity')
+        labels.append( '$\log{g_\mathrm{\star;'+companion+'}}$ (cgs)' )
+        
         names.append( companion+'_Teq' )
         labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
         
@@ -283,17 +414,37 @@ def derive(samples, mode):
             names.append( companion+'_depth_diluted_'+inst )
             labels.append( '$\delta_\mathrm{dil; '+inst+'}$ (mmag)' )
             
-            names.append( companion+'_depth_occ_max_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; max; undil; '+inst+'}$ (mmag)' )
             
-            names.append( companion+'_depth_occ_norm_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; norm; undil; '+inst+'}$ (mmag)' )
+            names.append( companion+'_depth_occ_undiluted_'+inst )
+            labels.append( '$\delta_\mathrm{occ; undil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_depth_occ_max_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; max; dil; '+inst+'}$ (mmag)' )
+            names.append( companion+'_depth_occ_diluted_'+inst )
+            labels.append( '$\delta_\mathrm{occ; dil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_depth_occ_norm_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; norm; dil; '+inst+'}$ (mmag)' )
+            names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
+            labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_ellipsoidal_diluted_'+inst )
+            labels.append( '$A_\mathrm{ellipsoidal; dil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_sbratio_undiluted_'+inst )
+            labels.append( '$A_\mathrm{sbratio; undil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_sbratio_diluted_'+inst )
+            labels.append( '$A_\mathrm{sbratio; dil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_geom_albedo_undiluted_'+inst )
+            labels.append( '$A_\mathrm{geom. albedo; undil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_geom_albedo_diluted_'+inst )
+            labels.append( '$A_\mathrm{geom. albedo; dil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_gdc_undiluted_'+inst )
+            labels.append( '$A_\mathrm{grav. dark.; undil; '+inst+'}$ (ppm)' )
+            
+            names.append( companion+'_ampl_gdc_diluted_'+inst )
+            labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+            
             
             
         #::: period ratios (for ressonance studies)
@@ -304,6 +455,8 @@ def derive(samples, mode):
                     labels.append( '$P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
                     
 
+    names.append( 'mean_host_density' )
+    labels.append( '$rho_\mathrm{\star; mean}$ (cgs)' )
         
             
     ###############################################################################
@@ -357,6 +510,7 @@ def derive(samples, mode):
     ###############################################################################
     #::: plot corner
     ###############################################################################
+    if 'mean_host_density' in names: names.remove('mean_host_density') #has (N_companions x N_dims) dimensions, thus does not match the rest
     x = np.column_stack([ derived_samples[name] for name in names ])
     fig = corner(x,
                  range = [0.999]*len(names),

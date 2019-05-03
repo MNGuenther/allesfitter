@@ -34,7 +34,21 @@ from .simulate_PDF import simulate_PDF as spdf
     
 def get_cosi_from_i(i, Nsamples=10000):
     i = spdf(i[0], i[1], i[2], size=Nsamples, plot=False)
+    ind_good = np.where( (i>=0) & (i<=90) )[0]
+    i = i[ind_good]
     cosi = np.cos(np.deg2rad(i))
+    ll, median, ul = np.percentile(cosi, [16,50,84])
+    return median, median-ll, ul-median
+
+
+
+def get_cosi_from_b(b, a_over_Rstar, Nsamples=10000):
+    b = spdf(b[0], b[1], b[2], size=Nsamples, plot=False)    
+    a_over_Rstar = spdf(a_over_Rstar[0], a_over_Rstar[1], a_over_Rstar[2], size=Nsamples, plot=False)
+    ind_good = np.where( (b>=0) & (a_over_Rstar>0) )[0]
+    b = b[ind_good]
+    a_over_Rstar = a_over_Rstar[ind_good]
+    cosi = b/a_over_Rstar
     ll, median, ul = np.percentile(cosi, [16,50,84])
     return median, median-ll, ul-median
 
@@ -42,9 +56,11 @@ def get_cosi_from_i(i, Nsamples=10000):
 
 def get_Rsuma_from_a_over_Rstar(a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
     a_over_Rstar = spdf(a_over_Rstar[0], a_over_Rstar[1], a_over_Rstar[2], size=Nsamples, plot=False)
-    Rstar_over_a = 1./a_over_Rstar 
     Rp_over_Rstar = spdf(Rp_over_Rstar[0], Rp_over_Rstar[1], Rp_over_Rstar[2], size=Nsamples, plot=False)
-    Rsuma = Rstar_over_a * (1. + Rp_over_Rstar)
+    ind_good = np.where( (Rp_over_Rstar>=0) & (a_over_Rstar>0) )[0]
+    Rp_over_Rstar = Rp_over_Rstar[ind_good]
+    a_over_Rstar = a_over_Rstar[ind_good]
+    Rsuma = 1./a_over_Rstar * (1. + Rp_over_Rstar)
     ll, median, ul = np.percentile(Rsuma, [16,50,84])
     return median, median-ll, ul-median
     
@@ -53,8 +69,35 @@ def get_Rsuma_from_a_over_Rstar(a_over_Rstar, Rp_over_Rstar, Nsamples=10000):
 def get_Rsuma_from_Rstar_over_a(Rstar_over_a, Rp_over_Rstar, Nsamples=10000):
     Rstar_over_a = spdf(Rstar_over_a[0], Rstar_over_a[1], Rstar_over_a[2], size=Nsamples, plot=False)
     Rp_over_Rstar = spdf(Rp_over_Rstar[0], Rp_over_Rstar[1], Rp_over_Rstar[2], size=Nsamples, plot=False)
+    ind_good = np.where( (Rp_over_Rstar>=0) & (Rstar_over_a>0) )[0]
+    Rp_over_Rstar = Rp_over_Rstar[ind_good]
+    Rstar_over_a = Rstar_over_a[ind_good]
     Rsuma = Rstar_over_a * (1. + Rp_over_Rstar)
     ll, median, ul = np.percentile(Rsuma, [16,50,84])
+    return median, median-ll, ul-median
+
+    
+    
+def get_sqrtesinw(e, w, Nsamples=10000):
+    e = spdf(e[0], e[1], e[2], size=Nsamples, plot=False)
+    w = spdf(w[0], w[1], w[2], size=Nsamples, plot=False)
+    ind_good = np.where( (e>=0) & (w>=0) & (w<=360) )[0]
+    e = e[ind_good]
+    w = w[ind_good]
+    sqrtesinw = np.sqrt(e) * np.sin(np.deg2rad(w))
+    ll, median, ul = np.percentile(sqrtesinw, [16,50,84])
+    return median, median-ll, ul-median
+
+
+
+def get_sqrtecosw(e, w, Nsamples=10000):
+    e = spdf(e[0], e[1], e[2], size=Nsamples, plot=False)
+    w = spdf(w[0], w[1], w[2], size=Nsamples, plot=False)
+    ind_good = np.where( (e>=0) & (e<=1) & (w>=0) & (w<=360) )[0]
+    e = e[ind_good]
+    w = w[ind_good]
+    sqrtecosw = np.sqrt(e) * np.cos(np.deg2rad(w))
+    ll, median, ul = np.percentile(sqrtecosw, [16,50,84])
     return median, median-ll, ul-median
 
 

@@ -32,9 +32,11 @@ from multiprocessing import cpu_count
 import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
+from scipy.special import ndtri
+from scipy.stats import truncnorm
 
 #::: allesfitter modules
-from .exoworlds_rdx.lightcurves.index_transits import index_transits, index_eclipses, get_tmid_observed_transits
+from .exoworlds_rdx.lightcurves.index_transits import index_transits, index_eclipses, get_first_epoch, get_tmid_observed_transits
 from .priors.simulate_PDF import simulate_PDF
 
                      
@@ -82,8 +84,7 @@ class Basement():
         if self.settings['shift_epoch']:
             self.change_epoch()
         
-        if self.settings['fit_ttvs']:
-            self.prepare_ttv_fit()
+        self.prepare_ttv_fit()
         
         #::: external priors (e.g. stellar density)
         self.external_priors = {}
@@ -112,11 +113,12 @@ class Basement():
         #::: check if the input is consistent
         for inst in self.settings['inst_phot']:
             key='flux'
-            if (self.settings['baseline_'+key+'_'+inst] == 'sample_GP') &\
+            if (self.settings['baseline_'+key+'_'+inst] in ['sample_GP_Matern32', 'sample_GP_SHO']) &\
                (self.settings['error_'+key+'_'+inst] != 'sample'):
-                   raise ValueError('If you want to use sample_GP, you will want to sample the jitters, too!')
+                   raise ValueError('If you want to use '+self.settings['baseline_'+key+'_'+inst]+', you will want to sample the jitters, too!')
             
-                     
+                 
+                    
     ###############################################################################
     #::: print function that prints into console and logfile at the same time
     ############################################################################### 
@@ -442,11 +444,19 @@ class Basement():
                 if 'baseline_'+key+'_'+inst not in self.settings: 
                     self.settings['baseline_'+key+'_'+inst] = 'hybrid_spline'
 
+                elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
+                     warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
+                     self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+                     
         for inst in self.settings['inst_rv']:
             for key in ['rv']:
                 if 'baseline_'+key+'_'+inst not in self.settings: 
                     self.settings['baseline_'+key+'_'+inst] = 'hybrid_offset'
                     
+                elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
+                     warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
+                     self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+                     
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Errors
@@ -641,6 +651,21 @@ class Basement():
                 if 'dil_'+inst not in self.params:
                     self.params['dil_'+inst] = 0.
                 
+                if companion+'_rr' not in self.params:
+                    self.params[companion+'_rr'] = None
+                    
+                if companion+'_rsuma' not in self.params:
+                    self.params[companion+'_rsuma'] = None
+                    
+                if companion+'_cosi' not in self.params:
+                    self.params[companion+'_cosi'] = None
+                    
+                if companion+'_epoch' not in self.params:
+                    self.params[companion+'_epoch'] = None
+                    
+                if companion+'_period' not in self.params:
+                    self.params[companion+'_period'] = None
+                    
                 if companion+'_sbratio_'+inst not in self.params:
                     self.params[companion+'_sbratio_'+inst] = 0.               
                     
@@ -741,8 +766,22 @@ class Basement():
                     self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
                 if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
                     self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
-                    
-
+              
+                
+       
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: baseline_gp backwards compatability:
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for inst in self.settings['inst_all']: 
+            if inst in self.settings['inst_phot']: kkey='flux'
+            elif inst in self.settings['inst_rv']: kkey='rv'
+            if 'baseline_gp1_'+kkey+'_'+inst in self.params:
+                self.params['baseline_gp_matern32_lnsigma_'+kkey+'_'+inst] = 1.*self.params['baseline_gp1_'+kkey+'_'+inst]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp1_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnsigma_'+kkey+'_'+inst)
+            if 'baseline_gp2_'+kkey+'_'+inst in self.params:
+                self.params['baseline_gp_matern32_lnrho_'+kkey+'_'+inst]   = 1.*self.params['baseline_gp2_'+kkey+'_'+inst]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst)
+        
         
         #::: coupled params
         if 'coupled_with' in buf.dtype.names:
@@ -812,7 +851,7 @@ class Basement():
                           'flux':flux,
                           'err_scales_flux':flux_err/np.nanmean(flux_err)
                          }
-            if self.settings['fast_fit']: 
+            if (self.settings['fast_fit']) and (len(self.settings['inst_phot'])>0): 
                 time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err, inst=inst)
             self.data[inst] = {
                           'time':time,
@@ -835,16 +874,125 @@ class Basement():
     ###############################################################################
     #::: change epoch
     ###############################################################################
+    
+    def my_truncnorm_isf(q,a,b,mean,std):
+        a_scipy = 1.*(a - mean) / std
+        b_scipy = 1.*(b - mean) / std
+        return truncnorm.isf(q,a_scipy,b_scipy,loc=mean,scale=std)
+
+
     def change_epoch(self):
-        
+        '''
+        change epoch entry from params.csv to set epoch into the middle of the range
+        '''
+        #::: for all companions
+        for companion in self.settings['companions_all']:
+            
+            #::: get data time range
+            alldata = []
+            for inst in self.settings['inst_for_'+companion+'_epoch']:
+                alldata += list(self.data[inst]['time'])
+            start = np.nanmin( alldata )
+            end = np.nanmax( alldata )
+            
+            #::: get the given values
+            user_epoch  = 1.*self.params[companion+'_epoch']
+            period      = 1.*self.params[companion+'_period']
+#            buf = self.bounds[ind_e].copy()
+                
+            #::: calculate the true first_epoch
+            if 'fast_fit_width' in self.settings and self.settings['fast_fit_width'] is not None:
+                width = self.settings['fast_fit_width']
+            else:
+                width = 0
+            first_epoch = get_first_epoch(alldata, self.params[companion+'_epoch'], self.params[companion+'_period'], width=width)
+            
+            #::: calculate the mid_epoch (in the middle of the data set)
+            N = int(np.round((end-start)/2./period))
+            mid_epoch = first_epoch + N * period
+            
+            #::: calculate how much the user_epoch has to be shifted to get the mid_epoch
+            N_shift = int(np.round((mid_epoch-user_epoch)/period)) 
+            
+            if (N_shift != 0) and (companion+'_epoch' in self.fitkeys):
+                ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
+                ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
+                
+                #::: set the new initial guess
+                self.theta_0[ind_e] = 1.*mid_epoch
+                self.params[companion+'_epoch'] = 1.*mid_epoch
+                
+                #::: get the bounds / errors
+                #::: if the epoch and period priors are both uniform
+                if (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'uniform'):
+                    if N_shift > 0:
+                        self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][1] #lower bound
+                        self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][2] #upper bound
+                    elif N_shift < 0:
+                        self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][2] #lower bound; period bounds switched if N_shift is negative
+                        self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][1] #upper bound; period bounds switched if N_shift is negative
+                
+                #::: if the epoch and period priors are both normal
+                elif (self.bounds[ind_e][0] == 'normal') & (self.bounds[ind_p][0] == 'normal'):
+                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][1] #mean (in case the prior-mean is not the initial-guess-mean)
+                    self.bounds[ind_e][2] = np.sqrt( self.bounds[ind_e][2]**2 + N_shift**2 * self.bounds[ind_p][2]**2 ) #std (in case the prior-mean is not the initial-guess-mean)
+                                        
+                #::: if the epoch and period priors are both trunc_normal
+                elif (self.bounds[ind_e][0] == 'trunc_normal') & (self.bounds[ind_p][0] == 'trunc_normal'):
+                    if N_shift > 0:
+                        self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][1] #lower bound
+                        self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][2] #upper bound
+                    elif N_shift < 0:
+                        self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][2] #lower bound; period bounds switched if N_shift is negative
+                        self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][1] #upper bound; period bounds switched if N_shift is negative
+                    self.bounds[ind_e][3] = self.bounds[ind_e][3] + N_shift * self.bounds[ind_p][3] #mean (in case the prior-mean is not the initial-guess-mean)
+                    self.bounds[ind_e][4] = np.sqrt( self.bounds[ind_e][4]**2 + N_shift**2 * self.bounds[ind_p][4]**2 ) #std (in case the prior-mean is not the initial-guess-mean)
+            
+                elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'normal'):
+                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][2] #lower bound epoch + Nshift * std_period
+                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][2] #upper bound + Nshift * std_period
+                    
+                elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'trunc_normal'):
+                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][4] #lower bound epoch + Nshift * std_period
+                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][4] #upper bound + Nshift * std_period
+            
+                elif (self.bounds[ind_e][0] == 'normal') & (self.bounds[ind_p][0] == 'uniform'):
+                    raise ValueError('shift_epoch with different priors for epoch and period is not yet implemented.')
+                    
+                elif (self.bounds[ind_e][0] == 'normal') & (self.bounds[ind_p][0] == 'trunc_normal'):
+                    raise ValueError('shift_epoch with different priors for epoch and period is not yet implemented.')
+                    
+                elif (self.bounds[ind_e][0] == 'trunc_normal') & (self.bounds[ind_p][0] == 'uniform'):
+                    raise ValueError('shift_epoch with different priors for epoch and period is not yet implemented.')
+                    
+                elif (self.bounds[ind_e][0] == 'trunc_normal') & (self.bounds[ind_p][0] == 'normal'):
+                    raise ValueError('shift_epoch with different priors for epoch and period is not yet implemented.')
+                    
+                else:
+                    raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
+                    
+            
+#            print('\n')
+#            print('############################################################################')
+#            print('user_epoch', user_epoch)
+#            print('first_epoch; N', first_epoch, N)
+#            print('mid_epoch, error; N_shift', mid_epoch, N_shift)
+#            print('----------------------------------------------------------------------------')
+#            print('old bounds, epoch:', buf)
+#            print('old bounds, period:', self.bounds[ind_p])
+#            print('new bounds, epoch:', self.bounds[ind_e])
+#            print('############################################################################')
+#            print('\n')
+                    
+        '''
         #::: change epoch entry from params.csv to set epoch into the middle of the range
         for companion in self.settings['companions_all']:
             #::: get data time range
-            all_data = []
+            alldata = []
             for inst in self.settings['inst_for_'+companion+'_epoch']:
-                all_data += list(self.data[inst]['time'])
-            start = np.nanmin( all_data )
-            end = np.nanmax( all_data )
+                alldata += list(self.data[inst]['time'])
+            start = np.nanmin( alldata )
+            end = np.nanmax( alldata )
             
 #            import matplotlib.pyplot as plt
 #            plt.figure()
@@ -856,15 +1004,21 @@ class Basement():
 #            plt.axvline(first_epoch, color='r', lw=2)
             
             #::: place the first_epoch at the start of the data to avoid luser mistakes
-            if start<=first_epoch:
-                first_epoch -= int(np.round((first_epoch-start)/period)) * period
+#            if start<=first_epoch:
+#                first_epoch -= int(np.round((first_epoch-start)/period)) * period
+#            else:
+#                first_epoch += int(np.round((start-first_epoch)/period)) * period
+            if 'fast_fit_width' in self.settings and self.settings['fast_fit_width'] is not None:
+                width = self.settings['fast_fit_width']
             else:
-                first_epoch += int(np.round((start-first_epoch)/period)) * period
-                
+                width = 0
+            first_epoch = get_first_epoch(alldata, self.params[companion+'_epoch'], self.params[companion+'_period'], width=width)
+            
 #            plt.axvline(first_epoch, color='b', lw=2)
                 
             #::: place epoch_for_fit into the middle of all data
-            epoch_shift = int(np.round((end-start)/2./period)) * period 
+            N = int(np.round((end-start)/2./period))
+            epoch_shift = N * period 
             epoch_for_fit = first_epoch + epoch_shift
             
             #::: update params
@@ -906,7 +1060,7 @@ class Basement():
                     
                 else:
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
-           
+        '''
 
 
     ###############################################################################
@@ -920,13 +1074,21 @@ class Basement():
             period = self.params[companion+'_period']
             width  = self.settings['fast_fit_width']
             if self.settings['secondary_eclipse']:
-                ind_ecl1, ind_ecl2, _ = index_eclipses(time,epoch,period,width,width) #TODO: currently this assumes width_occ == width_tra
-                ind_in += list(ind_ecl1)
-                ind_in += list(ind_ecl2)
+                ind_ecl1x, ind_ecl2x, ind_outx = index_eclipses(time,epoch,period,width,width) #TODO: currently this assumes width_occ == width_tra
+                ind_in += list(ind_ecl1x)
+                ind_in += list(ind_ecl2x)
+                self.fulldata[inst][companion+'_ind_ecl1'] = ind_ecl1x
+                self.fulldata[inst][companion+'_ind_ecl2'] = ind_ecl2x
+                self.fulldata[inst][companion+'_ind_out'] = ind_outx
             else:
-                buf = list(index_transits(time,epoch,period,width)[0])
-                ind_in += buf
+                ind_inx, ind_outx = index_transits(time,epoch,period,width)
+                ind_in += list(ind_inx)
+                self.fulldata[inst][companion+'_ind_in'] = ind_inx
+                self.fulldata[inst][companion+'_ind_out'] = ind_outx
+                
         ind_in = np.sort(np.unique(ind_in))
+        self.fulldata[inst]['all_ind_in'] = ind_in
+        self.fulldata[inst]['all_ind_out'] = np.delete( np.arange(len(self.fulldata[inst]['time'])), ind_in )
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
@@ -944,28 +1106,33 @@ class Basement():
         '''
         
         for companion in self.settings['companions_phot']:
-            fig, ax = plt.subplots()
             all_times = []
             all_flux = []
             for inst in self.settings['inst_phot']:
                 all_times += list(self.data[inst]['time'])
                 all_flux += list(self.data[inst]['flux'])
-                ax.plot(self.data[inst]['time'], self.data[inst]['flux'],ls='none',marker='.',label=inst)
-            ax.legend()
             
             flux_min = np.nanmin(all_flux)
             flux_max = np.nanmax(all_flux)
             
             self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(all_times,self.params[companion+'_epoch'],self.params[companion+'_period'],self.settings['fast_fit_width'])
         
-            ax.plot( self.data[companion+'_tmid_observed_transits'], np.ones_like(self.data[companion+'_tmid_observed_transits'])*0.995*flux_min, 'k^' )
-            for i, tmid in enumerate(self.data[companion+'_tmid_observed_transits']):
-                ax.text( tmid, 0.9925*flux_min, str(i+1), ha='center' )  
-            ax.set(ylim=[0.99*flux_min, flux_max], xlabel='Time (BJD)', ylabel='Realtive Flux') 
-            if not os.path.exists( os.path.join(self.datadir,'results') ):
-                os.makedirs(os.path.join(self.datadir,'results'))
-            fig.savefig( os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf'), bbox_inches='tight' )
-            
+        
+            if self.settings['fit_ttvs']:  
+                N_days = int( np.max(all_times) - np.min(all_times) )
+                figsizex = np.min( [1, int(N_days/20.)] )*5
+                fig, ax = plt.subplots(figsize=(figsizex, 4)) #figsize * 5 for every 20 days
+                for inst in self.settings['inst_phot']:
+                    ax.plot(self.data[inst]['time'], self.data[inst]['flux'],ls='none',marker='.',label=inst)
+                ax.plot( self.data[companion+'_tmid_observed_transits'], np.ones_like(self.data[companion+'_tmid_observed_transits'])*0.995*flux_min, 'k^' )
+                for i, tmid in enumerate(self.data[companion+'_tmid_observed_transits']):
+                    ax.text( tmid, 0.9925*flux_min, str(i+1), ha='center' )  
+                ax.set(ylim=[0.99*flux_min, flux_max], xlabel='Time (BJD)', ylabel='Realtive Flux') 
+                if not os.path.exists( os.path.join(self.datadir,'results') ):
+                    os.makedirs(os.path.join(self.datadir,'results'))
+                ax.legend()
+                fig.savefig( os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf'), bbox_inches='tight' )            
+                plt.close(fig)
             
             width = self.settings['fast_fit_width']
             for inst in self.settings['inst_phot']:
@@ -975,7 +1142,6 @@ class Basement():
                     self.data[inst][companion+'_ind_time_transit_'+str(i+1)] = ind
                     self.data[inst][companion+'_time_transit_'+str(i+1)] = time[ind]
             
-            plt.close(fig)
                 
                 
             
@@ -989,6 +1155,13 @@ class Basement():
             mass = simulate_PDF(buf['M_star'], buf['M_star_lerr'], buf['M_star_uerr'], size=N_samples, plot=False) * 1.9884754153381438e+33 #in cgs
             volume = (4./3.)*np.pi*radius**3
             density = mass / volume
+            self.params_star = {'R_star_median':buf['R_star'],
+                                'R_star_lerr':buf['R_star_lerr'],
+                                'R_star_uerr':buf['R_star_uerr'],
+                                'M_star_median':buf['M_star'],
+                                'M_star_lerr':buf['M_star_lerr'],
+                                'M_star_uerr':buf['M_star_uerr']
+                                }
             self.external_priors['host_density'] = ['normal', np.median(density), np.max( [np.median(density)-np.percentile(density,16), np.percentile(density,84)-np.median(density)] ) ] #in cgs
             
             

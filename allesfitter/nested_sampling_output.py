@@ -49,16 +49,26 @@ from .utils.latex_printer import round_tex
 ###############################################################################
 #::: draw samples from the ns results (internally in the code)
 ###############################################################################
-def draw_ns_posterior_samples(results, Nsamples=None):
+def draw_ns_posterior_samples(results, Nsamples=None, as_type='2d_array'):
     '''
     ! posterior samples are drawn as resampled weighted samples !
     ! do not confuse posterior_samples (weighted, resampled) with results['samples'] (unweighted) !
     '''
     weights = np.exp(results['logwt'] - results['logz'][-1])
+    np.random.seed(42)
     posterior_samples = dyutils.resample_equal(results['samples'], weights)    
     if Nsamples:
         posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=Nsamples)]
-    return posterior_samples
+
+    if as_type=='2d_array':
+        return posterior_samples
+    
+    elif as_type=='dic':
+        posterior_samples_dic = {}
+        for key in config.BASEMENT.fitkeys:
+            ind = np.where(config.BASEMENT.fitkeys==key)[0]
+            posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
+        return posterior_samples_dic
 
 
 
@@ -134,15 +144,15 @@ def ns_output(datadir):
         units.append( str(config.BASEMENT.fitunits[i]) )
         
     results2 = results.copy()                    
-    posterior_samples2 = draw_ns_posterior_samples(results2)                               # all weighted posterior_samples
-    params_median2, params_ll2, params_ul2 = get_params_from_samples(posterior_samples2)     # params drawn form these posterior_samples                              #only needed for plots (subtract epoch offset)  
+    params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()     # params drawn form these posterior_samples                              #only needed for plots (subtract epoch offset)  
     for companion in config.BASEMENT.settings['companions_all']:
         
         if companion+'_epoch' in config.BASEMENT.fitkeys:
             ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
-            results2['samples'][:,ind] -= int(params_median[companion+'_epoch']) #np.round(params_median[companion+'_epoch'],decimals=0)
-            units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d') #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
+            results2['samples'][:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
+            units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d')    #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
             config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
+            params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
                 
     for i,l in enumerate(labels):
         if units[i]!='':
@@ -151,12 +161,13 @@ def ns_output(datadir):
         
     #::: traceplot    
     cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
-    tfig, taxes = dyplot.traceplot(results2, labels=labels, truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
+    tfig, taxes = dyplot.traceplot(results2, labels=labels, quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
     plt.tight_layout()
     
     
     #::: cornerplot
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
+    ndim = results2['samples'].shape[1]
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.99 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
 
 
     #::: runplot
@@ -166,7 +177,8 @@ def ns_output(datadir):
     
 
     #::: set allesfitter titles
-    for i, key in enumerate(config.BASEMENT.fitkeys):  
+    for i, key in enumerate(config.BASEMENT.fitkeys): 
+        
         value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
         ttitle = r'' + labels[i] + r'$=' + value + '$'
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
@@ -223,17 +235,7 @@ def get_ns_posterior_samples(datadir, Nsamples=None, as_type='dic'):
         with open(os.path.join(datadir,'results','save_ns.pickle'),'rb') as f:
             results = pickle.load(f)    
 
-    posterior_samples = draw_ns_posterior_samples(results, Nsamples=Nsamples)
-    
-    if as_type=='2d_array':
-        return posterior_samples
-    
-    elif as_type=='dic':
-        posterior_samples_dic = {}
-        for key in config.BASEMENT.fitkeys:
-            ind = np.where(config.BASEMENT.fitkeys==key)[0]
-            posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
-        return posterior_samples_dic
+    return draw_ns_posterior_samples(results, Nsamples=Nsamples, as_type=as_type)
     
     
  

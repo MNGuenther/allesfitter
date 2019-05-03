@@ -24,15 +24,18 @@ from .utils import mask_ranges
 
 
 
-def get_first_epoch(time, epoch, period):    
+def get_first_epoch(time, epoch, period, width=0):    
     '''
+    width : float
+        set >0 to include transit egress to mark the first transit
     place the first_epoch at the start of the data to avoid luser mistakes
     '''
+    time = np.sort(time)
     start = np.nanmin( time )
-    first_epoch = 1.*epoch
+    first_epoch = 1.*epoch + width/2. #add width/2 to catch egress
     if start<=first_epoch: first_epoch -= int(np.round((first_epoch-start)/period)) * period
     else: first_epoch += int(np.round((start-first_epoch)/period)) * period
-    return first_epoch    
+    return first_epoch - width/2.  #subtract width/2 to get midpoint again
     
     
 
@@ -45,7 +48,8 @@ def index_transits(time, epoch, period, width):
     ind_out : array
         indices of points out of transit
     """
-    epoch = get_first_epoch(time, epoch, period)
+    time = np.sort(time)
+    epoch = get_first_epoch(time, epoch, period, width=width)
     N = int( 1. * ( time[-1] - epoch ) / period ) + 1
     
     tmid = np.array( [ epoch + i * period for i in range(N) ] )
@@ -72,7 +76,8 @@ def index_eclipses(time, epoch, period, width_1, width_2):
     
     ! this assumes circular orbits !
     """
-    epoch = get_first_epoch(time, epoch, period)
+    time = np.sort(time)
+    epoch = get_first_epoch(time, epoch, period, width=width_1)
     N = int( 1. * ( time[-1] - epoch ) / period ) + 1
         
     tmid_ecl1 = np.array( [ epoch +             i * period  for i in range(N) ] )
@@ -87,12 +92,25 @@ def index_eclipses(time, epoch, period, width_1, width_2):
     
 
 
+def get_tmid_transits(time, epoch, period, width):
+    '''
+    get a list of only the transit midpoints that are actually covered by the data
+    '''
+    time = np.sort(time)
+    epoch = get_first_epoch(time, epoch, period, width=width)
+    N = int( 1. * ( time[-1] - epoch ) / period ) + 1
+    tmid = np.array( [ epoch + i * period for i in range(N) ] )
+    
+    return tmid
+
+
     
 def get_tmid_observed_transits(time, epoch, period, width):
     '''
     get a list of only the transit midpoints that are actually covered by the data
     '''
-    epoch = get_first_epoch(time, epoch, period)
+    time = np.sort(time)
+    epoch = get_first_epoch(time, epoch, period, width=width)
     N = int( 1. * ( time[-1] - epoch ) / period ) + 1
     tmid = np.array( [ epoch + i * period for i in range(N) ] )
     
@@ -104,3 +122,4 @@ def get_tmid_observed_transits(time, epoch, period, width):
             tmid_observed_transits.append( tmid[i] )
     
     return tmid_observed_transits
+

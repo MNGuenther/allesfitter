@@ -80,11 +80,11 @@ def external_log_prior(params):
     log_sigma, log_rho, log_error_scale = params
     
     lp = 0
-    if not (-23 < log_sigma < 23):
+    if not (-15 < log_sigma < 15):
         lp = -np.inf
-    if not (-23 < log_rho < 23):
+    if not (-15 < log_rho < 15):
         lp = -np.inf
-    if not (-23 < log_error_scale < 0):
+    if not (-15 < log_error_scale < 0):
         lp = -np.inf
     
     return lp
@@ -121,6 +121,7 @@ def gp_decor(x,y,
         ind_in=None, ind_out=None,
         period=None, epoch=None, width=None, width_2=None,
         secondary_eclipse=False,
+        systematics_amplitude=None,
         systematics_timescale=None,
         mean=1.,
         nwalkers=50, thin_by=50, burn_steps=2500, total_steps=5000,
@@ -406,7 +407,10 @@ def gp_decor(x,y,
     
     #::: initial guesses
     #::: log(sigma)
-    log_sigma_init = np.log(np.nanstd(yy))
+    if systematics_amplitude is not None:
+        log_sigma_init = np.log(systematics_amplitude)
+    else:
+        log_sigma_init = np.log(np.nanstd(yy))
     
     #::: log(rho)
     if systematics_timescale is not None:
