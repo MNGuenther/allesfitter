@@ -83,6 +83,8 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -153,7 +155,7 @@
 <h1>Welcome!<a class="headerlink" href="#welcome" title="Permalink to this headline">¶</a></h1>
 <a class="reference external image-reference" href="_static/images/promo.gif"><img alt="_images/promo.gif" class="align-center" src="_images/promo.gif" /></a>
 <p>[German-ish for <em>everything-fitter</em>]</p>
-<p><em>allesfitter</em> (Günther &amp; Daylan, in prep.; <a class="reference external" href="https://github.com/MNGuenther/allesfitter">GitHub</a>) is a public and user-friendly astronomy software package for modeling photometric and RV data. It can accommodate multiple exoplanets, multi-star systems, star spots, stellar flares, and various noise models. A graphical user interface allows to define all input. Then, <em>allesfitter</em> automatically runs a nested sampling or MCMC fit, and produces ascii tables, latex tables, and plots. For all this, <em>allesfitter</em> constructs an inference framework that unites the versatile packages <em>ellc</em> (light curve and RV models; Maxted 2016), <em>aflare</em> (flare model; Davenport et al. 2014), <em>dynesty</em> (static and dynamic nested sampling; Speagle <a class="reference external" href="https://github.com/joshspeagle/dynesty">GitHub</a>), <em>emcee</em> (Markov Chain Monte Carlo sampling; Foreman-Mackey et al. 2013) and <em>celerite</em> (Gaussian Process models; Foreman-Mackey et al. 2017).</p>
+<p><em>allesfitter</em> (Günther &amp; Daylan, in prep.; <a class="reference external" href="https://github.com/MNGuenther/allesfitter">GitHub</a>) is a public and user-friendly astronomy software package for modeling photometric and RV data. It can accommodate multiple exoplanets, multi-star systems, star spots, stellar flares, and various noise models. A graphical user interface allows to define all input. Then, <em>allesfitter</em> automatically runs a nested sampling or MCMC fit, and produces ascii tables, latex tables, and plots. For all this, <em>allesfitter</em> constructs an inference framework that unites the versatile packages <em>ellc</em> (light curve and RV models; Maxted 2016), <em>aflare</em> (flare model; Davenport et al. 2014), <em>dynesty</em> (static and dynamic nested sampling; Speagle 2019), <em>emcee</em> (Markov Chain Monte Carlo sampling; Foreman-Mackey et al. 2013) and <em>celerite</em> (Gaussian Process models; Foreman-Mackey et al. 2017).</p>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -183,6 +185,25 @@
 <li class="toctree-l2"><a class="reference internal" href="tutorials_your_first_fit.html">Tutorials: Your first allesfit</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#general-settings">General settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#fit-performance-settings">Fit performance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#mcmc-settings">MCMC settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#nested-sampling-settings">Nested Sampling settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#limb-darkening-law-per-object-and-instrumen">Limb darkening law per object and instrumen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#baseline-settings-per-instrument">Baseline settings per instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#error-settings-per-instrument">Error settings per instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#exposure-times-for-interpolation">Exposure times for interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-points-for-exposure-interpolation">Number of points for exposure interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-spots-per-object-and-instrument">Number of spots per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-flares-in-total">Number of flares (in total)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#ttvs">TTVs,</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#stellar-grid-per-object-and-instrument">Stellar grid per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#stellar-shape-per-object-and-instrument">Stellar shape per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#flux-weighted-rvs-per-object-and-instrument">Flux weighted RVs per object and instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="performance.html#test-1">Test 1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance.html#test-2">Test 2</a></li>

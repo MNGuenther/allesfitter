@@ -88,6 +88,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -158,31 +160,27 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="installing-allesfitter">
 <h2>Installing allesfitter<a class="headerlink" href="#installing-allesfitter" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>git clone <a class="reference external" href="https://github.com/MNGuenther/allesfitter">https://github.com/MNGuenther/allesfitter</a> into your <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>.</li>
-<li>git clone <a class="reference external" href="https://github.com/MNGuenther/exoworlds">https://github.com/MNGuenther/exoworlds</a> into your <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>.</li>
-<li>(soon to be pip-installable)</li>
-</ul>
+<p>pip install allesfitter</p>
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>Standard packages (install via conda/pip):</p>
+<p>Standard packages (install via conda/pip; anaconda is recommended):</p>
 <ul class="simple">
 <li>python (&gt;=2.7 or &gt;=3.5)</li>
 <li>numpy</li>
 <li>scikit-learn</li>
 <li>matplotlib</li>
-<li>h5py</li>
 <li>seaborn</li>
 <li>tqdm</li>
 </ul>
 <p>Special packages (install via pip):</p>
 <ul class="simple">
 <li>ellc (&gt;=1.8.0) <a class="footnote-reference" href="#f1" id="id1">[1]</a></li>
-<li>dynesty (&gt;=0.9.2) <a class="footnote-reference" href="#f2" id="id2">[2]</a></li>
+<li>dynesty (&gt;=0.9.3) <a class="footnote-reference" href="#f2" id="id2">[2]</a></li>
 <li>emcee (&gt;=3.0rc2) <a class="footnote-reference" href="#f3" id="id3">[3]</a></li>
 <li>celerite (&gt;=0.3.0) <a class="footnote-reference" href="#f4" id="id4">[4]</a></li>
-<li>corner (&gt;=2.0.1)</li>
+<li>corner (&gt;=2.0.1) <a class="footnote-reference" href="#f5" id="id5">[5]</a></li>
+<li>rebound (&gt;=3.8.0) <a class="footnote-reference" href="#f6" id="id6">[6]</a></li>
 </ul>
 <p class="rubric">Footnotes</p>
 <table class="docutils footnote" frame="void" id="f1" rules="none">
@@ -207,6 +205,18 @@
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td>optional; for Gaussian Processes</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td>optional; if you want corner plots (you know you do.)</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td>optional; if you want top-down-view plots of the orbits</td></tr>
 </tbody>
 </table>
 </div>

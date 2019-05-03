@@ -1,6 +1,7 @@
 *.pyc
 __pychache__
 .DS_Store
-.ipynb_checkpoints*.egg-info
+.ipynb_checkpoints
+*.egg-info
 dist
 build
