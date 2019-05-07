@@ -174,68 +174,68 @@
 <p>All fields explained in the following; replace [key] with <cite>flux</cite>/<cite>rv</cite> and [inst] with the  name of your instrument (e.g. <cite>TESS</cite>/<cite>HARPS</cite>):</p>
 <div class="section" id="general-settings">
 <h2>General settings<a class="headerlink" href="#general-settings" title="Permalink to this headline">¶</a></h2>
-<p><cite>companions_phot</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">companions_phot</span></code></p>
 <p>The companion(s) to the host star covered in the photometric data, space separated if there are multiple. For one planet for example <cite>b</cite>; for multiple planets for example <cite>b c d</cite>. For a binary companion for example <cite>B</cite>. Could also be <cite>Hans</cite> or anything really, if you feel rebellious. (string)</p>
-<p><cite>companions_rv</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">companions_rv</span></code></p>
 <p>The companion(s) to the host star covered in the radial velocity data, space separated if there are multiple. For one planet for example <cite>b</cite>; for multiple planets for example <cite>b c d</cite>. For a binary companion for example <cite>B</cite>. Could also be <cite>Hans</cite> or anything really, if you feel rebellious. (string)</p>
-<p><cite>inst_phot</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">inst_phot</span></code></p>
 <p>The name of the photometric instrument(s), space separated if there are multiple. For example <cite>TESS</cite>. The only condition is that the data file must be named exactly the same, for example <cite>TESS.csv</cite>. (string)</p>
-<p><cite>inst_rv</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">inst_rv</span></code></p>
 <p>The name of the radial velocity instrument(s), space separated if there are multiple. For example <cite>HARPS ESPRESSO</cite>. The only condition is that the data file must be named exactly the same, for example <cite>HARPS.csv</cite> and <cite>ESPRESSO.csv</cite>. (string)</p>
 </div>
 <div class="section" id="fit-performance-settings">
 <h2>Fit performance settings<a class="headerlink" href="#fit-performance-settings" title="Permalink to this headline">¶</a></h2>
-<p><cite>multiprocess</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">multiprocess</span></code></p>
 <p>Do you want to run on multiple cores (<cite>True</cite> or <cite>False</cite>)</p>
-<p><cite>multiprocess_cores</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">multiprocess_cores</span></code></p>
 <p>On how many cores do you want to run (integer)</p>
-<p><cite>fast_fit</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">fast_fit</span></code></p>
 <p>Do you want to mask out the out-of-transit data, and run a fast fit on the transits alone (<cite>True</cite> or <cite>False</cite>)</p>
-<p><cite>fast_fit_width</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">fast_fit_width</span></code></p>
 <p>How big of a window around the transit midpoint do you want to keep (in days). For example , the default <cite>0.33333</cite> keeps a 0.33333 day window around the transit midpoint. Careful: if your initial epoch and period values are off by too much, this will cut out the wrong parts of the data! (float)</p>
-<p><cite>secondary_eclipse</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">secondary_eclipse</span></code></p>
 <p>When using fast fit, do you also want to keep a window centred around phase 0.5? For example, to keep information of the secondary eclipse in the light curve. (<cite>True</cite> or <cite>False</cite>)</p>
-<p><cite>phase_curve</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">phase_curve</span></code></p>
 <p>This is just for plotting, really. Do you want to plot zooms onto the phase curve? (<cite>True</cite> or <cite>False</cite>)</p>
-<p><cite>shift_epoch</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">shift_epoch</span></code></p>
 <p>Do you want to automatically put the epoch into the middle of the data set? This is to avoid correlations between epoch and period, which would occur if the epoch is set far off one edge of the data set. (<cite>True</cite> or <cite>False</cite>)</p>
-<p><cite>inst_for_b_epoch</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">inst_for_b_epoch</span></code></p>
 <p>Which data sets do you want to regard for shifting the epoch? For example, you might have 10 year old, sparse archival radial velocity data, and a brand-new TESS light curve. In this case, it is best to just pass <cite>TESS</cite>, because this instrument is what really pins down the epoch and period. In other cases you might want to pass <cite>all</cite>. (string)</p>
 </div>
 <div class="section" id="mcmc-settings">
 <h2>MCMC settings<a class="headerlink" href="#mcmc-settings" title="Permalink to this headline">¶</a></h2>
-<p><cite>mcmc_nwalkers</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">mcmc_nwalkers</span></code></p>
 <p>The number of MCMC walkers (integer)</p>
-<p><cite>mcmc_total_steps</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">mcmc_total_steps</span></code></p>
 <p>The total steps in the MCMC chain, including burn-in steps. (integer)</p>
-<p><cite>mcmc_burn_steps</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">mcmc_burn_steps</span></code></p>
 <p>The burn-in steps in the MCMC chain; obviously must be smaller than the total steps.(integer)</p>
-<p><cite>mcmc_thin_by</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">mcmc_thin_by</span></code></p>
 <p>Only save every n-th step in the MCMC chain (integer)</p>
 </div>
 <div class="section" id="nested-sampling-settings">
 <h2>Nested Sampling settings<a class="headerlink" href="#nested-sampling-settings" title="Permalink to this headline">¶</a></h2>
-<p><cite>ns_modus</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">ns_modus</span></code></p>
 <p>Which Nested Sampling algorithm do you want to pick? Default is <cite>dynamic</cite>, alternative is <cite>static</cite>.</p>
-<p><cite>ns_nlive</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">ns_nlive</span></code></p>
 <p>How many live points to set at the beginning of a Nested Sampling run? (integer)</p>
-<p><cite>ns_bound</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">ns_bound</span></code></p>
 <p>Use a <cite>single</cite> ellipse, or <cite>multiple</cite> ellipses? (string)</p>
 <p><cite>ns_sample</cite></p>
 <p>Which sampling method to use to update the live points? <cite>rwalk</cite> or others (string)</p>
-<p><cite>ns_tol</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">ns_tol</span></code></p>
 <p>The tolerance of the convergence criterion. (float)</p>
 </div>
 <div class="section" id="limb-darkening-law-per-object-and-instrument">
 <h2>Limb darkening law per object and instrument<a class="headerlink" href="#limb-darkening-law-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
-<p><cite>host_ld_law_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">host_ld_law_[inst]</span></code></p>
 <p>If ‘lin’ one corresponding parameter called ‘ldc_q1_inst’ has to be given in params.csv.
 If ‘quad’ two corresponding parameter called ‘ldc_q1_inst’ and ‘ldc_q2_inst’ have to be given in params.csv,
 If ‘sing’ three corresponding parameter called ‘ldc_q1_inst’; ‘ldc_q2_inst’ and ‘ldc_q3_inst’ have to be given in params.csv,</p>
 </div>
 <div class="section" id="baseline-settings-per-instrument">
 <h2>Baseline settings per instrument<a class="headerlink" href="#baseline-settings-per-instrument" title="Permalink to this headline">¶</a></h2>
-<p><cite>baseline_[key]_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">baseline_[key]_[inst]</span></code></p>
 <p>The baseline / detrending method used per instrument, choose between:</p>
 <ul class="simple">
 <li><cite>sample_offset</cite>: sample for a simple, constant offset. One corresponding parameter called ‘baseline_offset_[key]_[inst]’ has to be given in params.csv.</li>
@@ -255,47 +255,47 @@ If ‘sing’ three corresponding parameter called ‘ldc_q1_inst’; ‘ldc_q2_
 </div>
 <div class="section" id="error-settings-per-instrument">
 <h2>Error settings per instrument<a class="headerlink" href="#error-settings-per-instrument" title="Permalink to this headline">¶</a></h2>
-<p><cite>error_flux_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">error_flux_[inst]</span></code></p>
 <p>The white noise scaling per instrument: sample / hybrid.
 If ‘sample’ one corresponding parameter called ‘log_err_key_inst’ (photometry) or ‘log_jitter_key_inst’ (RV) has to be given in params.csv.</p>
 </div>
 <div class="section" id="exposure-times-for-interpolation">
 <h2>Exposure times for interpolation<a class="headerlink" href="#exposure-times-for-interpolation" title="Permalink to this headline">¶</a></h2>
-<p><cite>t_exp_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">t_exp_[inst]</span></code></p>
 <p>Need to be in the same units as the time series. If not given the observing times will not be interpolated leading to biased results</p>
 </div>
 <div class="section" id="number-of-points-for-exposure-interpolation">
 <h2>Number of points for exposure interpolation<a class="headerlink" href="#number-of-points-for-exposure-interpolation" title="Permalink to this headline">¶</a></h2>
-<p><cite>t_exp_n_int_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">t_exp_n_int_[inst]</span></code></p>
 <p>Sample as fine as possible; generally at least with a 2 min sampling for photometry, n_int=5 was found to be a good number of interpolation points for any short photometric cadence t_exp; increase to at least n_int=10 for 30 min phot. cadence the impact on RV is not as drastic and generally n_int=5 is fine enough</p>
 </div>
 <div class="section" id="number-of-spots-per-object-and-instrument">
 <h2>Number of spots per object and instrument<a class="headerlink" href="#number-of-spots-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
-<p><cite>host_N_spots_[inst]</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">host_N_spots_[inst]</span></code></p>
 <p>(integer)</p>
 </div>
 <div class="section" id="number-of-flares-in-total">
 <h2>Number of flares (in total)<a class="headerlink" href="#number-of-flares-in-total" title="Permalink to this headline">¶</a></h2>
-<p><cite>N_flares</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">N_flares</span></code></p>
 <p>(integer)</p>
 </div>
 <div class="section" id="ttvs">
 <h2>TTVs<a class="headerlink" href="#ttvs" title="Permalink to this headline">¶</a></h2>
-<p><cite>fit_ttvs</cite>
+<p><code class="docutils literal notranslate"><span class="pre">fit_ttvs</span></code>
 (<cite>True</cite> or <cite>False</cite>)</p>
 </div>
 <div class="section" id="stellar-grid-per-object-and-instrument">
 <h2>Stellar grid per object and instrument<a class="headerlink" href="#stellar-grid-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
-<p>host_grid_[inst]
+<p><code class="docutils literal notranslate"><span class="pre">host_grid_[inst]</span></code>
 <cite>default</cite> / <cite>sparse</cite> / … (string)</p>
-<p>b_grid_[inst]
+<p><code class="docutils literal notranslate"><span class="pre">b_grid_[inst]</span></code>
 <cite>default</cite> / <cite>sparse</cite> / … (string)</p>
 </div>
 <div class="section" id="stellar-shape-per-object-and-instrument">
 <h2>Stellar shape per object and instrument<a class="headerlink" href="#stellar-shape-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
-<p>host_shape_[inst]
+<p><code class="docutils literal notranslate"><span class="pre">host_shape_[inst]</span></code>
 <cite>sphere</cite> / <cite>roche</cite> / … (string)</p>
-<p>b_shape_[inst]
+<p><code class="docutils literal notranslate"><span class="pre">b_shape_[inst]</span></code>
 <cite>sphere</cite> / <cite>roche</cite> / … (string)</p>
 </div>
 <div class="section" id="flux-weighted-rvs-per-object-and-instrument">
