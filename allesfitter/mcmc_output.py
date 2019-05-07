@@ -108,7 +108,8 @@ def plot_MCMC_corner(sampler):
                  labels = config.BASEMENT.fitkeys,
                  range = [0.999]*config.BASEMENT.ndim,
                  quantiles=[0.15865, 0.5, 0.84135],
-                 show_titles=True, title_kwargs={"fontsize": 14})
+                 show_titles=True, title_kwargs={"fontsize": 14},
+                 truths=config.BASEMENT.fittruths)
             
     return fig
 

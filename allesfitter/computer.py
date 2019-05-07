@@ -467,9 +467,9 @@ def get_gp(params, inst, key):
     
     #::: GP and mean (simple offset)  
     if 'baseline_gp_offset_'+key+'_'+inst in params:
-        gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst])
+        gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst], fit_mean=True)
     else:
-        gp = celerite.GP(kernel)
+        gp = celerite.GP(kernel, mean=0.)
         
         
     return gp
