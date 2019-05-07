@@ -4,4 +4,3 @@ __pychache__
 .ipynb_checkpoints
 *.egg-info
 dist
-build

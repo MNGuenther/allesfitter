@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>settings.csv &mdash; allesfitter 0.3.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="params.csv" href="the_params_file.html" />
+    <link rel="prev" title="Tutorials: Your first allesfit" href="tutorials_your_first_fit.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> allesfitter
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">settings.csv</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-settings">General settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fit-performance-settings">Fit performance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcmc-settings">MCMC settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nested-sampling-settings">Nested Sampling settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#limb-darkening-law-per-object-and-instrument">Limb darkening law per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#baseline-settings-per-instrument">Baseline settings per instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-settings-per-instrument">Error settings per instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exposure-times-for-interpolation">Exposure times for interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#number-of-points-for-exposure-interpolation">Number of points for exposure interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#number-of-spots-per-object-and-instrument">Number of spots per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#number-of-flares-in-total">Number of flares (in total)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ttvs">TTVs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stellar-grid-per-object-and-instrument">Stellar grid per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stellar-shape-per-object-and-instrument">Stellar shape per object and instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#flux-weighted-rvs-per-object-and-instrument">Flux weighted RVs per object and instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">allesfitter</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>settings.csv</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/the_settings_file.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="settings-csv">
+<h1>settings.csv<a class="headerlink" href="#settings-csv" title="Permalink to this headline">¶</a></h1>
+<p>All fields explained in the following; replace [key] with <cite>flux</cite>/<cite>rv</cite> and [inst] with the  name of your instrument (e.g. <cite>TESS</cite>/<cite>HARPS</cite>):</p>
+<div class="section" id="general-settings">
+<h2>General settings<a class="headerlink" href="#general-settings" title="Permalink to this headline">¶</a></h2>
+<p><cite>companions_phot</cite></p>
+<p>The companion(s) to the host star covered in the photometric data, space separated if there are multiple. For one planet for example <cite>b</cite>; for multiple planets for example <cite>b c d</cite>. For a binary companion for example <cite>B</cite>. Could also be <cite>Hans</cite> or anything really, if you feel rebellious. (string)</p>
+<p><cite>companions_rv</cite></p>
+<p>The companion(s) to the host star covered in the radial velocity data, space separated if there are multiple. For one planet for example <cite>b</cite>; for multiple planets for example <cite>b c d</cite>. For a binary companion for example <cite>B</cite>. Could also be <cite>Hans</cite> or anything really, if you feel rebellious. (string)</p>
+<p><cite>inst_phot</cite></p>
+<p>The name of the photometric instrument(s), space separated if there are multiple. For example <cite>TESS</cite>. The only condition is that the data file must be named exactly the same, for example <cite>TESS.csv</cite>. (string)</p>
+<p><cite>inst_rv</cite></p>
+<p>The name of the radial velocity instrument(s), space separated if there are multiple. For example <cite>HARPS ESPRESSO</cite>. The only condition is that the data file must be named exactly the same, for example <cite>HARPS.csv</cite> and <cite>ESPRESSO.csv</cite>. (string)</p>
+</div>
+<div class="section" id="fit-performance-settings">
+<h2>Fit performance settings<a class="headerlink" href="#fit-performance-settings" title="Permalink to this headline">¶</a></h2>
+<p><cite>multiprocess</cite></p>
+<p>Do you want to run on multiple cores (<cite>True</cite> or <cite>False</cite>)</p>
+<p><cite>multiprocess_cores</cite></p>
+<p>On how many cores do you want to run (integer)</p>
+<p><cite>fast_fit</cite></p>
+<p>Do you want to mask out the out-of-transit data, and run a fast fit on the transits alone (<cite>True</cite> or <cite>False</cite>)</p>
+<p><cite>fast_fit_width</cite></p>
+<p>How big of a window around the transit midpoint do you want to keep (in days). For example , the default <cite>0.33333</cite> keeps a 0.33333 day window around the transit midpoint. Careful: if your initial epoch and period values are off by too much, this will cut out the wrong parts of the data! (float)</p>
+<p><cite>secondary_eclipse</cite></p>
+<p>When using fast fit, do you also want to keep a window centred around phase 0.5? For example, to keep information of the secondary eclipse in the light curve. (<cite>True</cite> or <cite>False</cite>)</p>
+<p><cite>phase_curve</cite></p>
+<p>This is just for plotting, really. Do you want to plot zooms onto the phase curve? (<cite>True</cite> or <cite>False</cite>)</p>
+<p><cite>shift_epoch</cite></p>
+<p>Do you want to automatically put the epoch into the middle of the data set? This is to avoid correlations between epoch and period, which would occur if the epoch is set far off one edge of the data set. (<cite>True</cite> or <cite>False</cite>)</p>
+<p><cite>inst_for_b_epoch</cite></p>
+<p>Which data sets do you want to regard for shifting the epoch? For example, you might have 10 year old, sparse archival radial velocity data, and a brand-new TESS light curve. In this case, it is best to just pass <cite>TESS</cite>, because this instrument is what really pins down the epoch and period. In other cases you might want to pass <cite>all</cite>. (string)</p>
+</div>
+<div class="section" id="mcmc-settings">
+<h2>MCMC settings<a class="headerlink" href="#mcmc-settings" title="Permalink to this headline">¶</a></h2>
+<p><cite>mcmc_nwalkers</cite></p>
+<p>The number of MCMC walkers (integer)</p>
+<p><cite>mcmc_total_steps</cite></p>
+<p>The total steps in the MCMC chain, including burn-in steps. (integer)</p>
+<p><cite>mcmc_burn_steps</cite></p>
+<p>The burn-in steps in the MCMC chain; obviously must be smaller than the total steps.(integer)</p>
+<p><cite>mcmc_thin_by</cite></p>
+<p>Only save every n-th step in the MCMC chain (integer)</p>
+</div>
+<div class="section" id="nested-sampling-settings">
+<h2>Nested Sampling settings<a class="headerlink" href="#nested-sampling-settings" title="Permalink to this headline">¶</a></h2>
+<p><cite>ns_modus</cite></p>
+<p>Which Nested Sampling algorithm do you want to pick? Default is <cite>dynamic</cite>, alternative is <cite>static</cite>.</p>
+<p><cite>ns_nlive</cite></p>
+<p>How many live points to set at the beginning of a Nested Sampling run? (integer)</p>
+<p><cite>ns_bound</cite></p>
+<p>Use a <cite>single</cite> ellipse, or <cite>multiple</cite> ellipses? (string)</p>
+<p><cite>ns_sample</cite></p>
+<p>Which sampling method to use to update the live points? <cite>rwalk</cite> or others (string)</p>
+<p><cite>ns_tol</cite></p>
+<p>The tolerance of the convergence criterion. (float)</p>
+</div>
+<div class="section" id="limb-darkening-law-per-object-and-instrument">
+<h2>Limb darkening law per object and instrument<a class="headerlink" href="#limb-darkening-law-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
+<p><cite>host_ld_law_[inst]</cite></p>
+<p>If ‘lin’ one corresponding parameter called ‘ldc_q1_inst’ has to be given in params.csv.
+If ‘quad’ two corresponding parameter called ‘ldc_q1_inst’ and ‘ldc_q2_inst’ have to be given in params.csv,
+If ‘sing’ three corresponding parameter called ‘ldc_q1_inst’; ‘ldc_q2_inst’ and ‘ldc_q3_inst’ have to be given in params.csv,</p>
+</div>
+<div class="section" id="baseline-settings-per-instrument">
+<h2>Baseline settings per instrument<a class="headerlink" href="#baseline-settings-per-instrument" title="Permalink to this headline">¶</a></h2>
+<p><cite>baseline_[key]_[inst]</cite></p>
+<p>The baseline / detrending method used per instrument, choose between:</p>
+<ul class="simple">
+<li><cite>sample_offset</cite>: sample for a simple, constant offset. One corresponding parameter called ‘baseline_offset_[key]_[inst]’ has to be given in params.csv.</li>
+<li><cite>sample_linear</cite>: sample for a linear slope. Two corresponding parameters called ‘baseline_offset_[key]_[inst]’ and ‘baseline_slope_[key]_[inst]’ have to be given in params.csv.</li>
+<li><cite>sample_GP_real</cite>:</li>
+<li><cite>sample_GP_complex</cite>:</li>
+<li><cite>sample_GP_Matern32</cite>: sample for the parameters of a Gaussian Process with a Matern 3/2 kernel. At least two corresponding parameters called ‘baseline_gp_matern32_lnsigma_[key]_[inst]’ (the characteristic amplitude of the GP) and ‘baseline_gp_matern32_lnrho_[key]_[inst’ (the characteristic length scale of the GP) have to be given in params.csv.</li>
+<li><cite>sample_GP_SHO</cite>:</li>
+<li><cite>hybrid_offset</cite>:</li>
+<li><cite>hybrid_poly_1</cite>:</li>
+<li><cite>hybrid_poly_2</cite>:</li>
+<li><cite>hybrid_poly_3</cite>:</li>
+<li><cite>hybrid_poly_4</cite>:</li>
+<li><cite>hybrid_spline</cite>:</li>
+<li><cite>hybrid_GP</cite>: do not use this.</li>
+</ul>
+</div>
+<div class="section" id="error-settings-per-instrument">
+<h2>Error settings per instrument<a class="headerlink" href="#error-settings-per-instrument" title="Permalink to this headline">¶</a></h2>
+<p><cite>error_flux_[inst]</cite></p>
+<p>The white noise scaling per instrument: sample / hybrid.
+If ‘sample’ one corresponding parameter called ‘log_err_key_inst’ (photometry) or ‘log_jitter_key_inst’ (RV) has to be given in params.csv.</p>
+</div>
+<div class="section" id="exposure-times-for-interpolation">
+<h2>Exposure times for interpolation<a class="headerlink" href="#exposure-times-for-interpolation" title="Permalink to this headline">¶</a></h2>
+<p><cite>t_exp_[inst]</cite></p>
+<p>Need to be in the same units as the time series. If not given the observing times will not be interpolated leading to biased results</p>
+</div>
+<div class="section" id="number-of-points-for-exposure-interpolation">
+<h2>Number of points for exposure interpolation<a class="headerlink" href="#number-of-points-for-exposure-interpolation" title="Permalink to this headline">¶</a></h2>
+<p><cite>t_exp_n_int_[inst]</cite></p>
+<p>Sample as fine as possible; generally at least with a 2 min sampling for photometry, n_int=5 was found to be a good number of interpolation points for any short photometric cadence t_exp; increase to at least n_int=10 for 30 min phot. cadence the impact on RV is not as drastic and generally n_int=5 is fine enough</p>
+</div>
+<div class="section" id="number-of-spots-per-object-and-instrument">
+<h2>Number of spots per object and instrument<a class="headerlink" href="#number-of-spots-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
+<p><cite>host_N_spots_[inst]</cite></p>
+<p>(integer)</p>
+</div>
+<div class="section" id="number-of-flares-in-total">
+<h2>Number of flares (in total)<a class="headerlink" href="#number-of-flares-in-total" title="Permalink to this headline">¶</a></h2>
+<p><cite>N_flares</cite></p>
+<p>(integer)</p>
+</div>
+<div class="section" id="ttvs">
+<h2>TTVs<a class="headerlink" href="#ttvs" title="Permalink to this headline">¶</a></h2>
+<p><cite>fit_ttvs</cite>
+(<cite>True</cite> or <cite>False</cite>)</p>
+</div>
+<div class="section" id="stellar-grid-per-object-and-instrument">
+<h2>Stellar grid per object and instrument<a class="headerlink" href="#stellar-grid-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
+<p>host_grid_[inst]
+<cite>default</cite> / <cite>sparse</cite> / … (string)</p>
+<p>b_grid_[inst]
+<cite>default</cite> / <cite>sparse</cite> / … (string)</p>
+</div>
+<div class="section" id="stellar-shape-per-object-and-instrument">
+<h2>Stellar shape per object and instrument<a class="headerlink" href="#stellar-shape-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
+<p>host_shape_[inst]
+<cite>sphere</cite> / <cite>roche</cite> / … (string)</p>
+<p>b_shape_[inst]
+<cite>sphere</cite> / <cite>roche</cite> / … (string)</p>
+</div>
+<div class="section" id="flux-weighted-rvs-per-object-and-instrument">
+<h2>Flux weighted RVs per object and instrument<a class="headerlink" href="#flux-weighted-rvs-per-object-and-instrument" title="Permalink to this headline">¶</a></h2>
+<p><cite>Yes</cite> for Rossiter-McLaughlin effect</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="the_params_file.html" class="btn btn-neutral float-right" title="params.csv" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tutorials_your_first_fit.html" class="btn btn-neutral" title="Tutorials: Your first allesfit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Maximilian N. Guenther, Tansu Daylan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
