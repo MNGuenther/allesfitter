@@ -3,4 +3,5 @@ __pychache__
 .DS_Store
 .ipynb_checkpoints
 *.egg-info
-dist
+dist/
+build/
