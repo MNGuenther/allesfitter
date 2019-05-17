@@ -41,7 +41,7 @@ except ImportError:
 #allesfitter modules
 from . import config
 from .flares.aflare import aflare1
-
+from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 
@@ -265,6 +265,11 @@ def flux_fct_full(params, inst, companion, xx=None):
                           spots_2 =     params[companion+'_spots_'+inst], 
                           verbose =     False
                           )
+        
+        #::: and here comes an ugly hack around ellc, for those who want to fit reflected light and thermal emission separately
+        if (companion+'_thermal_emission_amplitude_'+inst in params) and (params[companion+'_thermal_emission_amplitude_'+inst]>0):
+            model_flux += calc_thermal_curve(params, inst, companion, xx, t_exp, n_int)
+            
     else:
         model_flux = np.ones_like(xx)
     
@@ -275,6 +280,7 @@ def flux_fct_full(params, inst, companion, xx=None):
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
     
     return model_flux
+
 
 
 
@@ -355,6 +361,11 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
                                   spots_2 =     params[companion+'_spots_'+inst], 
                                   verbose =     False
                                   )
+                
+                #::: and here comes an ugly hack around ellc, for those who want to fit reflected light and thermal emission separately
+                if (companion+'_thermal_emission_amplitude_'+inst in params) and (params[companion+'_thermal_emission_amplitude_'+inst]>0):
+                    model_flux += calc_thermal_curve(params, inst, companion, xx, t_exp, n_int)
+                    
             else:
                 model_flux_piecewise = np.ones_like(xx)
                     
@@ -370,7 +381,172 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
     return model_flux     
     
     
+
+#::: and here comes an ugly hack around ellc, for those who want to fit reflected light (i.e. geometric albedo) and thermal emission separately
+def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
+
+    #::: a shift in the phase curve
+    if (companion+'_thermal_emission_timeshift_'+inst in params):
+        xx_shifted = xx - params[companion+'_thermal_emission_timeshift_'+inst]
     
+    
+    #::: the thermal curve evaluated at the requested time values (arbitrary scaling)
+    occultation = ellc.lc( 
+                      t_obs =       xx, 
+                      radius_1 =    params[companion+'_radius_1'], 
+                      radius_2 =    params[companion+'_radius_2'], 
+                      sbratio =     1e12, 
+                      incl =        params[companion+'_incl'], 
+                      light_3 =     params['dil_'+inst],
+                      t_zero =      params[companion+'_epoch'],
+                      period =      params[companion+'_period'],
+                      a =           params[companion+'_a'],
+                      q =           params[companion+'_q'],
+                      f_c =         params[companion+'_f_c'],
+                      f_s =         params[companion+'_f_s'],
+                      ldc_1 =       params['host_ldc_'+inst],
+                      ldc_2 =       params[companion+'_ldc_'+inst],
+                      gdc_1 =       0,
+                      gdc_2 =       0,
+                      didt =        params['didt_'+inst], 
+                      domdt =       params['domdt_'+inst], 
+                      rotfac_1 =    params['host_rotfac_'+inst], 
+                      rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                      hf_1 =        params['host_hf_'+inst], #1.5, 
+                      hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                      bfac_1 =      0,
+                      bfac_2 =      0, 
+                      heat_1 =      0,
+                      heat_2 =      0,
+                      lambda_1 =    params['host_lambda_'+inst], 
+                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      vsini_1 =     params['host_vsini_'+inst],
+                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      t_exp =       t_exp,
+                      n_int =       n_int,
+                      grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                      grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                      ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                      ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                      shape_1 =     'sphere',
+                      shape_2 =     'sphere',
+                      spots_1 =     None, 
+                      spots_2 =     None, 
+                      verbose =     False
+                      )
+    
+    #::: the thermal curve evaluated at the requested time values (arbitrary scaling)
+    thermal_curve = ellc.lc( 
+                      t_obs =       xx_shifted, 
+                      radius_1 =    params[companion+'_radius_1'], 
+                      radius_2 =    params[companion+'_radius_2'], 
+                      sbratio =     0, 
+                      incl =        params[companion+'_incl'], 
+                      light_3 =     params['dil_'+inst],
+                      t_zero =      params[companion+'_epoch'],
+                      period =      params[companion+'_period'],
+                      a =           params[companion+'_a'],
+                      q =           params[companion+'_q'],
+                      f_c =         params[companion+'_f_c'],
+                      f_s =         params[companion+'_f_s'],
+                      ldc_1 =       params['host_ldc_'+inst],
+                      ldc_2 =       params[companion+'_ldc_'+inst],
+                      gdc_1 =       0,
+                      gdc_2 =       0,
+                      didt =        params['didt_'+inst], 
+                      domdt =       params['domdt_'+inst], 
+                      rotfac_1 =    params['host_rotfac_'+inst], 
+                      rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                      hf_1 =        params['host_hf_'+inst], #1.5, 
+                      hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                      bfac_1 =      0,
+                      bfac_2 =      0, 
+                      heat_1 =      0,
+                      heat_2 =      0.1,
+                      lambda_1 =    params['host_lambda_'+inst], 
+                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      vsini_1 =     params['host_vsini_'+inst],
+                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      t_exp =       t_exp,
+                      n_int =       n_int,
+                      grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                      grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                      ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                      ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                      shape_1 =     'sphere',
+                      shape_2 =     'sphere',
+                      spots_1 =     None, 
+                      spots_2 =     None, 
+                      verbose =     False
+                      )
+    
+    #::: a finely sampled thermal curve (arbitray scaling; fine sampling to get the maximum)
+    thermal_curve_fine = ellc.lc(
+                      t_obs =       np.linspace(params[companion+'_epoch'], params[companion+'_epoch']+params[companion+'_period'], 1000), 
+                      radius_1 =    params[companion+'_radius_1'], 
+                      radius_2 =    params[companion+'_radius_2'], 
+                      sbratio =     0,
+                      incl =        params[companion+'_incl'], 
+                      light_3 =     params['dil_'+inst],
+                      t_zero =      params[companion+'_epoch'],
+                      period =      params[companion+'_period'],
+                      a =           params[companion+'_a'],
+                      q =           params[companion+'_q'],
+                      f_c =         params[companion+'_f_c'],
+                      f_s =         params[companion+'_f_s'],
+                      ldc_1 =       params['host_ldc_'+inst],
+                      ldc_2 =       params[companion+'_ldc_'+inst],
+                      gdc_1 =       0,
+                      gdc_2 =       0,
+                      didt =        params['didt_'+inst], 
+                      domdt =       params['domdt_'+inst], 
+                      rotfac_1 =    params['host_rotfac_'+inst], 
+                      rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                      hf_1 =        params['host_hf_'+inst], #1.5, 
+                      hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                      bfac_1 =      0,
+                      bfac_2 =      0, 
+                      heat_1 =      0,
+                      heat_2 =      0.1,
+                      lambda_1 =    params['host_lambda_'+inst], 
+                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      vsini_1 =     params['host_vsini_'+inst],
+                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      t_exp =       t_exp,
+                      n_int =       n_int,
+                      grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                      grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                      ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                      ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                      shape_1 =     'sphere',
+                      shape_2 =     'sphere',
+                      spots_1 =     None, 
+                      spots_2 =     None, 
+                      verbose =     False
+                      )
+    
+#    import matplotlib.pyplot as plt
+#    
+#    plt.figure()
+#    plt.plot(xx_shifted, occultation)
+#    
+#    plt.figure()
+#    plt.plot(xx_shifted, thermal_curve)
+    
+    #::: now scale the thermal curve
+    thermal_curve[ thermal_curve<1. ] = 1.
+    thermal_curve -= 1.
+    thermal_curve *= occultation
+    thermal_curve /= np.max(thermal_curve_fine-1) #scaled from 0 to 1
+    thermal_curve *= params[companion+'_thermal_emission_amplitude_'+inst]
+    
+    #::: cosine approximation
+#            phi = calc_phase(xx_shifted, params[companion+'_period'], params[companion+'_epoch'])
+#            thermal_curve += params[companion+'_thermal_emission_'+inst] * (0.5-0.5*np.cos(phi*2*np.pi))
+    
+    return thermal_curve
+
+
     
 
 ###############################################################################
