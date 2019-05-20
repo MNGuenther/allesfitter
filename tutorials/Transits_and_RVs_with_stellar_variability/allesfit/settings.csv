@@ -1,0 +1,45 @@
+#name,value
+###############################################################################,
+# General settings,
+###############################################################################,
+companions_phot,b
+companions_rv,b
+inst_phot,Leonardo Michelangelo
+inst_rv,Donatello Raphael
+fast_fit,True
+multiprocess,True
+multiprocess_cores,all
+###############################################################################,
+# MCMC settings,
+###############################################################################,
+mcmc_nwalkers,100
+mcmc_total_steps,3000
+mcmc_burn_steps,2000
+mcmc_thin_by,10
+###############################################################################,
+# Limb darkening law per object and instrument,
+###############################################################################,
+host_ld_law_Leonardo,quad
+host_ld_law_Michelangelo,quad
+###############################################################################,
+# Grid,
+###############################################################################,
+host_grid_Leonardo,very_sparse
+host_grid_Michelangelo,very_sparse
+host_grid_Donatello,very_sparse
+host_grid_Raphael,very_sparse
+b_grid_Leonardo,very_sparse
+b_grid_Michelangelo,very_sparse
+b_grid_Donatello,very_sparse
+b_grid_Raphael,very_sparse
+###############################################################################,
+# Baseline settings per instrument,
+###############################################################################,
+baseline_flux_Leonardo,sample_GP_Matern32
+baseline_flux_Michelangelo,sample_linear
+baseline_rv_Donatello,sample_offset
+baseline_rv_Raphael,sample_offset
+###############################################################################,
+# Stellar variability,
+###############################################################################,
+stellar_var_rv,sample_GP_SHO

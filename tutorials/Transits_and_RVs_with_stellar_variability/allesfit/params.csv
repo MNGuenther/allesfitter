@@ -1,0 +1,29 @@
+#name,value,fit,bounds,label,unit,coupled_with,truth
+#planet b astrophysical params,,,,,,,
+b_rsuma,0.11,1,uniform 0 1,$(R_\star + R_b) / a_b$,,,0.11
+b_rr,0.1,1,uniform 0 1,$R_b / R_\star$,,,0.1
+b_cosi,0.01745,1,uniform 0 1,$\cos{i_b}$,,,0.01745
+b_epoch,1.1,1,uniform 1.08 1.12,$T_{0;b}$,$\mathrm{BJD}$,,1.1
+b_period,3.4,1,uniform 3.38 3.42,$P_b$,$\mathrm{d}$,,3.4
+b_K,0.1,1,uniform 0 1,$K_b$,$\mathrm{km/s}$,,0.1
+#limb darkening coefficients per instrument,,,,,,,
+ldc_q1_Leonardo,0.3,0,uniform 0 1,$q_{1;\mathrm{Leonardo}}$,,,0.3
+ldc_q2_Leonardo,0.1,0,uniform 0 1,$q_{2;\mathrm{Leonardo}}$,,,0.1
+ldc_q1_Michelangelo,0.5,0,uniform 0 1,$q_{1;\mathrm{Michelangelo}}$,,,0.5
+ldc_q2_Michelangelo,0.4,0,uniform 0 1,$q_{2;\mathrm{Michelangelo}}$,,,0.4
+#errors (overall scaling) per instrument,,,,,,,
+log_err_flux_Leonardo,-6,1,uniform -12 0,$\log{\sigma_\mathrm{Leonardo}}$,,,NaN
+log_err_flux_Michelangelo,-6,1,uniform -12 0,$\log{\sigma_\mathrm{Michelangelo}}$,,,NaN
+log_jitter_rv_Donatello,-5,1,uniform -12 0,$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$,$\mathrm{km/s}$,,NaN
+log_jitter_rv_Raphael,-6,1,uniform -12 0,$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$,$\mathrm{km/s}$,,NaN
+#baselines per instrument,,,,,,,
+baseline_gp_offset_flux_Leonardo,0,1,uniform -12 12,offset Leonardo,,,0
+baseline_gp_matern32_lnsigma_flux_Leonardo,-2.5,1,uniform -12 12,$\ln{\sigma_\mathrm{Leonardo}}$,,,NaN
+baseline_gp_matern32_lnrho_flux_Leonardo,4,1,uniform -12 12,$\ln{\rho_\mathrm{Leonardo}}$,,,NaN
+baseline_offset_flux_Michelangelo,0,1,uniform -12 12,$\mathrm{offset; Michelangelo}$,,,0
+baseline_slope_flux_Michelangelo,0,1,uniform -12 12,$\mathrm{slope; Michelangelo}$,,,NaN
+baseline_offset_rv_Donatello,0,1,uniform -1 1,offset Donatello,$\mathrm{km/s}$,,0
+baseline_offset_rv_Raphael,10.7,1,uniform 10 11,offset Raphael,$\mathrm{km/s}$,,10.7
+stellar_var_gp_sho_lnS0_rv,-5,1,uniform -12 12,$\ln{\S_\mathrm{0;Raphael}}$,$\mathrm{km/s}$,,
+stellar_var_gp_sho_lnQ_rv,5,1,uniform -12 12,$\ln{Q_\mathrm{Raphael}}$,$\mathrm{km/s}$,,
+stellar_var_gp_sho_lnomega0_rv,-1.5,1,uniform -12 12,$\ln{\omega_\mathrm{0;Raphael}}$,$\mathrm{km/s}$,,

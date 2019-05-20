@@ -39,7 +39,7 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 
 #::: allesfitter modules
 from . import config
-from .computer import update_params, calculate_lnlike
+from .computer import update_params, calculate_lnlike_total
 from .general_output import logprint
 
 
@@ -51,17 +51,18 @@ from .general_output import logprint
 def ns_lnlike(theta):
     
     params = update_params(theta)
+    lnlike = calculate_lnlike_total(params)
     
-    lnlike = 0
-    
-    for inst in config.BASEMENT.settings['inst_phot']:
-        lnlike += calculate_lnlike(params, inst, 'flux')
-    
-    for inst in config.BASEMENT.settings['inst_rv']:
-        lnlike += calculate_lnlike(params, inst, 'rv')
-        
-    if np.isnan(lnlike) or np.isinf(lnlike):
-        lnlike = -np.inf
+#    lnlike = 0
+#    
+#    for inst in config.BASEMENT.settings['inst_phot']:
+#        lnlike += calculate_lnlike(params, inst, 'flux')
+#    
+#    for inst in config.BASEMENT.settings['inst_rv']:
+#        lnlike += calculate_lnlike(params, inst, 'rv')
+#        
+#    if np.isnan(lnlike) or np.isinf(lnlike):
+#        lnlike = -np.inf
         
     return lnlike
 

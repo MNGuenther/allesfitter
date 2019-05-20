@@ -47,6 +47,12 @@ from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 
+
+GPs = ['sample_GP_real', 'sample_GP_complex', 'sample_GP_Matern32', 'sample_GP_SHO']
+
+
+
+
 ###############################################################################
 #::: convert input params into ellc params
 ###############################################################################  
@@ -185,9 +191,14 @@ def update_params(theta, phased=False):
 
 
 
+
 ###############################################################################
 #::: flux fct
 ###############################################################################
+    
+#==============================================================================
+#::: flux fct: main
+#==============================================================================
 def flux_fct(params, inst, companion, xx=None):
     '''
     ! params must be updated via update_params() before calling this function !
@@ -205,6 +216,9 @@ def flux_fct(params, inst, companion, xx=None):
 
 
 
+#==============================================================================
+#::: flux fct: full curve (no TTVs)
+#==============================================================================
 def flux_fct_full(params, inst, companion, xx=None):
     '''
     ! params must be updated via update_params() before calling this function !
@@ -283,7 +297,9 @@ def flux_fct_full(params, inst, companion, xx=None):
 
 
 
-
+#==============================================================================
+#::: flux fct: piecewise (for TTVs)
+#==============================================================================
 def flux_fct_piecewise(params, inst, companion, xx=None):
     '''
     Go through the time series transit by transit to fit for TTVs
@@ -380,8 +396,11 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
     
     return model_flux     
     
-    
 
+
+#==============================================================================
+#::: flux fct: thermal curve hack around ellc
+#==============================================================================
 #::: and here comes an ugly hack around ellc, for those who want to fit reflected light (i.e. geometric albedo) and thermal emission separately
 def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
 
@@ -613,44 +632,6 @@ def rv_fct(params, inst, companion, xx=None):
 
 
 
-###############################################################################
-#::: get GP kernel
-############################################################################### 
-def get_gp(params, inst, key):
-    
-    #::: kernel
-    if config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_real':
-        kernel = terms.RealTerm(log_a=params['baseline_gp_real_lna_'+key+'_'+inst], 
-                                log_c=params['baseline_gp_real_lnc_'+key+'_'+inst])
-        
-    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_complex':
-        kernel = terms.ComplexTerm(log_a=params['baseline_gp_complex_lna_'+key+'_'+inst], 
-                                log_b=params['baseline_gp_complex_lnb_'+key+'_'+inst], 
-                                log_c=params['baseline_gp_complex_lnc_'+key+'_'+inst], 
-                                log_d=params['baseline_gp_complex_lnd_'+key+'_'+inst])
-                  
-    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_Matern32':
-        kernel = terms.Matern32Term(log_sigma=params['baseline_gp_matern32_lnsigma_'+key+'_'+inst], 
-                                    log_rho=params['baseline_gp_matern32_lnrho_'+key+'_'+inst])
-        
-    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_SHO':
-        kernel = terms.SHOTerm(log_S0=params['baseline_gp_sho_lnS0_'+key+'_'+inst], 
-                               log_Q=params['baseline_gp_sho_lnQ_'+key+'_'+inst],
-                               log_omega0=params['baseline_gp_sho_lnomega0_'+key+'_'+inst])                               
-        
-    else: 
-        KeyError('GP settings and params do not match.')
-    
-    #::: GP and mean (simple offset)  
-    if 'baseline_gp_offset_'+key+'_'+inst in params:
-        gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst], fit_mean=True)
-    else:
-        gp = celerite.GP(kernel, mean=0.)
-        
-        
-    return gp
-
-
 
 ###############################################################################
 #::: calculate external priors (e.g. stellar density)
@@ -675,19 +656,117 @@ def calculate_external_priors(params):
 
 
 
+
 ###############################################################################
 #::: calculate lnlike
 ###############################################################################  
+
+#==============================================================================
+#::: calculate all instruments linked (for stellar variability)
+#==============================================================================
+def calculate_lnlike_total(params):
+    
+    lnlike_total = 0
+    
+    
+    #--------------------------------------------------------------------------  
+    #::: for all instruments
+    #--------------------------------------------------------------------------   
+    for key, key2 in zip(['flux','rv'], ['inst_phot', 'inst_rv']):      
+                    
+        #--------------------------------------------------------------------------       
+        #::: CASE 3) and 4)
+        #-------------------------------------------------------------------------- 
+        if ( config.BASEMENT.settings['stellar_var_'+key] == 'none' ):
+            for inst in config.BASEMENT.settings[key2]:
+                lnlike_total += calculate_lnlike(params, inst, key)
+                
+                if np.isnan(lnlike_total) or np.isinf(lnlike_total):
+                    return -np.inf
+                
+                
+        #--------------------------------------------------------------------------       
+        #::: CASE 1) 
+        #::: if stellar variability GP and
+        #::: baseline GP,
+        #::: raise an error
+        #--------------------------------------------------------------------------  
+        elif ( config.BASEMENT.settings['stellar_var_'+key] in GPs )\
+           and any( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs for inst in config.BASEMENT.settings[key2]] ):
+            raise KeyError('Currently you cannot use a GP for stellar variability and a GP for the baseline at the same time.')
+
+                    
+        #--------------------------------------------------------------------------       
+        #::: CASE 2) 
+        #::: if stellar variability GP and
+        #::: no baseline GP,
+        #::: do stuff
+        #-------------------------------------------------------------------------- 
+        else:
+            y, yerr_w = [], []
+            for inst in config.BASEMENT.settings[key2]:
+                
+                #::: calculate the model. if there are any NaN, return -np.inf
+                model_i = calculate_model(params, inst, key)
+                if any(np.isnan(model_i)) or any(np.isinf(model_i)):
+                    return -np.inf
+                
+                yerr_w_i = calculate_yerr_w(params, inst, key)
+                baseline_i = calculate_baseline(params, inst, key, model=model_i, yerr_w=yerr_w_i)
+                residuals_i = config.BASEMENT.data[inst][key] - model_i - baseline_i
+
+                y += list(residuals_i)
+                yerr_w += list(yerr_w_i)
+                
+            ind_sort = config.BASEMENT.data[key2]['ind_sort']
+            x = config.BASEMENT.data[key2]['time']
+            y = np.array(y)[ind_sort]
+            yerr = np.array(yerr_w)[ind_sort]  
+            
+            gp = stellar_var_get_gp(params, key)
+            try:
+                gp.compute(x, yerr=yerr)
+                lnlike_total += gp.log_likelihood(y)
+            except:
+                return -np.inf
+            
+    #--------------------------------------------------------------------------  
+    #::: add external priors
+    #--------------------------------------------------------------------------  
+    lnprior_external = calculate_external_priors(params)   
+    lnlike_total += lnprior_external       
+    
+    
+    #--------------------------------------------------------------------------  
+    #::: catch any issues
+    #--------------------------------------------------------------------------  
+    if np.isnan(lnlike_total) or np.isinf(lnlike_total):
+        return -np.inf
+        
+        
+    return lnlike_total
+
+
+    
+#==============================================================================
+#::: calculate all instruments separately 
+#::: (only possible if no stellar variability GP is involved)
+#==============================================================================
 def calculate_lnlike(params, inst, key):
         
     #::: calculate the model. if there are any NaN, return -np.inf
     model = calculate_model(params, inst, key)
     if any(np.isnan(model)) or any(np.isinf(model)):
         return -np.inf
-    
-        
-    #::: if no GP baseline sampling, then calculate lnlike per hand
-    if config.BASEMENT.settings['baseline_'+key+'_'+inst] not in ['sample_GP_real', 'sample_GP_complex', 'sample_GP_Matern32', 'sample_GP_SHO']:
+            
+    #--------------------------------------------------------------------------       
+    #::: CASE 3) 
+    #::: if no stellar variability GP and
+    #::: no baseline GP,
+    #::: then calculate lnlike manually
+    #--------------------------------------------------------------------------  
+    elif ( config.BASEMENT.settings['stellar_var_'+key] not in GPs ) \
+        and (config.BASEMENT.settings['baseline_'+key+'_'+inst] not in GPs ):
         
         yerr_w = calculate_yerr_w(params, inst, key)
         baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
@@ -701,32 +780,30 @@ def calculate_lnlike(params, inst, key):
             raise ValueError('There are NaN in the residuals. Something horrible happened.')
     
     
-    #::: if GP baseline sampling, use the GP lnlike instead
-    #::: this is MUCH MUCH MUUUUUCH FASTER than gp.predict
+    #--------------------------------------------------------------------------  
+    #::: CASE 4)
+    #::: if no stellar variability GP and
+    #::: baseline GP, 
+    #::: then DO NOT calculate the residuals via flux - gp.predict
+    #::: but use gp.log_likelihood instead
+    #--------------------------------------------------------------------------  
     else:
         x = config.BASEMENT.data[inst]['time']
         y = config.BASEMENT.data[inst][key] - model
         yerr_w = calculate_yerr_w(params, inst, key)
-        
-#        kernel = terms.Matern32Term(log_sigma=params['baseline_gp1_'+key+'_'+inst], 
-#                                    log_rho=params['baseline_gp2_'+key+'_'+inst])
-        
-        gp = get_gp(params, inst, key)
-    
+        gp = baseline_get_gp(params, inst, key)
         try:
             gp.compute(x, yerr=yerr_w)
             lnlike = gp.log_likelihood(y)
-            
         except:
             lnlike = -np.inf
         
-    
-    lnprior_external = calculate_external_priors(params)
-    
-    return lnlike + lnprior_external
+        
+    return lnlike
     
     
     
+
 ###############################################################################
 #::: calculate yerr
 ############################################################################### 
@@ -763,6 +840,7 @@ def calculate_residuals(params, inst, key):
 
 
     
+
 ###############################################################################
 #::: calculate model
 ###############################################################################      
@@ -790,9 +868,14 @@ def calculate_model(params, inst, key, xx=None):
 
 
 
+
 ###############################################################################
 #::: calculate baseline
-###############################################################################   
+############################################################################### 
+        
+#==============================================================================
+#::: calculate baseline: main
+#==============================================================================
 def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
 
     '''
@@ -844,9 +927,9 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
 
 
 
-###########################################################################
-#::: hybrid_offset (like Gillon+2012, but only remove mean offset)
-###########################################################################
+#==============================================================================
+#::: calculate baseline: hybrid_offset (like Gillon+2012, but only remove mean offset)
+#==============================================================================
 def baseline_hybrid_offset(*args):
     x, y, yerr_w, xx, params, inst, key = args
     yerr_weights = yerr_w/np.nanmean(yerr_w)
@@ -856,9 +939,9 @@ def baseline_hybrid_offset(*args):
  
 
     
-###########################################################################
-#::: hybrid_poly (like Gillon+2012)
-###########################################################################   
+#==============================================================================
+#::: calculate baseline: hybrid_poly (like Gillon+2012)
+#==============================================================================   
 def baseline_hybrid_poly(*args):
     x, y, yerr_w, xx, params, inst, key = args
     polyorder = int(config.BASEMENT.settings['baseline_'+key+'_'+inst][-1])
@@ -876,9 +959,9 @@ def baseline_hybrid_poly(*args):
 
 
 
-###########################################################################
-#::: hybrid_spline (like Gillon+2012, but with a cubic spline)
-###########################################################################
+#==============================================================================
+#::: calculate baseline: hybrid_spline (like Gillon+2012, but with a cubic spline)
+#==============================================================================
 def baseline_hybrid_spline(*args):
     x, y, yerr_w, xx, params, inst, key = args
     yerr_weights = yerr_w/np.nanmean(yerr_w)
@@ -897,9 +980,9 @@ def baseline_hybrid_spline(*args):
 
      
     
-###########################################################################
-#::: hybrid_GP (like Gillon+2012, but with a GP)
-###########################################################################           
+#==============================================================================
+#::: calculate baseline: hybrid_GP (like Gillon+2012, but with a GP)
+#==============================================================================           
 def baseline_hybrid_GP(*args):
     x, y, yerr_w, xx, params, inst, key = args
     
@@ -927,8 +1010,8 @@ def baseline_hybrid_GP(*args):
 
 
 
-###########################################################################
-#::: sample_offset
+#==============================================================================
+#::: calculate baseline: sample_offset
 ########################################################################### 
 def baseline_sample_offset(*args):
     x, y, yerr_w, xx, params, inst, key = args
@@ -936,23 +1019,22 @@ def baseline_sample_offset(*args):
         
 
 
-###########################################################################
-#::: sample_linear
-########################################################################### 
+#==============================================================================
+#::: calculate baseline: sample_linear
+#============================================================================== 
 def baseline_sample_linear(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    xx_norm = (xx-xx[0]) / (xx[-1]-xx[0])
-#    xx_norm = (xx-2453000.) / 5000.
+    xx_norm = (xx-x[0]) / (x[-1]-x[0])
     return params['baseline_slope_'+key+'_'+inst] * xx_norm + params['baseline_offset_'+key+'_'+inst]
         
     
     
-###########################################################################
-#::: sample_GP
-########################################################################### 
+#==============================================================================
+#::: calculate baseline: sample_GP
+#============================================================================== 
 def baseline_sample_GP(*args):
     x, y, yerr_w, xx, params, inst, key = args
-    gp = get_gp(params, inst, key)
+    gp = baseline_get_gp(params, inst, key)
     gp.compute(x, yerr=yerr_w)
     baseline = gp_predict_in_chunks(gp, y, xx)[0]
 #    baseline = gp.predict(y, xx)[0]
@@ -970,18 +1052,57 @@ def baseline_sample_GP(*args):
 
 
 
-###########################################################################
-#::: none
-########################################################################### 
+#==============================================================================
+#::: calculate baseline: get GP kernel
+#============================================================================== 
+def baseline_get_gp(params, inst, key):
+    
+    #::: kernel
+    if config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_real':
+        kernel = terms.RealTerm(log_a=params['baseline_gp_real_lna_'+key+'_'+inst], 
+                                log_c=params['baseline_gp_real_lnc_'+key+'_'+inst])
+        
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_complex':
+        kernel = terms.ComplexTerm(log_a=params['baseline_gp_complex_lna_'+key+'_'+inst], 
+                                log_b=params['baseline_gp_complex_lnb_'+key+'_'+inst], 
+                                log_c=params['baseline_gp_complex_lnc_'+key+'_'+inst], 
+                                log_d=params['baseline_gp_complex_lnd_'+key+'_'+inst])
+                  
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_Matern32':
+        kernel = terms.Matern32Term(log_sigma=params['baseline_gp_matern32_lnsigma_'+key+'_'+inst], 
+                                    log_rho=params['baseline_gp_matern32_lnrho_'+key+'_'+inst])
+        
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst] == 'sample_GP_SHO':
+        kernel = terms.SHOTerm(log_S0=params['baseline_gp_sho_lnS0_'+key+'_'+inst], 
+                               log_Q=params['baseline_gp_sho_lnQ_'+key+'_'+inst],
+                               log_omega0=params['baseline_gp_sho_lnomega0_'+key+'_'+inst])                               
+        
+    else: 
+        KeyError('GP settings and params do not match.')
+    
+    #::: GP and mean (simple offset)  
+    if 'baseline_gp_offset_'+key+'_'+inst in params:
+        gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst], fit_mean=True)
+    else:
+        gp = celerite.GP(kernel, mean=0.)
+        
+        
+    return gp
+
+
+
+#==============================================================================
+#::: calculate baseline: none
+#============================================================================== 
 def baseline_none(*args):
     x, y, yerr_w, xx, params, inst, key = args
     return np.zeros_like(xx)
 
 
 
-###########################################################################
-#::: raise error
-###########################################################################   
+#==============================================================================
+#::: calculate baseline: raise error
+#==============================================================================
 def baseline_raise_error(*args):
     x, y, yerr_w, xx, params, inst, key = args
     raise ValueError('Setting '+'baseline_'+key+'_'+inst+' has to be sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_spline / hybrid_GP, '+\
@@ -989,9 +1110,9 @@ def baseline_raise_error(*args):
 
 
 
-###########################################################################
-#::: baseline_switch
-###########################################################################    
+#==============================================================================
+#::: calculate baseline: baseline_switch
+#==============================================================================    
 baseline_switch = \
     {
     'hybrid_offset' : baseline_hybrid_offset,
@@ -1028,6 +1149,133 @@ def gp_predict_in_chunks(gp, y, x, chunk_size=5000):
         var += list(v)
     return np.array(mu), np.array(var)
 
+
+
+
+###############################################################################
+#::: Stellar Variability
+############################################################################### 
+            
+#==============================================================================
+#::: Stellar Variability: main
+#==============================================================================
+def calculate_stellar_var(params, key, xx=None):
+
+    if key=='flux':
+        key2 = 'inst_phot'
+    elif key=='rv':
+        key2 = 'inst_rv'
+    else: 
+        KeyError('Kaput.')
+    
+    y,yerr_w = [],[]
+    for inst in config.BASEMENT.settings[key2]:
+        model = calculate_model(params, inst, key)
+        baseline = calculate_baseline(params, inst, key, model=model)
+        residuals = config.BASEMENT.data[inst][key] - model - baseline
+        
+        y += list(residuals)
+        yerr_w += list(calculate_yerr_w(params, inst, key))
+                      
+    ind_sort = config.BASEMENT.data[key2]['ind_sort']
+    x = config.BASEMENT.data[key2]['time']
+    y = np.array(y)[ind_sort]
+    yerr_w = np.array(yerr_w)[ind_sort]  
+
+    if xx is None:  
+        xx = 1.*x
+    
+    stellar_var_method = config.BASEMENT.settings['stellar_var_'+key]
+    
+    return stellar_var_switch[stellar_var_method](x, y, yerr_w, xx, params, key)
+    
+
+
+#==============================================================================
+#::: Stellar Variability: get GP kernel
+#============================================================================== 
+def stellar_var_get_gp(params, key):
+    
+    #::: kernel
+    if config.BASEMENT.settings['stellar_var_'+key] == 'sample_GP_real':
+        kernel = terms.RealTerm(log_a=params['stellar_var_gp_real_lna_'+key], 
+                                log_c=params['stellar_var_gp_real_lnc_'+key])
+        
+    elif config.BASEMENT.settings['stellar_var_'+key] == 'sample_GP_complex':
+        kernel = terms.ComplexTerm(log_a=params['stellar_var_gp_complex_lna_'+key], 
+                                log_b=params['stellar_var_gp_complex_lnb_'+key], 
+                                log_c=params['stellar_var_gp_complex_lnc_'+key], 
+                                log_d=params['stellar_var_gp_complex_lnd_'+key])
+                  
+    elif config.BASEMENT.settings['stellar_var_'+key] == 'sample_GP_Matern32':
+        kernel = terms.Matern32Term(log_sigma=params['stellar_var_gp_matern32_lnsigma_'+key], 
+                                    log_rho=params['stellar_var_gp_matern32_lnrho_'+key])
+        
+    elif config.BASEMENT.settings['stellar_var_'+key] == 'sample_GP_SHO':
+        kernel = terms.SHOTerm(log_S0=params['stellar_var_gp_sho_lnS0_'+key], 
+                               log_Q=params['stellar_var_gp_sho_lnQ_'+key],
+                               log_omega0=params['stellar_var_gp_sho_lnomega0_'+key])                               
+        
+    else: 
+        KeyError('GP settings and params do not match.')
+    
+    #::: GP and mean (simple offset)  
+    if 'stellar_var_gp_offset_'+key in params:
+        gp = celerite.GP(kernel, mean=params['stellar_var_gp_offset_'+key], fit_mean=True)
+    else:
+        gp = celerite.GP(kernel, mean=0.)
+        
+        
+    return gp
+
+
+
+#==============================================================================
+#::: Stellar Variability: sample_GP
+#============================================================================== 
+def stellar_var_sample_GP(*args):
+    x, y, yerr_w, xx, params, key = args
+    
+    gp = stellar_var_get_gp(params, key)
+    gp.compute(x, yerr=yerr_w)
+    stellar_var = gp_predict_in_chunks(gp, y, xx)[0]
+    
+    return stellar_var
+
+
+
+#==============================================================================
+#::: Stellar Variability: sample_linear
+#============================================================================== 
+def stellar_var_sample_linear(*args):
+    x, y, yerr_w, xx, params, inst, key = args
+    xx_norm = (xx-x[0]) / (x[-1]-x[0])
+    return params['stellar_var_slope_'+key+'_'+inst] * xx_norm + params['stellar_var_offset_'+key+'_'+inst]
+        
+    
+
+#==============================================================================
+#::: Stellar Variability: none
+#============================================================================== 
+def stellar_var_none(*args):
+    x, y, yerr_w, xx, params, key = args
+    return np.zeros_like(xx)
+
+
+
+#==============================================================================
+#::: Stellar Variability: stellar_var_switch
+#==============================================================================    
+stellar_var_switch = \
+    {
+    'sample_linear'          : stellar_var_sample_linear,
+    'sample_GP_real'         : stellar_var_sample_GP, #only for plotting
+    'sample_GP_complex'      : stellar_var_sample_GP, #only for plotting   
+    'sample_GP_Matern32'     : stellar_var_sample_GP, #only for plotting
+    'sample_GP_SHO'          : stellar_var_sample_GP, #only for plotting           
+    'none'                   : stellar_var_none #only for plotting    
+    }
+    
 
 
     

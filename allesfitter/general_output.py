@@ -38,7 +38,8 @@ from . import config
 from .utils import latex_printer
 from .computer import update_params,\
                      calculate_model, rv_fct, flux_fct,\
-                     calculate_baseline, calculate_yerr_w
+                     calculate_baseline,calculate_stellar_var,\
+                     calculate_yerr_w
 from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
                      
                      
@@ -377,7 +378,13 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
             p = update_params(s)
             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, model+baseline, 'r-', alpha=alpha, zorder=12 )
+            if inst in config.BASEMENT.settings['inst_phot']:
+                baseline_plus = 1.
+            else:
+                baseline_plus = 0.
+            stellar_var = calculate_stellar_var(p, key, xx=xx) #evaluated on xx (!)
+            ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
+            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
         if timelabel=='Time_since':
             x = np.copy(xsave)
@@ -396,7 +403,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
         #::: data - baseline_median
         x = config.BASEMENT.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
-        y = config.BASEMENT.data[inst][key] - baseline_median
+        stellar_var_median = calculate_stellar_var(params_median, key, xx=x) #evaluated on x (!)
+        y = config.BASEMENT.data[inst][key] - baseline_median - stellar_var_median
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
         #::: zoom?

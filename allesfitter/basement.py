@@ -84,7 +84,8 @@ class Basement():
         if self.settings['shift_epoch']:
             self.change_epoch()
         
-        self.prepare_ttv_fit()
+        if self.settings['fit_ttvs']:  
+            self.prepare_ttv_fit()
         
         #::: external priors (e.g. stellar density)
         self.external_priors = {}
@@ -436,6 +437,14 @@ class Basement():
                     self.settings['flux_weighted_'+inst] = False
         
                 
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Stellar variability
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for key in ['flux', 'rv']:
+            if ('stellar_var_'+key not in self.settings) or (self.settings['stellar_var_'+key] is None) or (self.settings['stellar_var_'+key].lower()=='none'): 
+                self.settings['stellar_var_'+key] = 'none'
+                     
+                     
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Baselines
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -868,8 +877,37 @@ class Basement():
                           'rv':rv,
                           'white_noise_rv':rv_err
                          }
-            
-            
+        
+        #::: also save the combined time series
+        #::: for cases where all instruments are treated together
+        #::: e.g. for stellar variability GPs
+        self.data['inst_phot'] = {'time':[],'flux':[],'flux_err':[],'inst':[]}
+        for inst in self.settings['inst_phot']:
+            self.data['inst_phot']['time'] += list(self.data[inst]['time'])
+            self.data['inst_phot']['flux'] += list(self.data[inst]['flux'])
+            self.data['inst_phot']['flux_err'] += [inst]*len(self.data[inst]['time']) #errors will be sampled/derived later
+            self.data['inst_phot']['inst'] += [inst]*len(self.data[inst]['time'])
+        ind_sort = np.argsort(self.data['inst_phot']['time'])
+        self.data['inst_phot']['ind_sort'] = ind_sort
+        self.data['inst_phot']['time'] = np.array(self.data['inst_phot']['time'])[ind_sort]
+        self.data['inst_phot']['flux'] = np.array(self.data['inst_phot']['flux'])[ind_sort]
+        self.data['inst_phot']['flux_err'] = np.array(self.data['inst_phot']['flux_err'])[ind_sort]      
+        self.data['inst_phot']['inst'] = np.array(self.data['inst_phot']['inst'])[ind_sort]
+    
+        self.data['inst_rv'] = {'time':[],'rv':[],'rv_err':[],'inst':[]}
+        for inst in self.settings['inst_rv']:
+            self.data['inst_rv']['time'] += list(self.data[inst]['time'])
+            self.data['inst_rv']['rv'] += list(self.data[inst]['rv'])
+            self.data['inst_rv']['rv_err'] += list(np.nan*self.data[inst]['rv']) #errors will be sampled/derived later
+            self.data['inst_rv']['inst'] += [inst]*len(self.data[inst]['time'])
+        ind_sort = np.argsort(self.data['inst_rv']['time'])
+        self.data['inst_rv']['ind_sort'] = ind_sort
+        self.data['inst_rv']['time'] = np.array(self.data['inst_rv']['time'])[ind_sort]
+        self.data['inst_rv']['rv'] = np.array(self.data['inst_rv']['rv'])[ind_sort]
+        self.data['inst_rv']['rv_er'] = np.array(self.data['inst_rv']['rv_err'])[ind_sort]   
+        self.data['inst_rv']['inst'] = np.array(self.data['inst_rv']['inst'])[ind_sort]
+
+        
             
     ###############################################################################
     #::: change epoch

@@ -51,7 +51,7 @@ from .general_output import show_initial_guess, draw_initial_guess_samples, get_
 from .nested_sampling_output import get_ns_posterior_samples, get_ns_params, ns_output
 from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_posterior_samples
 
-from .computer import calculate_model, calculate_baseline
+from .computer import calculate_model, calculate_baseline, calculate_stellar_var
 
 from .priors import transform_priors
 from .priors.estimate_noise import estimate_noise
@@ -107,11 +107,17 @@ class allesclass():
     def get_posterior_median_baseline(self, inst, key, xx=None, model=None):
         return calculate_baseline(self.posterior_params_median, inst, key, xx=xx, model=model)
     
+    def get_posterior_median_stellar_var(self, inst, key, xx=None):
+        return calculate_stellar_var(self.posterior_params_median, key, xx=xx)
+    
     def get_initial_guess_model(self, inst, key, xx=None):
         return calculate_model(self.initial_guess_params_median, inst, key, xx=xx)
     
     def get_initial_guess_baseline(self, inst, key, xx=None, model=None):
         return calculate_baseline(self.initial_guess_params_median, inst, key, xx=xx, model=model)
+    
+    def get_initial_guess_stellar_var(self, inst, key, xx=None):
+        return calculate_stellar_var(self.initial_guess_params_median, key, xx=xx)
     
     def get_one_posterior_model(self, inst, key, xx=None, sample_id=None):
         if sample_id is None:
@@ -123,4 +129,4 @@ class allesclass():
         
 
 #::: version
-__version__ = '0.8.5'
+__version__ = '0.8.7'

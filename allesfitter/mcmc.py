@@ -30,8 +30,7 @@ warnings.filterwarnings('ignore', category=np.RankWarning)
 
 #::: allesfitter modules
 from . import config
-from .computer import update_params,\
-                      calculate_lnlike
+from .computer import update_params, calculate_lnlike_total
 from .general_output import logprint
 from .mcmc_output import print_autocorr
 
@@ -43,13 +42,18 @@ from .mcmc_output import print_autocorr
 def mcmc_lnlike(theta):
     
     params = update_params(theta)
-    lnlike = 0
+    lnlike = calculate_lnlike_total(params)
     
-    for inst in config.BASEMENT.settings['inst_phot']:
-        lnlike += calculate_lnlike(params, inst, 'flux')
-    
-    for inst in config.BASEMENT.settings['inst_rv']:
-        lnlike += calculate_lnlike(params, inst, 'rv')
+#    lnlike = 0
+#    
+#    for inst in config.BASEMENT.settings['inst_phot']:
+#        lnlike += calculate_lnlike(params, inst, 'flux')
+#    
+#    for inst in config.BASEMENT.settings['inst_rv']:
+#        lnlike += calculate_lnlike(params, inst, 'rv')
+#        
+#    if np.isnan(lnlike) or np.isinf(lnlike):
+#        lnlike = -np.inf
 
     return lnlike
 
@@ -92,11 +96,11 @@ def mcmc_lnprob(theta):
     if not np.isfinite(lp):
         return -np.inf
     else:
-        try:
-            ln = mcmc_lnlike(theta)
-            return lp + ln
-        except:
-            return -np.inf
+#        try:
+        ln = mcmc_lnlike(theta)
+        return lp + ln
+#        except:
+#            return -np.inf
         
 
 
