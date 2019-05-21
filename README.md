@@ -8,7 +8,8 @@ If you use *allesfitter* or parts of it in your work, please cite and acknowledg
 **Documentation:**
 https://allesfitter.readthedocs.io/en/latest/
 
-**Citation:** If you use *allesfitter*, please cite both the paper and the code.
+**Citation:** 
+If you use *allesfitter*, please cite both the paper and the code. Please also acknowledge all software as detailed below.
 
 **Paper**::
 
@@ -18,7 +19,7 @@ https://allesfitter.readthedocs.io/en/latest/
 
 	@MISC{2019ascl.soft03003G,
 	author = {{G{\"u}nther}, M.~N. and {Daylan}, T.},
-	title = "{allesfitter: Flexible star and exoplanet inference from photometry 		and radial velocity}",
+	title = "{allesfitter: Flexible star and exoplanet inference from photometry and radial velocity}",
 	keywords = {Software },
 	howpublished = {Astrophysics Source Code Library},
 	year = 2019,

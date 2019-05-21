@@ -12,7 +12,7 @@ If you use *allesfitter*, please cite both the paper and the code. Please also a
 
 	@MISC{2019ascl.soft03003G,
 	author = {{G{\"u}nther}, M.~N. and {Daylan}, T.},
-	title = "{allesfitter: Flexible star and exoplanet inference from photometry 		and radial velocity}",
+	title = "{allesfitter: Flexible star and exoplanet inference from photometry and radial velocity}",
 	keywords = {Software },
 	howpublished = {Astrophysics Source Code Library},
 	year = 2019,
