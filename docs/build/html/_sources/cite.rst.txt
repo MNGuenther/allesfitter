@@ -2,13 +2,41 @@
 Acknowledge & cite
 ==============================================================================
 
-If you use *allesfitter* or parts of it in your work, please cite and acknowledge all software as detailed below.
+If you use *allesfitter*, please cite both the paper and the code. Please also acknowledge all software as detailed below.
 
-**Citation:** 
-*Günther \& Daylan, in prep.* 
+**Paper**::
 
-**Acknowledgement:**
-"This work makes use of the *allesfitter* package (*Günther \& Daylan, in prep.*), which is a convenient wrapper around the packages *ellc* (Maxted 2016), *aflare1.py* (Davenport 2014), *dynesty* (https://github.com/joshspeagle/dynesty), *emcee* (Foreman-Mackey 2013) and *celerite* (Foreman-Mackey 2017). This work makes further use of the *python* programming language (Rossum 1995) and the open-source *python* packages *numpy* (van der Walt, Colbert & Varoquaux 2011), *scipy* (Jones et al. 2001), *matplotlib* (Hunter 2007), *tqdm* (doi:10.5281/zenodo.1468033) and *seaborn* (https://seaborn.pydata.org/index.html)."
+	(Günther & Daylan, in prep.)
+
+**Code**::
+
+	@MISC{2019ascl.soft03003G,
+	author = {{G{\"u}nther}, M.~N. and {Daylan}, T.},
+	title = "{allesfitter: Flexible star and exoplanet inference from photometry 		and radial velocity}",
+	keywords = {Software },
+	howpublished = {Astrophysics Source Code Library},
+	year = 2019,
+	month = mar,
+	archivePrefix = "ascl",
+	eprint = {1903.003},
+	adsurl = {http://adsabs.harvard.edu/abs/2019ascl.soft03003G},
+	adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+	}
+
+**Software acknowledgements**::
+
+	- allesfitter (Günther \& Daylan, 2019 and in prep.)
+	- ellc (Maxted 2016)
+	- aflare1.py (Davenport 2014)
+	- dynesty (Speagle 2019)
+	- emcee (Foreman-Mackey et al. 2013) 
+	- celerite (Foreman-Mackey et al. 2017). 
+	- python (Rossum 1995)
+	- numpy (van der Walt, Colbert & Varoquaux 2011)
+	- scipy (Jones et al. 2001)
+	- matplotlib (Hunter 2007)
+	- tqdm (doi:10.5281/zenodo.1468033)
+	- seaborn (https://seaborn.pydata.org/index.html)
 
 **Contributors:** 
 Maximilian N. Günther, Tansu Daylan

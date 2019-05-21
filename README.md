@@ -10,15 +10,15 @@ https://allesfitter.readthedocs.io/en/latest/
 
 **Citation:** If you use *allesfitter*, please cite both the paper and the code.
 
-Paper::
+**Paper**::
 
 	(Günther & Daylan, in prep.)
 
-Code::
+**Code**::
 
 	@MISC{2019ascl.soft03003G,
- 	author = {{G{\"u}nther}, M.~N. and {Daylan}, T.},
-	title = "{allesfitter: Flexible star and exoplanet inference from photometry 	and radial velocity}",
+	author = {{G{\"u}nther}, M.~N. and {Daylan}, T.},
+	title = "{allesfitter: Flexible star and exoplanet inference from photometry 		and radial velocity}",
 	keywords = {Software },
 	howpublished = {Astrophysics Source Code Library},
 	year = 2019,
@@ -29,8 +29,20 @@ Code::
 	adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 	}
 
-**Acknowledgement:**
-"This work makes use of the *allesfitter* package (*Günther \& Daylan, in prep.*), which is a convenient wrapper around the packages *ellc* (Maxted 2016), *aflare1.py* (Davenport 2014), *dynesty* (Speagle 2019), *emcee* (Foreman-Mackey et al. 2013) and *celerite* (Foreman-Mackey et al. 2017). This work makes further use of the *python* programming language (Rossum 1995) and the open-source *python* packages *numpy* (van der Walt, Colbert & Varoquaux 2011), *scipy* (Jones et al. 2001), *matplotlib* (Hunter 2007), *tqdm* (doi:10.5281/zenodo.1468033) and *seaborn* (https://seaborn.pydata.org/index.html)."
+**Software acknowledgements**::
+
+	- allesfitter (Günther \& Daylan, 2019 and in prep.)
+	- ellc (Maxted 2016)
+	- aflare1.py (Davenport 2014)
+	- dynesty (Speagle 2019)
+	- emcee (Foreman-Mackey et al. 2013) 
+	- celerite (Foreman-Mackey et al. 2017). 
+	- python (Rossum 1995)
+	- numpy (van der Walt, Colbert & Varoquaux 2011)
+	- scipy (Jones et al. 2001)
+	- matplotlib (Hunter 2007)
+	- tqdm (doi:10.5281/zenodo.1468033)
+	- seaborn (https://seaborn.pydata.org/index.html)
 
 **Contributors:** 
 Maximilian N. Günther, Tansu Daylan
