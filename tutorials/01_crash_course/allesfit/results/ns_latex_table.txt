@@ -1,0 +1,13 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$R_b / R_\star$ & $0.1056_{-0.0034}^{+0.0042}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1110_{-0.0058}^{+0.016}$ & & fit \\ 
+$\cos{i_b}$ & $0.033_{-0.021}^{+0.031}$ & & fit \\ 
+$T_{0;b}$ & $4.50202\pm0.00091$ & BJD& fit \\ 
+$P_b$ & $3.4011_{-0.0011}^{+0.0011}$ & days& fit \\ 
+$q_{1; \mathrm{Leonardo}}$ & $0.41_{-0.22}^{+0.33}$ & & fit \\ 
+$q_{2; \mathrm{Leonardo}}$ & $0.38_{-0.23}^{+0.32}$ & & fit \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.249\pm0.075$ & $\log{ \mathrm{rel. flux.} }$& fit \\ 
+$\mathrm{gp: \log{\sigma} (Leonardo)}$ & $0.00021\pm0.00023$ & & fit \\ 

@@ -1,0 +1,22 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$R_b / R_\star$ & $0.1029_{-0.0020}^{+0.0023}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1077_{-0.0028}^{+0.0057}$ & & fit \\ 
+$\cos{i_b}$ & $0.020_{-0.014}^{+0.020}$ & & fit \\ 
+$T_{0;b}$ & $14.70083\pm0.00061$ & $\mathrm{BJD}$& fit \\ 
+$P_b$ & $3.39985_{-0.00025}^{+0.00024}$ & $\mathrm{d}$& fit \\ 
+$\sqrt{e_b} \cos{\omega_b}$ & $0.0$ & & fixed \\ 
+$\sqrt{e_b} \sin{\omega_b}$ & $0.0$ & & fixed \\ 
+$D_\mathrm{0; Leonardo}$ & $0.0$ & & fixed \\ 
+$q_{1; \mathrm{Leonardo}}$ & $0.29_{-0.16}^{+0.31}$ & & fit \\ 
+$q_{2; \mathrm{Leonardo}}$ & $0.30_{-0.20}^{+0.35}$ & & fit \\ 
+$J_{b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
+$A_{\mathrm{geom}; host; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
+$A_{\mathrm{geom}; b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
+$Grav. dark._{b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.108\pm0.015$ & $\log{ \mathrm{rel. flux.} }$& fit \\ 
+$\mathrm{gp ln sigma (Leonardo)}$ & $0.0019_{-0.0014}^{+0.0015}$ & & fit \\ 
+$\mathrm{gp ln sigma (Leonardo)}$ & $-6.02_{-0.36}^{+0.52}$ & & fit \\ 
+$\mathrm{gp ln rho (Leonardo)}$ & $1.66_{-0.33}^{+0.42}$ & & fit \\ 

@@ -1,0 +1,18 @@
+
+Convergence check:
+--------------------------
+Total steps:         3000      
+Burn steps:          2000      
+Evaluation steps:    1000                
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 b_rr                           67.04985027137965    14.914276407069798  
+	 b_rsuma                        78.61572432959062    12.720101589442512  
+	 b_cosi                         79.8938362268222     12.51661013198759   
+	 b_epoch                        66.484642379782      15.041067594041843  
+	 b_period                       68.42935973995269    14.613610353804713  
+	 host_ldc_q1_Leonardo           70.84907096193895    14.114511120932173  
+	 host_ldc_q2_Leonardo           74.28469085891689    13.46172392235194   
+	 log_err_flux_Leonardo          60.321932163952354   16.577718321124795  
+	 baseline_offset_flux_Leonardo  67.18632532010723    14.883981155920196  
+Done. For all outputs, see allesfit/results

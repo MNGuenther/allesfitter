@@ -1,0 +1,26 @@
+#name,value,fit,bounds,label,unit
+#companion b astrophysical params,,,,,
+b_rr,0.1,1,uniform 0.05 0.15000000000000002,$R_b / R_\star$,
+b_rsuma,0.2,1,uniform 0.0 0.7,$(R_\star + R_b) / a_b$,
+b_cosi,0.0,1,uniform 0.0 0.5,$\cos{i_b}$,
+b_epoch,1.09,1,uniform 1.04 1.1400000000000001,$T_{0;b}$,$\mathrm{BJD}$
+b_period,3.41,1,uniform 3.3600000000000003 3.46,$P_b$,$\mathrm{d}$
+b_f_c,0.0,0,uniform 0.0 0.0,$\sqrt{e_b} \cos{\omega_b}$,
+b_f_s,0.0,0,uniform 0.0 0.0,$\sqrt{e_b} \sin{\omega_b}$,
+#dilution per instrument,,,,,
+dil_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$D_\mathrm{0; Leonardo}$,
+#limb darkening coefficients per instrument,,,,,
+host_ldc_q1_Leonardo,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{Leonardo}}$,
+host_ldc_q2_Leonardo,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{Leonardo}}$,
+#surface brightness per instrument and companion,,,,,
+b_sbratio_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$J_{b; \mathrm{Leonardo}}$,
+#albedo per instrument and companion,,,,,
+host_geom_albedo_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$A_{\mathrm{geom}; host; \mathrm{Leonardo}}$,
+b_geom_albedo_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$A_{\mathrm{geom}; b; \mathrm{Leonardo}}$,
+#gravity darkening per instrument and companion,,,,,
+host_gdc_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$Grav. dark._{b; \mathrm{Leonardo}}$,
+#spots per instrument and companion,,,,,
+#errors per instrument,
+log_err_flux_Leonardo,-6.0,1,uniform -14.0 0.0,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$
+#baseline per instrument,
+baseline_offset_flux_Leonardo,0.0,1,uniform -1 1,$\mathrm{offset (Leonardo)}$,

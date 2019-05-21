@@ -1,0 +1,20 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+b_rr,0.10293434753990811,0.0019911168565690945,0.002252790394815213,$R_b / R_\star$,
+b_rsuma,0.10772391079728992,0.0027557326459033415,0.00570986118895811,$(R_\star + R_b) / a_b$,
+b_cosi,0.019713875185795173,0.013822924660532523,0.019623685703957085,$\cos{i_b}$,
+b_epoch,14.700826795109283,0.0006133688788700908,0.0005900426001907988,$T_{0;b}$,$\mathrm{BJD}$
+b_period,3.3998523658165505,0.0002546729039689666,0.00024021777737859296,$P_b$,$\mathrm{d}$
+b_f_c,0.0,(fixed),(fixed),$\sqrt{e_b} \cos{\omega_b}$,
+b_f_s,0.0,(fixed),(fixed),$\sqrt{e_b} \sin{\omega_b}$,
+dil_Leonardo,0.0,(fixed),(fixed),$D_\mathrm{0; Leonardo}$,
+host_ldc_q1_Leonardo,0.28956334210073215,0.1635321967910364,0.31294093501531356,$q_{1; \mathrm{Leonardo}}$,
+host_ldc_q2_Leonardo,0.3001796283181685,0.20496279500916265,0.3521089015544126,$q_{2; \mathrm{Leonardo}}$,
+b_sbratio_Leonardo,0.0,(fixed),(fixed),$J_{b; \mathrm{Leonardo}}$,
+host_geom_albedo_Leonardo,0.0,(fixed),(fixed),$A_{\mathrm{geom}; host; \mathrm{Leonardo}}$,
+b_geom_albedo_Leonardo,0.0,(fixed),(fixed),$A_{\mathrm{geom}; b; \mathrm{Leonardo}}$,
+host_gdc_Leonardo,0.0,(fixed),(fixed),$Grav. dark._{b; \mathrm{Leonardo}}$,
+log_err_flux_Leonardo,-6.108260132952454,0.014930073244258324,0.014520170415172728,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$
+baseline_gp_offset_flux_Leonardo,0.001885754191842354,0.0013600118766746569,0.0015353308562790005,$\mathrm{gp ln sigma (Leonardo)}$,
+baseline_gp_matern32_lnsigma_flux_Leonardo,-6.015361854702221,0.3634108347125169,0.5213267925312328,$\mathrm{gp ln sigma (Leonardo)}$,
+baseline_gp_matern32_lnrho_flux_Leonardo,1.6560477073116737,0.33375703696979775,0.41793477756617703,$\mathrm{gp ln rho (Leonardo)}$,

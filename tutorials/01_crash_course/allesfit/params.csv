@@ -1,0 +1,14 @@
+#name,value,fit,bounds,label,unit,truth
+#companion b astrophysical params,,,,,,
+b_rr,0.1,1,uniform 0.05 0.15,$R_b / R_\star$,,0.1
+b_rsuma,0.2,1,uniform 0.1 0.3,$(R_\star + R_b) / a_b$,,0.11
+b_cosi,0,1,uniform 0.0 0.2,$\cos{i_b}$,,0.01745
+b_epoch,1.09,1,uniform 1.04 1.14,$T_{0;b}$,BJD,1.1
+b_period,3.41,1,uniform 3.36 3.46,$P_b$,days,3.4
+#limb darkening coefficients per instrument,,,,,,
+host_ldc_q1_Leonardo,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{Leonardo}}$,,0.64
+host_ldc_q2_Leonardo,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{Leonardo}}$,,0.38
+#errors per instrument,,,,,,
+log_err_flux_Leonardo,-7,1,uniform -8 -5,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$,
+#baseline per instrument,,,,,,
+baseline_offset_flux_Leonardo,0,1,uniform -0.003 0.003,$\mathrm{gp: \log{\sigma} (Leonardo)}$,,

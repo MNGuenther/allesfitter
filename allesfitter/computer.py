@@ -89,8 +89,10 @@ def update_params(theta, phased=False):
     for companion in config.BASEMENT.settings['companions_all']:
         
         #::: incl
-        params[companion+'_incl'] = np.arccos( params[companion+'_cosi'] )/np.pi*180.
-        
+        try:
+            params[companion+'_incl'] = np.arccos( params[companion+'_cosi'] )/np.pi*180.
+        except:
+            params[companion+'_incl'] = None
         
     #::: photometric errors
     for companion in config.BASEMENT.settings['companions_phot']:
@@ -144,7 +146,7 @@ def update_params(theta, phased=False):
     
     #::: stellar density (in cgs units)
     #::: Note: this assumes M_companion << M_star
-    if params[companion+'_rr'] > 0:
+    if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
         params['host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
     else:
         params['host_density'] = None
@@ -156,10 +158,13 @@ def update_params(theta, phased=False):
             #::: semi-major axis
             #::: needs to be done for all companions in case the user fixes K
             ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
-            a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
-            params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
+            try:
+                a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
+                params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
+            except:
+                params[companion+'_a'] = None
             if params[companion+'_a'] == 0:
-               params[companion+'_a'] = None
+                params[companion+'_a'] = None
                
             #::: host spots
             if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
@@ -235,7 +240,7 @@ def flux_fct_full(params, inst, companion, xx=None):
         
         
     #::: planet and EB transit lightcurve model
-    if params[companion+'_rr'] > 0:
+    if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
         model_flux = ellc.lc(
                           t_obs =       xx, 
                           radius_1 =    params[companion+'_radius_1'], 
@@ -333,7 +338,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
         
         if len(xx_piecewise)>0:
             #::: planet and EB transit lightcurve model
-            if params[companion+'_rr'] > 0:
+            if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
                 model_flux_piecewise = ellc.lc(
                                   t_obs =       xx_piecewise, 
                                   radius_1 =    params[companion+'_radius_1'], 

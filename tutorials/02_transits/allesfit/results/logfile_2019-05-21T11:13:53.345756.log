@@ -1,0 +1,98 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['b']          
+companions_rv                  []             
+inst_phot                      ['Leonardo']   
+inst_rv                        []             
+multiprocess                   True           
+multiprocess_cores             19             
+fast_fit                       True           
+fast_fit_width                 0.3333333333333333
+secondary_eclipse              False          
+phase_curve                    False          
+shift_epoch                    True           
+inst_for_b_epoch               ['Leonardo']   
+mcmc_nwalkers                  100            
+mcmc_total_steps               3000           
+mcmc_burn_steps                2000           
+mcmc_thin_by                   10             
+ns_modus                       dynamic        
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      rwalk          
+ns_tol                         0.01           
+host_ld_law_Leonardo           quad           
+baseline_flux_Leonardo         sample_offset  
+error_flux_Leonardo            sample         
+t_exp_Leonardo                 None           
+t_exp_n_int_Leonardo           None           
+host_N_spots_Leonardo          0              
+N_flares                       0              
+fit_ttvs                       False          
+host_grid_Leonardo             very_sparse    
+host_shape_Leonardo            sphere         
+
+automatically set:            
+companions_all                 ['b']          
+inst_all                       ['Leonardo']   
+print_progress                 True           
+phase_variations               False          
+b_grid_Leonardo                default        
+b_ld_law_Leonardo              None           
+b_shape_Leonardo               sphere         
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_N_spots_Leonardo             0              
+
+Parameters:
+--------------------------
+
+user-given:                   
+b_rr                           0.1             free  ['uniform', 0.05, 0.15000000000000002]
+b_rsuma                        0.2             free  ['uniform', 0.0, 0.7]         
+b_cosi                         0.0             free  ['uniform', 0.0, 0.5]         
+b_epoch                        14.73           free  ['uniform', 14.48, 14.98]     
+b_period                       3.41            free  ['uniform', 3.3600000000000003, 3.46]
+b_f_c                          0.0             set  
+b_f_s                          0.0             set  
+dil_Leonardo                   0.0             set  
+host_ldc_q1_Leonardo           0.5             free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_Leonardo           0.5             free  ['uniform', 0.0, 1.0]         
+b_sbratio_Leonardo             0.0             set  
+host_geom_albedo_Leonardo      0.0             set  
+b_geom_albedo_Leonardo         0.0             set  
+host_gdc_Leonardo              0.0             set  
+log_err_flux_Leonardo          -6.0            free  ['uniform', -14.0, 0.0]       
+baseline_offset_flux_Leonardo  0.0             free  ['uniform', -1.0, 1.0]        
+
+automatically set:            
+b_a                            None            set  
+b_q                            1.0             set  
+b_K                            0.0             set  
+host_ldc_Leonardo              None            set  
+b_ldc_Leonardo                 None            set  
+b_gdc_Leonardo                 None            set  
+didt_Leonardo                  None            set  
+domdt_Leonardo                 None            set  
+host_rotfac_Leonardo           1.0             set  
+b_rotfac_Leonardo              1.0             set  
+host_hf_Leonardo               1.5             set  
+b_hf_Leonardo                  1.5             set  
+host_bfac_Leonardo             None            set  
+b_bfac_Leonardo                None            set  
+host_lambda_Leonardo           None            set  
+b_lambda_Leonardo              None            set  
+host_vsini_Leonardo            None            set  
+b_vsini_Leonardo               None            set  
+host_spots_Leonardo            None            set  
+b_spots_Leonardo               None            set  
+
+External priors:
+--------------------------
+No external priors defined.
+
+ndim: 9

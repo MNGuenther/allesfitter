@@ -33,6 +33,9 @@ from .simulate_PDF import simulate_PDF as spdf
     
     
 def get_cosi_from_i(i, Nsamples=10000):
+    '''
+    i: float or list of form [median, lower_err, upper_err]
+    '''
     i = spdf(i[0], i[1], i[2], size=Nsamples, plot=False)
     ind_good = np.where( (i>=0) & (i<=90) )[0]
     i = i[ind_good]
@@ -99,6 +102,50 @@ def get_sqrtecosw(e, w, Nsamples=10000):
     sqrtecosw = np.sqrt(e) * np.cos(np.deg2rad(w))
     ll, median, ul = np.percentile(sqrtecosw, [16,50,84])
     return median, median-ll, ul-median
+
+
+
+def get_u1u2_from_q1q2(q1, q2, Nsamples=10000):
+    '''
+    q1, q2: float or list of form [median, lower_err, upper_err]
+    '''
+    if type(q1)==float and type(q2)==float:
+        u1 = 2.*np.sqrt(q1)*q2
+        u2 = np.sqrt(q1) * (1. - 2.*q2)
+        return u1, u2
+    else:
+        q1 = spdf(q1[0], q1[1], q1[2], size=Nsamples, plot=False)
+        q2 = spdf(q2[0], q2[1], q2[2], size=Nsamples, plot=False)
+        ind_good = np.where( (q1>=0) & (q1<=1) & (q2>=0) & (q2<=1) )[0]
+        q1 = q1[ind_good]
+        q2 = q2[ind_good]
+        u1 = 2.*np.sqrt(q1)*q2
+        u2 = np.sqrt(q1) * (1. - 2.*q2)
+        u1_ll, u1_median, u1_ul = np.percentile(u1, [16,50,84])
+        u2_ll, u2_median, u2_ul = np.percentile(u2, [16,50,84])
+        return (u1_median, u1_median-u1_ll, u1_ul-u1_median), (u2_median, u2_median-u2_ll, u2_ul-u2_median)
+    
+
+
+def get_q1q2_from_u1u2(u1, u2, Nsamples=10000):
+    '''
+    u1, u2: float or list of form [median, lower_err, upper_err]
+    '''
+    if type(u1)==float and type(u2)==float:
+        q1 = (u1 + u2)**2
+        q2 = 0.5*u1/(u1+u2)
+        return q1, q2
+    else:
+        u1 = spdf(u1[0], u1[1], u1[2], size=Nsamples, plot=True)
+        u2 = spdf(u2[0], u2[1], u2[2], size=Nsamples, plot=True)
+        ind_good = np.where( (u1>=0) & (u1<=1) & (u2>=0) & (u2<=1) )[0]
+        u1 = u1[ind_good]
+        u2 = u2[ind_good]
+        q1 = (u1 + u2)**2
+        q2 = 0.5*u1/(u1+u2)
+        q1_ll, q1_median, q1_ul = np.percentile(q1, [16,50,84])
+        q2_ll, q2_median, q2_ul = np.percentile(q2, [16,50,84])
+        return (q1_median, q1_median-q1_ll, q1_ul-q1_median), (q2_median, q2_median-q2_ll, q2_ul-q2_median)
 
 
 
