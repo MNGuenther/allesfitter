@@ -154,19 +154,30 @@
             
   <div class="section" id="crash-course">
 <h1>Crash course<a class="headerlink" href="#crash-course" title="Permalink to this headline">¶</a></h1>
-<p>Your team from The Magic Next Telescope (<em>TMNT</em>) found a transiting exoplanet candidate using its photometric telescope <em>Leonardo</em>. Now it is your job to model it! The discovery report gives you a first guess for the transit signal:</p>
+<p>See on <a class="reference external" href="https://github.com/MNGuenther/allesfitter/tree/master/tutorials/01_crash_course">GitHub</a>.</p>
+<p>Your team from The Magic Next Telescope (<em>TMNT</em>) found a transiting exoplanet candidate using its photometric telescope <em>Leonardo</em>:</p>
+<a class="reference external image-reference" href="_static/tutorials/01_crash_course/data.png"><img alt="_images/data.png" class="align-center" src="_images/data.png" /></a>
+<p>You can download the data file here: <a class="reference download internal" download="" href="_downloads/90c0722ff71e559d071bef70fa86099f/Leonardo.csv"><code class="xref download docutils literal notranslate"><span class="pre">Leonardo.csv</span></code></a></p>
+<p>Now it is your job to model it! The discovery report gives you a first guess for the transit signal:</p>
 <ul class="simple">
 <li>Epoch: 1.09 +- 0.01 days after start of observations</li>
 <li>Period: 3.41 +- 0.01 days</li>
 <li>R_planet / R_star: 0.10 +- 0.01</li>
 <li>(R_star + R_planet) / semi-major axis: somewhere between 0.1 and 0.3</li>
 </ul>
-<p>Simply launch <em>allesfitter</em>’s graphical user interface (GUI) via double click on the <a class="reference download internal" download="" href="_downloads/d17a3c5853783cf043b7645ecd8d6208/launch_allesfitter"><code class="xref download docutils literal notranslate"><span class="pre">launch_allesfitter</span></code></a> app (for Mac/Windows/Linux). Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:</p>
-<div style="text-align: center;"><iframe width="560" height="315" src="https://www.youtube.com/embed/5LIci8gZZ_8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">the video is a bit outdated by now, but still captures 99% of the workflow. The updated crash course on GitHub simplifies and speeds up the modeling. The more advanced tutorials then step by step introduce GPs and more.</p>
+<p>(Your team is still unsure about the stellar parameters, so let us leave these undefined for now.)</p>
+<p>Simply launch <em>allesfitter</em>’s graphical user interface (GUI) via double click on the <a class="reference download internal" download="" href="_downloads/d17a3c5853783cf043b7645ecd8d6208/launch_allesfitter"><code class="xref download docutils literal notranslate"><span class="pre">launch_allesfitter</span></code></a> app (for Mac/Windows/Linux) <em>or</em> via executing the following lines in a Python console:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">allesfitter</span>
+<span class="n">allesfitter</span><span class="o">.</span><span class="n">GUI</span><span class="p">()</span>
+</pre></div>
 </div>
-<p>Now that you successfully modeled the data, you can schedule follow-up observations with the rest of the TMNT network: <em>Michelangelo</em> (photometry), <em>Donatello</em> (RV) and <em>Raphael</em> (RV). Congratulations!</p>
+<p>Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:</p>
+<div style="text-align: center;"><iframe width="560" height="315" src="https://www.youtube.com/embed/5LIci8gZZ_8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The video is a bit outdated by now, but still captures 99% of the workflow. The updated crash course on GitHub simplifies and speeds up the modeling.</p>
+</div>
+<p>Congratulations! Now that you successfully modeled the data, you can schedule follow-up observations with the rest of the TMNT network: <em>Michelangelo</em> (photometry), <em>Donatello</em> (RV) and <em>Raphael</em> (RV).</p>
+<p>Now move on to the more advanced tutorials, which step by step introduce GPs, RV modeling, and much more.</p>
 </div>
 
 
