@@ -28,18 +28,20 @@ import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 import os, sys
 from datetime import datetime
-import warnings
+#import warnings
 import emcee
 try:
     import celerite
     from celerite import terms
 except:
-    warnings.warn('Module "celerite" could not be imported. Some functionality might not be available.')
+    pass
+#    warnings.warn('Module "celerite" could not be imported. Some functionality might not be available.')
 try:
     import george
     from george import kernels
 except:
-    warnings.warn('Module "george" could not be imported. Some functionality might not be available.')
+    pass
+#    warnings.warn('Module "george" could not be imported. Some functionality might not be available.')
 import corner
 from multiprocessing import Pool, cpu_count
 from contextlib import closing
@@ -126,7 +128,7 @@ def gp_decor(x,y,
         mean=1.,
         nwalkers=50, thin_by=50, burn_steps=2500, total_steps=5000,
         bin_width=None,
-        gp_code='celerite',
+        gp_code='celerite', kernel='Matern32',
         method='median_posterior', chunk_size=2000, Nsamples_detr=10, Nsamples_plot=10, 
         xlabel='x', ylabel='y', ydetr_label='ydetr',
         outdir='gp_decor', fname=None, fname_summary=None,
@@ -264,8 +266,13 @@ def gp_decor(x,y,
     
     
     #::: MCMC plot settings
-    keys = ['gp_log_sigma', 'gp_log_rho', 'log_y_err']
-    names = [r'gp: $\log{\sigma}$', r'gp: $\log{\rho}$', r'$\log{(y_\mathrm{err})}$']
+    if kernel=='Matern32':
+        keys = ['gp_log_sigma', 'gp_log_rho', 'log_y_err']
+        names = [r'gp: $\log{\sigma}$', r'gp: $\log{\rho}$', r'$\log{(y_\mathrm{err})}$']
+    elif kernel=='SHOT':
+        keys = ['gp_log_S0', 'gp_log_Q', 'log_omega0', 'log_y_err']
+        names = [r'gp: $\log{S_0}$', r'gp: $\log{Q}$',  r'gp: $\log{\omega_0}$', r'$\log{(y_\mathrm{err})}$']
+        celerite.terms.SHOTerm
     discard = int(1.*burn_steps/thin_by)
     
     

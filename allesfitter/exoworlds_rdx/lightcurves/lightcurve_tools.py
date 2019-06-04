@@ -194,15 +194,17 @@ def phase_fold_matrix(time, flux_matrix, P, Tprim, dt = 0.02, ferr_type='medsig'
     
     
     
-def plot_phase_folded_lightcurve(time, flux, period, epoch, ax=None, xlim=[-0.25,0.75], dt=0.02, ferr=None, ferr_type='medsig', ferr_style='sem', normalize=True, title='', period_factor=1.):
+def plot_phase_folded_lightcurve(time, flux, period, epoch, ax=None, xlim=[-0.25,0.75], dt=0.02, ferr=None, ferr_type='medsig', ferr_style='sem', sigmaclip=False, normalize=True, title='', period_factor=1.):
     if ax is None:
         fig, ax = plt.subplots()
+    else:
+        fig = None
         
     if normalize: 
         flux /= np.nanmedian(flux)
         
     period *= period_factor
-    phase, phaseflux, phaseflux_err, N, phi = phase_fold(time, flux, period, epoch, dt=dt, ferr_type=ferr_type, ferr_style=ferr_style)
+    phase, phaseflux, phaseflux_err, N, phi = phase_fold(time, flux, period, epoch, dt=dt, ferr_type=ferr_type, ferr_style=ferr_style, sigmaclip=sigmaclip)
 
     def set_ax(ax):
         ax.plot( phi, flux, '.', c='lightgrey', ms=4, lw=0, rasterized=True, zorder = -1 )
@@ -227,13 +229,13 @@ def plot_phase_folded_lightcurve(time, flux, period, epoch, ax=None, xlim=[-0.25
     
     
     
-def plot_phase_folded_lightcurve_dic(ax, dic, obj_id=None, ferr_type='medsig', ferr_style='std', period_factor=1.):
+def plot_phase_folded_lightcurve_dic(ax, dic, obj_id=None, ferr_type='medsig', ferr_style='std', sigmaclip=False, period_factor=1.):
     #::: multiple objects in dic
     if not isinstance( dic['OBJ_ID'], basestring ): 
         ind = np.where( dic['OBJ_ID'] == obj_id )[0]
         if 'SYSREM_FLUX3_ERR' in dic: ferr =  dic['SYSREM_FLUX3_ERR'][ind]
         else: ferr = None        
-        plot_phase_folded_lightcurve( ax, dic['HJD'][ind], dic['PERIOD'][ind], dic['EPOCH'][ind], dic['SYSREM_FLUX3'][ind], ferr, dic['FIELDNAME']+', '+dic['OBJ_ID'][ind], ferr_type=ferr_type, ferr_style=ferr_style )
+        plot_phase_folded_lightcurve( ax, dic['HJD'][ind], dic['PERIOD'][ind], dic['EPOCH'][ind], dic['SYSREM_FLUX3'][ind], ferr, dic['FIELDNAME']+', '+dic['OBJ_ID'][ind], ferr_type=ferr_type, ferr_style=ferr_style, sigmaclip=sigmaclip )
     
     #::: single object in dic 
     else: 

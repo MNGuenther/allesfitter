@@ -77,36 +77,48 @@ Baselines per instrument:
 
 (If you use the hybrid_* versions in settings.csv, the baseline parameters will be automatically optimized at every step in the sampling. If you use the sample_* options in settings.csv, they get sampled as every other paramter.)
 
-``baseline_offset_[key]_[inst]``: 
+I) 
+
+  * ``baseline_offset_[key]_[inst]``: 
 
     This is needed if you selected ``sample_offset`` in settings.csv.
 
-``baseline_offset_[key]_[inst]`` and
-``baseline_slope_[key]_[inst]``: 
+II)
+
+  * ``baseline_offset_[key]_[inst]`` and
+  * ``baseline_slope_[key]_[inst]``: 
 
     These are needed if you selected ``sample_linear`` in settings.csv. (Note if you want to physically interpret the slope result: to calculate the slope, the center point of the line fit per instrument will be put in the middle of the time stamps, and the time array will be normalized to 0 to 1.)
 
-``baseline_gp_real_lna_[key]_[inst]`` and 
-``baseline_gp_real_lnc_[key]_[inst]``: 
+III)
+
+  * ``baseline_gp_real_lna_[key]_[inst]`` and 
+  * ``baseline_gp_real_lnc_[key]_[inst]``: 
  
     These are needed if you selected ``sample_GP_real`` in settings.csv.
 
-``baseline_gp_real_lna_[key]_[inst]``, 
-``baseline_gp_real_lnb_[key]_[inst]``, 
-``baseline_gp_real_lnc_[key]_[inst]`` and 
-``baseline_gp_real_lnd_[key]_[inst]``: 
+IV)
+
+  * ``baseline_gp_complex_lna_[key]_[inst]``, 
+  * ``baseline_gp_complex_lnb_[key]_[inst]``, 
+  * ``baseline_gp_complex_lnc_[key]_[inst]`` and 
+  * ``baseline_gp_complex_lnd_[key]_[inst]``: 
 
     These are needed if you selected ``sample_GP_complex`` in settings.csv.
 
-``baseline_gp_matern32_lnsigma_[key]_[inst]`` and 
-``baseline_gp_matern32_lnrho_[key]_[inst]``: 
+V)
+
+  * ``baseline_gp_matern32_lnsigma_[key]_[inst]`` and 
+  * ``baseline_gp_matern32_lnrho_[key]_[inst]``: 
 
     These are needed if you selected ``sample_GP_Matern32`` in settings.csv. *lnsigma* is the characteristic amplitude of the GP. *lnrho* is the characteristic length scale of the GP.
 
-``baseline_gp_sho_lnS0_[key]_[inst]``, 
-``baseline_gp_sho_lnQ_[key]_[inst]`` and 
-``baseline_gp_sho_lnomega0_[key]_[inst]``: 
+VI)
 
-    These are needed if you selected ``sample_SHO_complex`` in settings.csv.
+  * ``baseline_gp_sho_lnS0_[key]_[inst]``, 
+  * ``baseline_gp_sho_lnQ_[key]_[inst]`` and 
+  * ``baseline_gp_sho_lnomega0_[key]_[inst]``: 
+
+    These are needed if you selected ``sample_GP_SHO`` in settings.csv.
 
 .. note:: For all sample_GP_* options, you can always optionally add ``baseline_gp_offset_[key]_[inst]``, in which case the GP mean is set to this parameter (rather than assumed to be 0). Note that the GP is constrained on the residuals (data-model), so typically the GP mean is 0; but, for example, if you need to sample for the systemic velocity of your RV data, you will need this.
