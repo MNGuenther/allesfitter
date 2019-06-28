@@ -368,7 +368,6 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
             ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=inst)
         elif timelabel=='Time':
             ax.set(xlabel='Time (BJD)', ylabel=ylabel, title=inst)
-        
         #::: plot model + baseline, not phased
         if ((x[-1] - x[0]) < 1): dt = 2./24./60. #if <1 day of data: plot with 2 min resolution
         else: dt = 30./24./60. #else: plot with 30 min resolution
@@ -584,7 +583,7 @@ def save_latex_table(samples, mode):
 ###############################################################################
 def show_initial_guess(datadir, do_logprint=True, do_plot=True, return_figs=False):
     #::: init
-    config.init(datadir)
+    config.init(datadir)    
     
     #::: show initial guess
     if do_logprint: 

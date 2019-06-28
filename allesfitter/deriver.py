@@ -134,7 +134,7 @@ def derive(samples, mode):
         derived_samples[companion+'_e_sinw'] = get_params(companion+'_f_s') * np.sqrt(derived_samples[companion+'_e'])
         derived_samples[companion+'_e_cosw'] = get_params(companion+'_f_c') * np.sqrt(derived_samples[companion+'_e'])
         derived_samples[companion+'_w'] = arccos_d( get_params(companion+'_f_c') / np.sqrt(derived_samples[companion+'_e']) ) #in deg, from 0 to 180
-        if np.isnan(derived_samples[companion+'_w']):
+        if np.isnan(derived_samples[companion+'_w']).all():
             derived_samples[companion+'_w'] = 0.
         
         #::: mass
