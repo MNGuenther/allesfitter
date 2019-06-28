@@ -101,6 +101,10 @@ class allesclass():
         except:
             pass
         
+        
+        
+    #::: posterior median
+    
     def get_posterior_median_model(self, inst, key, xx=None):
         return calculate_model(self.posterior_params_median, inst, key, xx=xx)
         
@@ -109,6 +113,10 @@ class allesclass():
     
     def get_posterior_median_stellar_var(self, inst, key, xx=None):
         return calculate_stellar_var(self.posterior_params_median, key, xx=xx)
+    
+    
+    
+    #::: initial guess
     
     def get_initial_guess_model(self, inst, key, xx=None):
         return calculate_model(self.initial_guess_params_median, inst, key, xx=xx)
@@ -119,6 +127,18 @@ class allesclass():
     def get_initial_guess_stellar_var(self, inst, key, xx=None):
         return calculate_stellar_var(self.initial_guess_params_median, key, xx=xx)
     
+    
+    
+    #::: one posterior sample
+    
+    def get_one_posterior_curve_set(self, inst, key, xx=None, sample_id=None):
+        if sample_id is None:
+            sample_id = np.random.randint(self.posterior_samples.shape[0])
+        buf = self.posterior_params_median.copy()
+        for k in self.posterior_params:
+            buf[k] = self.posterior_params[k][sample_id]
+        return calculate_model(buf, inst, key, xx=xx), calculate_baseline(buf, inst, key, xx=xx), calculate_stellar_var(buf, key, xx=xx)
+    
     def get_one_posterior_model(self, inst, key, xx=None, sample_id=None):
         if sample_id is None:
             sample_id = np.random.randint(self.posterior_samples.shape[0])
@@ -126,7 +146,24 @@ class allesclass():
         for k in self.posterior_params:
             buf[k] = self.posterior_params[k][sample_id]
         return calculate_model(buf, inst, key, xx=xx)
-        
 
+    def get_one_posterior_baseline(self, inst, key, xx=None, sample_id=None):
+        if sample_id is None:
+            sample_id = np.random.randint(self.posterior_samples.shape[0])
+        buf = self.posterior_params_median.copy()
+        for k in self.posterior_params:
+            buf[k] = self.posterior_params[k][sample_id]
+        return calculate_baseline(buf, inst, key, xx=xx)
+    
+    def get_one_posterior_stellar_var(self, inst, key, xx=None, sample_id=None):
+        if sample_id is None:
+            sample_id = np.random.randint(self.posterior_samples.shape[0])
+        buf = self.posterior_params_median.copy()
+        for k in self.posterior_params:
+            buf[k] = self.posterior_params[k][sample_id]
+        return calculate_stellar_var(buf, key, xx=xx)
+    
+    
+    
 #::: version
-__version__ = '0.8.8'
+__version__ = '0.8.9'
