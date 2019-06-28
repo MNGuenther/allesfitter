@@ -26,6 +26,6 @@ Contents
    tutorials
    the_settings_file
    the_params_file
-   your_own_plots
+   allesclass
    performance
    references

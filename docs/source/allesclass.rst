@@ -1,5 +1,5 @@
 ==============================================================================
-Allesclass
+allesclass
 ==============================================================================
 
 Tired of allesfitter's standard plots? Want to match your color scheme, or add some fancy twists? Create your own plots (and much more) with the allesclass module! Example::
