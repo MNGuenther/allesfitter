@@ -2,13 +2,13 @@
 allesclass
 ==============================================================================
 
-Tired of allesfitter's standard plots? Want to match your color scheme, or add some fancy twists? Create your own plots (and much more) with the allesclass module! Example::
+Tired of allesfitter's standard plots? Want to match your color scheme, or add some fancy twists? Create your own plots (and much more) with the allesclass module! Example (replace 'allesfit' with whatever name you gave your directory; also change the instrument and flux/rv accordingly)::
 
     #::: load the allesclass
-    alles = allesfitter.allesclass('allesfit_2_spots_oot')
+    alles = allesfitter.allesclass('allesfit')
     
     #::: settings
-    inst = 'TESS_phased_oot'
+    inst = 'TESS'
     key = 'flux'
     
     #::: load the time, flux, and flux_err

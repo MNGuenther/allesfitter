@@ -116,6 +116,8 @@ def update_params(theta, phased=False):
                 
     #::: limb darkening
     for inst in config.BASEMENT.settings['inst_all']:
+        
+        #::: host
         if config.BASEMENT.settings['host_ld_law_'+inst] is None:
             params['host_ldc_'+inst] = None
             
@@ -132,6 +134,26 @@ def update_params(theta, phased=False):
             
         else:
             print(config.BASEMENT.settings['host_ld_law_'+inst] )
+            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+    
+    
+        #::: companion
+        if config.BASEMENT.settings[companion+'_ld_law_'+inst] is None:
+            params[companion+'_ldc_'+inst] = None
+            
+        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'lin':
+            params[companion+'_ldc_'+inst] = params[companion+'_ldc_q1_'+inst]
+            
+        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'quad':
+            ldc_u1 = 2.*np.sqrt(params[companion+'_ldc_q1_'+inst]) * params[companion+'_ldc_q2_'+inst]
+            ldc_u2 = np.sqrt(params[companion+'_ldc_q1_'+inst]) * (1. - 2.*params[companion+'_ldc_q2_'+inst])
+            params[companion+'_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
+            
+        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'sing':
+            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+            
+        else:
+            print(config.BASEMENT.settings[companion+'_ld_law_'+inst] )
             raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
     
     

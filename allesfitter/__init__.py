@@ -106,6 +106,7 @@ class allesclass():
     #::: posterior median
     
     def get_posterior_median_model(self, inst, key, xx=None):
+        print(self.posterior_params_median)
         return calculate_model(self.posterior_params_median, inst, key, xx=xx)
         
     def get_posterior_median_baseline(self, inst, key, xx=None, model=None):

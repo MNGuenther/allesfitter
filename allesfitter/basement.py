@@ -421,7 +421,7 @@ class Basement():
                 if 'host_ld_law_'+inst not in self.settings or self.settings['host_ld_law_'+inst] is None or len(self.settings['host_ld_law_'+inst])==0 or self.settings['host_ld_law_'+inst]=='None': 
                     self.settings['host_ld_law_'+inst] = None
                     
-                if companion+'_ld_law_'+inst not in self.settings: 
+                if companion+'_ld_law_'+inst not in self.settings or self.settings[companion+'_ld_law_'+inst] is None or len(self.settings[companion+'_ld_law_'+inst])==0 or self.settings[companion+'_ld_law_'+inst]=='None': 
                     self.settings[companion+'_ld_law_'+inst] = None
                 
                 if 'host_shape_'+inst not in self.settings: 
