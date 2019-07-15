@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 import os, sys
 import warnings
 from astropy.time import Time
-
 #import pickle
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
@@ -51,9 +50,12 @@ from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
 def logprint(*text):
     print(*text)
     original = sys.stdout
-    with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:
-        sys.stdout = f
-        print(*text)
+    try:
+        with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:
+            sys.stdout = f
+            print(*text)
+    except OSError:
+        pass #For unknown reasons, the combination of open() and os.path.join() does not work on some Windows versions
     sys.stdout = original
                      
     

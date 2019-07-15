@@ -70,7 +70,7 @@ class Basement():
                 
         Returns:
         --------
-        All the variables needed for allesfitter.MCMC_fit
+        All the variables needed for allesfitter
         '''
         
         self.now = datetime.now().isoformat()
@@ -950,7 +950,7 @@ class Basement():
             mid_epoch = first_epoch + N * period
             
             #::: calculate how much the user_epoch has to be shifted to get the mid_epoch
-            N_shift = int(np.round((mid_epoch-user_epoch)/period)) 
+            N_shift = int(np.round((mid_epoch-user_epoch)/period))
             
             if (N_shift != 0) and (companion+'_epoch' in self.fitkeys):
                 ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
@@ -987,13 +987,13 @@ class Basement():
                     self.bounds[ind_e][4] = np.sqrt( self.bounds[ind_e][4]**2 + N_shift**2 * self.bounds[ind_p][4]**2 ) #std (in case the prior-mean is not the initial-guess-mean)
             
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'normal'):
-                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][2] #lower bound epoch + Nshift * std_period
-                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][2] #upper bound + Nshift * std_period
-                    
+                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][2]) #lower bound epoch + Nshift * period + Nshift * std_period
+                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][2]) #upper bound + Nshift * period + Nshift * std_period
+
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'trunc_normal'):
-                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * self.bounds[ind_p][4] #lower bound epoch + Nshift * std_period
-                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * self.bounds[ind_p][4] #upper bound + Nshift * std_period
-            
+                    self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][4]) #lower bound epoch + Nshift * period + Nshift * std_period
+                    self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][4]) #upper bound + Nshift * period + Nshift * std_period
+
                 elif (self.bounds[ind_e][0] == 'normal') & (self.bounds[ind_p][0] == 'uniform'):
                     raise ValueError('shift_epoch with different priors for epoch and period is not yet implemented.')
                     
