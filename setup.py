@@ -19,7 +19,7 @@ from setuptools import setup, find_packages
 setup(
     name = 'allesfitter',
     packages=find_packages(),
-    version = '0.9.0',
+    version = '0.9.1',
     description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
     author_email = 'maxgue@mit.edu',

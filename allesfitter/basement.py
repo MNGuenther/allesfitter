@@ -853,8 +853,18 @@ class Basement():
             time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]     
             if any(np.isnan(time)) or any(np.isnan(flux)) or any(np.isnan(flux_err)):
                 raise ValueError('There are NaN values in "'+inst+'.csv". Please exclude these rows from the file and restart.')
-            if not all(np.diff(time)>0):
+            if not all(np.diff(time)>=0):
                 raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
+            elif not all(np.diff(time)>0):
+                overwrite = str(input('There are reapted time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).'+\
+                                      'What do you want to do?\n'+\
+                                      '1 : continue and hope for the best; no risk, no fun; #yolo\n'+\
+                                      '2 : abort\n'))
+                if (overwrite == '1'):
+                    pass
+                else:
+                    raise ValueError('User aborted operation.')
+                
             self.fulldata[inst] = {
                           'time':time,
                           'flux':flux,
