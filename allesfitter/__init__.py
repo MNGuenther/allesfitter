@@ -24,6 +24,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 import gzip
 try:
@@ -51,7 +52,7 @@ from .general_output import show_initial_guess, draw_initial_guess_samples, get_
 from .nested_sampling_output import get_ns_posterior_samples, get_ns_params, ns_output
 from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_posterior_samples
 
-from .computer import calculate_model, calculate_baseline, calculate_stellar_var
+from .computer import calculate_model, calculate_baseline, calculate_stellar_var, update_params
 
 from .priors import transform_priors
 from .priors.estimate_noise import estimate_noise
@@ -84,87 +85,166 @@ class allesclass():
         except:
             pass
         
-        try:
-            if os.path.exists( os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz') ):
-                f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
-                results = pickle.load(f)
-                f.close()
-                self.posterior_samples = nested_sampling_output.draw_ns_posterior_samples(results) # all weighted posterior_samples
-                self.posterior_params = nested_sampling_output.draw_ns_posterior_samples(results, as_type='dic') # all weighted posterior_samples
-                self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
-            elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5') ):
-                copyfile(os.path.join(datadir,'results','mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
-                reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
-                self.posterior_samples = draw_mcmc_posterior_samples(reader) # all weighted posterior_samples           
-                self.posterior_params = draw_mcmc_posterior_samples(reader, as_type='dic') # all weighted posterior_samples
-                self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
-        except:
-            pass
+#        try:
+        if os.path.exists( os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz') ):
+            f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
+            results = pickle.load(f)
+            f.close()
+            self.posterior_samples = nested_sampling_output.draw_ns_posterior_samples(results) # all weighted posterior_samples
+            self.posterior_params = nested_sampling_output.draw_ns_posterior_samples(results, as_type='dic') # all weighted posterior_samples
+            self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
+        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5') ):
+            copyfile(os.path.join(datadir,'results','mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
+            reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
+            self.posterior_samples = draw_mcmc_posterior_samples(reader) # all weighted posterior_samples           
+            self.posterior_params = draw_mcmc_posterior_samples(reader, as_type='dic') # all weighted posterior_samples
+            self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
+#        except:
+#            pass
         
+        
+    
+    #::: plot
+    
+    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time'):
+        '''
+        Required input:
+        ---------------
+        inst: str
+            Name of the instrument (e.g. 'TESS')
+            
+        companion : None or str
+            'b' / 'c' / ...
+            
+        style:
+            'full' / 'phase' / 'phasezoom'
+            
+            
+        Optional input:
+        ---------------
+        fig : matplotlib figure object
+        
+        ax : matplotlib axis object
+        
+        mode : str
+            'posterior' / 'initial guess'
+            
+        Nsamples : int
+            If mode=='posterior', this is the number of posterior curves to be plotted
+            
+        samples : array
+            Prior or posterior samples to plot the fit from
+        
+        timelabel:
+            'Time' / 'Time_since'
+        '''
+        if ax is None: fig, ax = plt.subplots(1,1)
+        if samples is None:
+            if mode=='posterior':
+                samples = self.posterior_samples[np.random.randint(len(self.posterior_samples), size=Nsamples)]
+            elif mode=='initial_guess':
+                samples = self.initial_guess_samples
+            else:
+                raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
+        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', base=self)
+        return fig, ax
         
         
     #::: posterior median
     
-    def get_posterior_median_model(self, inst, key, xx=None):
-        print(self.posterior_params_median)
-        return calculate_model(self.posterior_params_median, inst, key, xx=xx)
+    def get_posterior_median_model(self, inst, key, xx=None, phased=False):
+        if phased==False:
+            return calculate_model(self.posterior_params_median, inst, key, xx=xx)
+        elif phased==True:
+            p = update_params(self.posterior_params_median, phased=True)
+            return calculate_model(p, inst, key, xx=xx)
         
-    def get_posterior_median_baseline(self, inst, key, xx=None, model=None):
-        return calculate_baseline(self.posterior_params_median, inst, key, xx=xx, model=model)
-    
-    def get_posterior_median_stellar_var(self, inst, key, xx=None):
-        return calculate_stellar_var(self.posterior_params_median, key, xx=xx)
-    
+    def get_posterior_median_baseline(self, inst, key, xx=None, model=None, phased=False):
+        if phased==False:
+            return calculate_baseline(self.posterior_params_median, inst, key, xx=xx, model=model)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')
+            
+    def get_posterior_median_stellar_var(self, inst, key, xx=None, phased=False):
+        if phased==False:
+            return calculate_stellar_var(self.posterior_params_median, key, xx=xx)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')    
     
     
     #::: initial guess
     
-    def get_initial_guess_model(self, inst, key, xx=None):
-        return calculate_model(self.initial_guess_params_median, inst, key, xx=xx)
+    def get_initial_guess_model(self, inst, key, xx=None, phased=False):
+        if phased==False:
+            return calculate_model(self.initial_guess_params_median, inst, key, xx=xx)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')
     
-    def get_initial_guess_baseline(self, inst, key, xx=None, model=None):
-        return calculate_baseline(self.initial_guess_params_median, inst, key, xx=xx, model=model)
+    def get_initial_guess_baseline(self, inst, key, xx=None, model=None, phased=False):
+        if phased==False:
+            return calculate_baseline(self.initial_guess_params_median, inst, key, xx=xx, model=model)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')
     
-    def get_initial_guess_stellar_var(self, inst, key, xx=None):
-        return calculate_stellar_var(self.initial_guess_params_median, key, xx=xx)
+    def get_initial_guess_stellar_var(self, inst, key, xx=None, phased=False):
+        if phased==False:
+            return calculate_stellar_var(self.initial_guess_params_median, key, xx=xx)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')
     
     
     
     #::: one posterior sample
     
-    def get_one_posterior_curve_set(self, inst, key, xx=None, sample_id=None):
+    def get_one_posterior_curve_set(self, inst, key, xx=None, sample_id=None, phased=False):
         if sample_id is None:
             sample_id = np.random.randint(self.posterior_samples.shape[0])
         buf = self.posterior_params_median.copy()
         for k in self.posterior_params:
-            buf[k] = self.posterior_params[k][sample_id]
+            if phased==False:
+                buf[k] = self.posterior_params[k][sample_id]
+            elif phased==True:
+                p = update_params(self.posterior_params[k][sample_id], phased=True)
+                buf[k] = p
         return calculate_model(buf, inst, key, xx=xx), calculate_baseline(buf, inst, key, xx=xx), calculate_stellar_var(buf, key, xx=xx)
     
-    def get_one_posterior_model(self, inst, key, xx=None, sample_id=None):
+    def get_one_posterior_model(self, inst, key, xx=None, sample_id=None, phased=False):
         if sample_id is None:
             sample_id = np.random.randint(self.posterior_samples.shape[0])
         buf = self.posterior_params_median.copy()
         for k in self.posterior_params:
-            buf[k] = self.posterior_params[k][sample_id]
+            if phased==False:
+                buf[k] = self.posterior_params[k][sample_id]
+            elif phased==True:
+                p = update_params(self.posterior_params[k][sample_id], phased=True)
+                buf[k] = p
         return calculate_model(buf, inst, key, xx=xx)
 
-    def get_one_posterior_baseline(self, inst, key, xx=None, sample_id=None):
+    def get_one_posterior_baseline(self, inst, key, xx=None, sample_id=None, phased=False):
         if sample_id is None:
             sample_id = np.random.randint(self.posterior_samples.shape[0])
         buf = self.posterior_params_median.copy()
         for k in self.posterior_params:
-            buf[k] = self.posterior_params[k][sample_id]
+            if phased==False:
+                buf[k] = self.posterior_params[k][sample_id]
+            elif phased==True:
+                p = update_params(self.posterior_params[k][sample_id], phased=True)
+                buf[k] = p
         return calculate_baseline(buf, inst, key, xx=xx)
     
-    def get_one_posterior_stellar_var(self, inst, key, xx=None, sample_id=None):
+    def get_one_posterior_stellar_var(self, inst, key, xx=None, sample_id=None, phased=False):
         if sample_id is None:
             sample_id = np.random.randint(self.posterior_samples.shape[0])
         buf = self.posterior_params_median.copy()
         for k in self.posterior_params:
-            buf[k] = self.posterior_params[k][sample_id]
+            if phased==False:
+                buf[k] = self.posterior_params[k][sample_id]
+            elif phased==True:
+                p = update_params(self.posterior_params[k][sample_id], phased=True)
+                buf[k] = p
         return calculate_stellar_var(buf, key, xx=xx)
     
     
     
 #::: version
-__version__ = '0.9.1'
+__version__ = '0.9.2'

@@ -50,7 +50,7 @@ def draw_mcmc_posterior_samples(sampler, Nsamples=None, as_type='2d_array'):
 #    global config.BASEMENT
     posterior_samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
     if Nsamples:
-        posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=20)]
+        posterior_samples = posterior_samples[np.random.randint(len(posterior_samples), size=Nsamples)]
 
     if as_type=='2d_array':
         return posterior_samples

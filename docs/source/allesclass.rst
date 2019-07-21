@@ -2,11 +2,66 @@
 allesclass
 ==============================================================================
 
-Tired of allesfitter's standard plots? Want to match your color scheme, or add some fancy twists? Create your own plots (and much more) with the allesclass module! Example (replace 'allesfit' with whatever name you gave your directory; also change the instrument and flux/rv accordingly)::
+Tired of allesfitter's standard output? Want to make your own plots to match your color scheme or add fancy twists? Want to read out some posterior samples? Want to access all data and models in one place?
+
+You can do all this (and much more) with the allesclass module! Examples below, simply replace 'allesfit' with whatever name you gave your directory; also change the instrument and flux/rv accordingly::
+
 
     #::: load the allesclass
     alles = allesfitter.allesclass('allesfit')
+
+
+
+------------------------------------------------------------------------------
+1) The allesclass plot function
+------------------------------------------------------------------------------
+The allesclass plot function let's you create individual plots in your desired formats. The returned figure and axes object gives you control to change the plots afterwards, e.g.::
+
+    #::: iterate over all plot styles
+    for style in ['full', 'phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
     
+        #::: set up the figure
+        fig, axes = plt.subplots(2, 1, figsize=(8,8), gridspec_kw={'height_ratios': [3,1]}, sharex=True)
+        fig.subplots_adjust(hspace=0)
+    
+        #::: plot data and model
+        alles.plot('Leonardo','b',style,ax=axes[0])
+        axes[0].set_title(style)
+    
+        #::: plot residuals
+        alles.plot('Leonardo','b',style+'_residuals',ax=axes[1])
+        axes[1].set_title('')
+
+            
+
+.. image:: _static/tutorials/10_allesclass/full.pdf
+   :target: _static/tutorials/10_allesclass/full.pdf
+   :align: center
+
+.. image:: _static/tutorials/10_allesclass/phase.pdf
+   :target: _static/tutorials/10_allesclass/phase.pdf
+   :align: center
+
+.. image:: _static/tutorials/10_allesclass/phasezoom.pdf
+   :target: _static/tutorials/10_allesclass/phasezoom.pdf
+   :align: center
+
+.. image:: _static/tutorials/10_allesclass/phasezoom_occ.pdf
+   :target: _static/tutorials/10_allesclass/phasezoom_occ.pdf
+   :align: center
+
+.. image:: _static/tutorials/10_allesclass/phase_variations.pdf
+   :target: _static/tutorials/10_allesclass/phase_variations.pdf
+   :align: center
+
+
+
+
+------------------------------------------------------------------------------
+2) Full control
+------------------------------------------------------------------------------
+Want even more control, or access the data directly? Go ahead, e.g.::
+
     #::: settings
     inst = 'TESS'
     key = 'flux'
@@ -16,6 +71,9 @@ Tired of allesfitter's standard plots? Want to match your color scheme, or add s
     flux = alles.data[inst][key]
     flux_err = alles.data[inst]['err_scales_'+key] * alles.posterior_params_median['err_'+key+'_'+inst]
     
+    #::: note that the error for RV instruments is calculated differently
+    #rv_err = np.sqrt( alles.data[inst]['white_noise_'+key]**2 + alles.posterior_params_median['jitter_'+key+'_'+inst]**2 )
+
     #::: set up the figure
     fig, axes = plt.subplots(2, 1, figsize=(8,8), gridspec_kw={'height_ratios': [3,1]}, sharex=True)
     fig.subplots_adjust(hspace=0)
@@ -36,5 +94,8 @@ Tired of allesfitter's standard plots? Want to match your color scheme, or add s
     model = alles.get_posterior_median_model(inst, key)
     ax.errorbar(time, flux-(model+baseline), flux_err, fmt='b.')
     ax.axhline(0, color='grey', linestyle='--')
+
+
+
 
 (MORE EXAMPLES TBD)

@@ -294,7 +294,7 @@ def afplot(samples, companion):
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
+def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
     '''
     Inputs:
     -------
@@ -310,7 +310,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
         None or 'b'/'c'/etc.
         
     style:
-        'full' / 'phase' / 'phasezoom'
+        'full' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variation'
+        'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_variation_residuals'
         
     timelabel:
         'Time' / 'Time_since'
@@ -324,14 +325,28 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
     '''
 #    global config.BASEMENT
     
+    if base==None:
+        base = config.BASEMENT
+    
     params_median, params_ll, params_ul = get_params_from_samples(samples)
     
-    if inst in config.BASEMENT.settings['inst_phot']:
+    if inst in base.settings['inst_phot']:
         key='flux'
-        ylabel='Relative Flux'
-    elif inst in config.BASEMENT.settings['inst_rv']:
+        if style in ['full']:
+            ylabel='Relative Flux'
+        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+            ylabel='Relative Flux - Baseline'
+        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+            ylabel='Residuals'
+    elif inst in base.settings['inst_rv']:
         key='rv'
-        ylabel='RV (km/s)'
+        if style in ['full']:
+            ylabel='RV (km/s)'
+        elif style in ['phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variations']:
+            ylabel='RV (km/s) - Baseline'
+        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+            ylabel='Residuals'
+        
     else:
         raise ValueError('inst should be listed in inst_phot or inst_rv...')
     
@@ -340,16 +355,17 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
         alpha = 1.
     else:
         alpha = 0.1
+        
     
-    ###############################################################################
+    #==========================================================================
     # full time series, not phased
     # plot the 'undetrended' data
     # plot each sampled model + its baseline 
-    ###############################################################################
-    if style=='full':
+    #==========================================================================
+    if style in ['full', 'full_residuals']:
         
         #::: set it up
-        x = config.BASEMENT.data[inst]['time']
+        x = base.data[inst]['time']
         
         if timelabel=='Time_since':
             x = np.copy(x)
@@ -357,83 +373,115 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
             xsave = np.copy(x)
             x -= x[0]
 
-        y = config.BASEMENT.data[inst][key]
+        y = 1.*base.data[inst][key]
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
+        
+        #::: calculate residuals (if wished)
+        if (key=='flux') and (style in ['full_residuals']):
+            for companion in base.settings['companions_phot']:
+                model = flux_fct(params_median, inst, companion)
+                y -= (model-1.)
+            y -= 1.
+                    
+        if (key=='rv') and (style in ['full_residuals']):
+            for companion in base.settings['companions_rv']:
+                model = rv_fct(params_median, inst, companion)[0]
+                y -= model
+                    
+            
         #::: plot data, not phase        
-#        ax.errorbar(config.BASEMENT.fulldata[inst]['time'], config.BASEMENT.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
+#        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
         ax.errorbar(x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
-        if config.BASEMENT.settings['color_plot']:
+        if base.settings['color_plot']:
             ax.scatter(x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 ) 
             
         if timelabel=='Time_since':
             ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=inst)
         elif timelabel=='Time':
             ax.set(xlabel='Time (BJD)', ylabel=ylabel, title=inst)
+            
+            
         #::: plot model + baseline, not phased
-        if ((x[-1] - x[0]) < 1): dt = 2./24./60. #if <1 day of data: plot with 2 min resolution
-        else: dt = 30./24./60. #else: plot with 30 min resolution
-        xx = np.arange( x[0], x[-1]+dt, dt) 
-        for i in range(samples.shape[0]):
-            s = samples[i,:]
-            p = update_params(s)
-            model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-            baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            if inst in config.BASEMENT.settings['inst_phot']:
-                baseline_plus = 1.
-            else:
-                baseline_plus = 0.
-            stellar_var = calculate_stellar_var(p, key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
-            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
+        if style in ['full']:
+            if ((x[-1] - x[0]) < 1): dt = 2./24./60. #if <1 day of data: plot with 2 min resolution
+            else: dt = 30./24./60. #else: plot with 30 min resolution
+            xx = np.arange( x[0], x[-1]+dt, dt) 
+            for i in range(samples.shape[0]):
+                s = samples[i,:]
+                p = update_params(s)
+                model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                if inst in base.settings['inst_phot']:
+                    baseline_plus = 1.
+                else:
+                    baseline_plus = 0.
+                stellar_var = calculate_stellar_var(p, key, xx=xx) #evaluated on xx (!)
+                ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
+                ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
+        
+        #::: other stuff
         if timelabel=='Time_since':
             x = np.copy(xsave)
             
-    ###############################################################################
-    # phased - and optionally zoomed
+            
+    #==========================================================================
+    # phase-folded time series
     # get a 'median' baseline from intial guess value / MCMC median result
     # detrend the data with this 'median' baseline
     # then phase-fold the 'detrended' data
     # plot each phase-folded model (without baseline)
-    # TODO: This is not ideal, as we overplot models with different 
-    #       epochs/periods/baselines onto a phase-folded plot
-    ###############################################################################
-    else:
+    # Note: this is not ideal, as we overplot models with different epochs/periods/baselines onto a phase-folded plot
+    #==========================================================================
+    elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations',
+                   'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
         
         #::: data - baseline_median
-        x = config.BASEMENT.data[inst]['time']
+        x = 1.*base.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
         stellar_var_median = calculate_stellar_var(params_median, key, xx=x) #evaluated on x (!)
-        y = config.BASEMENT.data[inst][key] - baseline_median - stellar_var_median
+        y = base.data[inst][key] - baseline_median - stellar_var_median
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
         #::: zoom?
-        if 'phasezoom' in style: 
+        if style in ['phasezoom', 'phasezoom_occ', 
+                     'phasezoom_residuals', 'phasezoom_occ_residuals']: 
             zoomfactor = params_median[companion+'_period']*24.
         else: 
             zoomfactor = 1.
         
         
-        #::: if RV
+        #----------------------------------------------------------------------
+        #::: Radial velocity
         #::: need to take care of multiple companions
-        if (inst in config.BASEMENT.settings['inst_rv']):
+        #----------------------------------------------------------------------
+        if (inst in base.settings['inst_rv']):
             
-            for other_companion in config.BASEMENT.settings['companions_rv']:
+            #::: remove other companions
+            for other_companion in base.settings['companions_rv']:
                 if companion!=other_companion:
                     model = rv_fct(params_median, inst, other_companion)[0]
                     y -= model
             
-            #data, phased        
+            
+            #::: calculate residuals (if wished)
+            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+                model = rv_fct(params_median, inst, companion)[0]
+                y -= model
+                
+                
+            #::: data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )            
-            ax.set(xlabel='Phase', ylabel=ylabel+r'- Baseline', title=inst+', companion '+companion+' only')
+            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion+' only')
     
-            #model, phased
+    
+            #::: model, phased
             xx = np.linspace( -0.25, 0.75, 1000)
             for i in range(samples.shape[0]):
                 s = samples[i,:]
@@ -442,59 +490,85 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time'):
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
             
         
-        #::: if photometry
-        elif (inst in config.BASEMENT.settings['inst_phot']):
+        #----------------------------------------------------------------------
+        #::: Photometry
+        #----------------------------------------------------------------------
+        elif (inst in base.settings['inst_phot']):
             
-            for other_companion in config.BASEMENT.settings['companions_phot']:
+            #::: remove other companions
+            for other_companion in base.settings['companions_phot']:
                 if companion!=other_companion:
                     model = flux_fct(params_median, inst, other_companion)
-                    y -= model
-                    y += 1.
+                    y -= (model-1.)
                     
-            #data, phased  
-            if 'phase_variation' in style:
-                dt = 0.01                
-#            elif (x[-1] - x[0]) < 1.:
-#                dt = 0.00001 #i.e. do not bin
-#                print('here')
-            elif 'phasezoom' in style:
-                dt = 15./60./24. / params_median[companion+'_period']
-            else:
+                    
+            #::: calculate residuals (if wished)
+            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+                model = flux_fct(params_median, inst, companion)
+                y -= model
+                    
+                
+            #::: plot data, phased  
+            if style in ['phase', 
+                         'phase_residuals']:
                 dt = 0.002
+            elif style in ['phase_variations', 
+                           'phase_variations_residuals']:
+                dt = 0.01            
+            elif style in ['phasezoom', 'phasezoom_occ', 
+                           'phasezoom_residuals', 'phasezoom_occ_residuals']: 
+                dt = 15./60./24. / params_median[companion+'_period']
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                if 'phase_variation' not in style: 
+                if style in ['phase_variations', 
+                             'phase_variations_residuals']:
+                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=True, zorder=11 )                    
+                else: 
                     ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
                     ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
-                else:
-                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=True, zorder=11 )                    
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )  
-                if config.BASEMENT.settings['color_plot']:
+                if base.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 )          
-            ax.set(xlabel='Phase', ylabel=ylabel+r'- Baseline', title=inst+', companion '+companion)
+            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion)
     
-            #model, phased
-            if style=='phasezoom':
-                xx = np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)
-            elif style=='phasezoom_occ':
-                xx = np.linspace( (-4.+zoomfactor/2.)/zoomfactor, (4.+zoomfactor/2.)/zoomfactor, 1000)
-            else:
-                xx = np.linspace( -0.25, 0.75, 1000)
-            for i in range(samples.shape[0]):
-                s = samples[i,:]
-                p = update_params(s, phased=True)
-                model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
+    
+            #::: plot model, phased (if wished)
+            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+                
+                if style in ['phase', 'phase_variations']:
+                    xx = np.linspace( -0.25, 0.75, 1000)
+                elif style in ['phasezoom']:
+                    xx = np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)
+                elif style in ['phasezoom_occ']:
+                    xx = np.linspace( (-4.+zoomfactor/2.)/zoomfactor, (4.+zoomfactor/2.)/zoomfactor, 1000)
+    
+                for i in range(samples.shape[0]):
+                    s = samples[i,:]
+                    p = update_params(s, phased=True)
+                    model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
+                    ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         
-        #::: zoom?        
-        if 'phasezoom' in style:     ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
-        if 'phasezoom_occ' in style: ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], ylim=[0.999,1.0005], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+        #::: x-zoom?        
+        if style in ['phasezoom',
+                     'phasezoom_residuals']:
+                ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+        elif style in ['phasezoom_occ',
+                       'phasezoom_occ_residuals']:
+                ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         
-        #::: zoom onto phase variations?
-        if 'phase_variation' in style: ax.set( ylim=[0.9999,1.0001] )
+        
+        #::: y-zoom onto phase variations
+        elif style in ['phasezoom_occ']:
+                ax.set( ylim=[0.999,1.0005] )
+       
+        if style in ['phase_variation', 
+                     'phase_variation_residuals']:
+                ax.set( ylim=[0.9999,1.0001] )
+
+
 
     
 ###############################################################################

@@ -1165,7 +1165,6 @@ class Basement():
             
             self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(all_times,self.params[companion+'_epoch'],self.params[companion+'_period'],self.settings['fast_fit_width'])
         
-        
             if self.settings['fit_ttvs']:  
                 N_days = int( np.max(all_times) - np.min(all_times) )
                 figsizex = np.min( [1, int(N_days/20.)] )*5
@@ -1179,7 +1178,16 @@ class Basement():
                 if not os.path.exists( os.path.join(self.datadir,'results') ):
                     os.makedirs(os.path.join(self.datadir,'results'))
                 ax.legend()
-                fig.savefig( os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf'), bbox_inches='tight' )            
+                fname = os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf')
+                if os.path.exists(fname):
+                    overwrite = str(input('Figure "preparation_for_TTV_fit_'+companion+'.pdf" already exists.\n'+\
+                                          'What do you want to do?\n'+\
+                                          '1 : overwrite it\n'+\
+                                          '2 : skip it and move on\n'))
+                    if (overwrite == '1'):
+                        fig.savefig(fname, bbox_inches='tight' )    
+                    else:
+                        pass        
                 plt.close(fig)
             
             width = self.settings['fast_fit_width']
