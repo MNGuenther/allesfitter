@@ -1,9 +1,9 @@
 """
-Pipeline to analyze previously known planets detected by TESS
+Pipeline to analyze allesfitter output for planet transit timings
 
-argument 1: name of the planet
-argument 2: kind of the analysis (global, occultation, etc.)
-argument 3: type of the analysis (wouttess, withtess, onlytess)
+argument 1: allesfitter path
+argument 2: p-value threshold
+argument 3: Boolean to select to plot wout/with TESS or wout/with/only TESS
 
 Tansu Daylan
 MIT Kavli Institute, Cambridge, MA, 02109, US
@@ -12,198 +12,181 @@ www.tansudaylan.com
 """
 
 import numpy as np
+import scipy
 import os, datetime, sys
 
 import matplotlib.pyplot as plt
 
+import allesfitter
+import allesfitter.postprocessing.plot_viol
 from allesfitter import config
-import pickle
 
-# base data path for the TESS known planet project
-pathdata = os.environ['KNWN_DATA_PATH'] + '/'
+import astropy
 
-os.system('mkdir -p %s' % pathdata)
-os.system('mkdir -p %s' % (pathdata + '/postproc/'))
+def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
 
-strgplan = sys.argv[1]
-strgkind = sys.argv[2]
-
-strgtimestmp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-print('Post-processing comparison pipeline for the previously TESS exoplanets started at %s...' % strgtimestmp)
+    strgtimestmp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    print('allesfitter postprocessing violin plot started at %s...' % strgtimestmp)
     
-
-print('Will analyze:')
-print(strgplan)
-
-# threshold p value to conclude significant difference between posteriors with and without TESS
-pvalthrs = 1e-6
-
-indxcomp = np.arange(3)
-
-# list of rtyp
-# 0 : wout
-# 1 : with
-# 2 : only
-# list of comp
-# wout with
-# wout only
-# with only
-indxrtypfrst = [0, 0, 1]
-indxrtypseco = [1, 2, 2]
-
-liststrgrtyp = ['wout', 'with', 'only'] 
-numbrtyp = len(liststrgrtyp)
-indxrtyp = np.arange(numbrtyp)
-
-lpos = [[] for i in indxrtyp]
-chan = [[] for i in indxrtyp]
-lablpara = [[] for i in indxrtyp]
-numbwalk = [[] for i in indxrtyp]
-numbswep = [[] for i in indxrtyp]
-numbsamp = [[] for i in indxrtyp]
-numbburn = [[] for i in indxrtyp]
-factthin = [[] for i in indxrtyp]
-numbpara = [[] for i in indxrtyp]
-
-pathdataplan = pathdata + strgplan+ '/'
-
-for i, strgrtyp in enumerate(liststrgrtyp):
-    pathdata = pathdataplan + 'allesfit_%s/allesfit_%stess_ns/' % (strgkind, strgrtyp)
-    print('Reading from %s...' % pathdata)
-    config.init(pathdata)
-    lablpara[i] = config.BASEMENT.fitlabels
-
-    pathsave = pathdata + 'results/mcmc_save.h5'
-    if False and not os.path.exists(pathsave):
-        # sample from the posterior excluding the TESS data
-        print('Calling allesfitter to fit the data...')
-        allesfitter.mcmc_fit(pathdata)
-
-    # read the chain
-    ## MCMC
-    #emceobjt = emcee.backends.HDFBackend(pathsave, read_only=True)
-    #chan[i] = emceobjt.get_chain()
-    #lpos[i] = emceobjt.get_log_prob()
+    liststrgruns = ['woutTESS', 'alldata']
+    if boolonlytess:
+        liststrgruns.append(['TESS'])
     
-    ## Nested sampling
-    fileobjt = open(pathdata + 'results/save_ns.pickle', 'rb')
-    objtrest = pickle.load(fileobjt)
-    weig = np.exp(objtrest['logwt'] - objtrest['logz'][-1])
-    chan[i] = dyutils.resample_equal(objtrest.samples, weig)    
-    lpos[i] = np.zeros(chan[i].shape[0])
+    numbruns = len(liststrgruns)
+    indxruns = np.arange(numbruns)
+    
+    liststrgpara = [[] for i in indxruns]
+    listlablpara = [[] for i in indxruns]
+    listobjtalle = [[] for i in indxruns]
+    for i, strgruns in enumerate(liststrgruns):
+        pathdata = pathdataoutp + 'allesfits/allesfit_%s' % strgruns
+        print('Reading from %s...' % pathdata)
+        config.init(pathdata)
+        liststrgpara[i] = np.array(config.BASEMENT.fitkeys)
+        listlablpara[i] = np.array(config.BASEMENT.fitlabels)
+        # read the chain
+        listobjtalle[i] = allesfitter.allesclass(pathdata)
+        
+    liststrgparaconc = np.concatenate(liststrgpara)
+    liststrgparaconc = np.unique(liststrgparaconc)
+    listlablparaconc = np.copy(liststrgparaconc)
+    for k, strgparaconc in enumerate(liststrgparaconc):
+        for i, strgruns in enumerate(liststrgruns):
+            if strgparaconc in liststrgpara[i]:
+                listlablparaconc[k] = listlablpara[i][np.where(liststrgpara[i] == strgparaconc)[0][0]]
+    
+    ticklabl = ['w/o TESS', 'w/ TESS']
+    if boolonlytess:
+        ticklabl.append(['only TESS'])
 
-    # parse configuration
-    numbswep[i] = config.BASEMENT.settings['mcmc_total_steps']
-    numbburn[i] = config.BASEMENT.settings['mcmc_burn_steps']
-    factthin[i] = config.BASEMENT.settings['mcmc_thin_by']
-    numbpara[i] = config.BASEMENT.ndim
-
-    numbwalk[i] = chan[i].shape[1]
-    numbswep[i] = chan[i].shape[0] * factthin
-    numbsamp[i] = lpos[i].size
-    chan[i] = chan[i].reshape((-1, numbpara[i]))
-    print('Found %d samples and %d parameters...' % (chan[i].shape[0], chan[i].shape[1]))
-
-lablparacomp = [[] for u in indxcomp]
-for u in indxcomp:
-
-    lablparacomp[u] = list(set(lablpara[indxrtypfrst[u]]).intersection(lablpara[indxrtypseco[u]]))
-
-    # post-processing
-    ## calculate the KS test statistic between the posteriors
-    numbparacomp = len(lablparacomp[u])
-    pval = np.empty(numbparacomp)
-    for j in range(numbparacomp):
-        kosm, pval[j] = stats.ks_2samp(chan[indxrtypfrst[u]][:, j], chan[indxrtypseco[u]][:, j])
-
-    ## find the list of parameters whose posterior with and without TESS are unlikely to be drawn from the same distribution
-    indxparagood = np.where(pval < pvalthrs)[0]
-    if indxparagood.size > 0:
-
-        figr, axis = plt.subplots(figsize=(12, 5))
-        indxparacomp = np.arange(numbparacomp)
-        axis.plot(indxparacomp, pval, ls='', marker='o')
-        axis.plot(indxparacomp[indxparagood], pval[indxparagood], ls='', marker='o', color='r')
-        axis.set_yscale('log')
-        axis.set_xticks(indxparacomp)
-        axis.set_xticklabels(lablparacomp[u])
-        if u == 0:
-            axis.set_title('Posteriors with TESS vs. without TESS')
-        if u == 1:
-            axis.set_title('Posteriors without TESS vs. only TESS')
-        if u == 2:
-            axis.set_title('Posteriors with TESS vs. only TESS')
-
-        axis.axhline(pvalthrs, ls='--', color='black', alpha=0.3)
+    for k, strgpara in enumerate(liststrgparaconc):
+        booltemp = True
+        for i in indxruns:
+            if not strgpara in liststrgpara[i]:
+                booltemp = False
+        if not booltemp:
+            continue
+        
+        figr, axis = plt.subplots()
+        chanlist = []
+        for i in indxruns:
+            chanlist.append((listobjtalle[i].posterior_params[strgpara] - np.mean(listobjtalle[i].posterior_params[strgpara])) * 24. * 60.)
+        axis.violinplot(chanlist, showmedians=True, showextrema=False)
+        axis.set_xticks(np.arange(numbruns) + 1)
+        axis.set_xticklabels(ticklabl)
+        if strgpara == 'b_period':
+            axis.set_ylabel('P [min]')
+        else:
+            axis.set_ylabel(listlablparaconc[k])
         plt.tight_layout()
-        path = pathdata + 'postproc/%s_kosm_com%d_%s.png' % (strgtimestmp, u, strgplan)
+        
+        path = pathdataoutp + 'viol_%04d.pdf' % (k)
         print('Writing to %s...' % path)
         figr.savefig(path)
         plt.close()
+    
+    listyear = [2021, 2023, 2025]
+    numbyear = len(listyear)
+    indxyear = np.arange(numbyear)
+    timejwst = [[[] for i in indxruns] for k in indxyear]
+    for k, year in enumerate(listyear):
+        epocjwst = astropy.time.Time('%d-01-01 00:00:00' % year, format='iso').jd
+        for i in indxruns:
+            epoc = listobjtalle[i].posterior_params['b_epoch']
+            peri = listobjtalle[i].posterior_params['b_period']
+            indxtran = (epocjwst - epoc) / peri
+            indxtran = np.mean(np.rint(indxtran))
+            if indxtran.size != np.unique(indxtran).size:
+                raise Exception('')
 
-indxrtypmaxm = 1
+            timejwst[k][i] = epoc + peri * indxtran
 
-lablparatotl = np.unique(np.concatenate(lablpara))
+            timejwst[k][i] -= np.mean(timejwst[k][i])
+            timejwst[k][i] *= 24. * 60.
+    
+    ## temporal evolution
+    figr, axis = plt.subplots(figsize=(12, 6))
+    axis.violinplot([timejwst[k][1] for k in indxyear], listyear)
+    axis.set_xlabel('Year')
+    axis.set_ylabel('Transit time residual [min]')
+    plt.tight_layout()
+    path = pathdataoutp + 'jwsttime.pdf'
+    print('Writing to %s...' % path)
+    plt.savefig(path)
+    plt.close()
+    
+    ## without/with/only TESS prediction comparison
+    figr, axis = plt.subplots(figsize=(12, 6))
+    axis.violinplot(timejwst[1], range(len(liststrgruns)), points=2000)
+    axis.set_xticks(range(len(liststrgruns)))
+    axis.set_xticklabels(ticklabl)
+    axis.set_ylabel('Transit time residual in 2023 [min]')
+    #axis.set_ylim([-300, 300])
+    plt.tight_layout()
+    path = pathdataoutp + 'jwstcomp.pdf'
+    print('Writing to %s...' % path)
+    plt.savefig(path)
+    plt.close()
+    
+    return
 
-for l, lablparatemp in enumerate(lablparatotl):
-    figr, axis = plt.subplots()
-    numbbins = 50
-
-    listindxrtypcomp = []
-    for i in indxrtyp:
-        if lablparatemp in lablpara[i]:
-            listindxrtypcomp.append(i)
-
+    # all parameter summary
     figr, axis = plt.subplots()
     chanlist = []
-    for i in listindxrtypcomp:
-        m = np.where(lablpara[i] == lablparatemp)[0][0]
-
-        if lablparatemp == '$T_{0;b}$':
-            offs = np.mean(chan[i][:, m])
-            chantemp = chan[i][:, m] - offs
-            print('Subtracting %g from T_b for TESS...' % offs)
-        else:
-            chantemp = chan[i][:, m]
-
-        chanlist.append(chantemp)
     axis.violinplot(chanlist, showmedians=True, showextrema=False)
-
-    if listindxrtypcomp == [0, 1]:
-        labltick = ['w/o TESS', 'w/ TESS']
-    if listindxrtypcomp == [0, 2]:
-        labltick = ['w/o TESS', 'only TESS']
-    if listindxrtypcomp == [1, 2]:
-        labltick = ['w/ TESS', 'only TESS']
-    if listindxrtypcomp == [0, 1, 2]:
-        labltick = ['w/o TESS', 'w/ TESS', 'only TESS']
-    valutick = np.arange(len(labltick)) + 1
-
     axis.set_xticks(valutick)
     axis.set_xticklabels(labltick)
     axis.set_ylabel(lablparatemp)
     plt.tight_layout()
-
-    path = pathdata + 'postproc/%s_viol_pr%02d_%s.png' % (strgtimestmp, l, strgplan)
+    path = pathdataoutp + 'para_%s.pdf'
     print('Writing to %s...' % path)
     figr.savefig(path)
     plt.close()
 
-# summary violin plot 
-figr, axis = plt.subplots()
-chanlist = []
-for l, lablparatemp in enumerate(['']):
-    chanlist.append()
-axis.violinplot(chanlist, showmedians=True, showextrema=False)
+    # plot p values
+    ## threshold p value to conclude significant difference between posteriors with and without TESS
+    if pvalthrs is None:
+        pvalthrs = 1e-6
+    
+    lablparacomp = [[] for u in indxruns]
+    for u in indxruns:
+    
+        lablparacomp[u] = list(set(lablpara[indxrunsfrst[u]]).intersection(lablpara[indxrunsseco[u]]))
+    
+        # post-processing
+        ## calculate the KS test statistic between the posteriors
+        numbparacomp = len(lablparacomp[u])
+        pval = np.empty(numbparacomp)
+        for j in range(numbparacomp):
+            kosm, pval[j] = scipy.stats.ks_2samp([indxrunsfrst[u]][:, j], chan[indxrunsseco[u]][:, j])
+            kosm, pval[j] = scipy.stats.ks_2samp(chan[indxrunsfrst[u]][:, j], chan[indxrunsseco[u]][:, j])
+    
+        ## find the list of parameters whose posterior with and without TESS are unlikely to be drawn from the same distribution
+        indxparagood = np.where(pval < pvalthrs)[0]
+        if indxparagood.size > 0:
+    
+            figr, axis = plt.subplots(figsize=(12, 5))
+            indxparacomp = np.arange(numbparacomp)
+            axis.plot(indxparacomp, pval, ls='', marker='o')
+            axis.plot(indxparacomp[indxparagood], pval[indxparagood], ls='', marker='o', color='r')
+            axis.set_yscale('log')
+            axis.set_xticks(indxparacomp)
+            axis.set_xticklabels(lablparacomp[u])
+            if u == 0:
+                axis.set_title('Posteriors with TESS vs. without TESS')
+            if u == 1:
+                axis.set_title('Posteriors without TESS vs. only TESS')
+            if u == 2:
+                axis.set_title('Posteriors with TESS vs. only TESS')
+    
+            axis.axhline(pvalthrs, ls='--', color='black', alpha=0.3)
+            plt.tight_layout()
+            path = pathdataoutp + 'kosm_com%d.pdf' % u
+            print('Writing to %s...' % path)
+            figr.savefig(path)
+            plt.close()
+    
 
-axis.set_xticks(valutick)
-axis.set_xticklabels(labltick)
-axis.set_ylabel(lablparatemp)
-plt.tight_layout()
-
-path = pathdata + 'postproc/%s_viol_pr%02d_%s.png' % (strgtimestmp, l, strgplan)
-print('Writing to %s...' % path)
-figr.savefig(path)
-plt.close()
+    
 
 
