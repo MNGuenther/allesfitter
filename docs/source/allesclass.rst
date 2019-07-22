@@ -17,43 +17,77 @@ You can do all this (and much more) with the allesclass module! Examples below, 
 ------------------------------------------------------------------------------
 The allesclass plot function let's you create individual plots in your desired formats. The returned figure and axes object gives you control to change the plots afterwards, e.g.::
 
+
+    #------------------------------------------------------------------------------
+    # Photometry
+    #------------------------------------------------------------------------------
     #::: iterate over all plot styles
     for style in ['full', 'phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
     
         #::: set up the figure
-        fig, axes = plt.subplots(2, 1, figsize=(8,8), gridspec_kw={'height_ratios': [3,1]}, sharex=True)
+        fig, axes = plt.subplots(2, 1, figsize=(6,6), gridspec_kw={'height_ratios': [3,1]}, sharex=True)
         fig.subplots_adjust(hspace=0)
     
-        #::: plot data and model
+        #::: alles.plot(...) data and model
         alles.plot('Leonardo','b',style,ax=axes[0])
-        axes[0].set_title(style)
+        axes[0].set_title('Leonardo, '+style)
     
-        #::: plot residuals
+        #::: alles.plot(...) residuals
         alles.plot('Leonardo','b',style+'_residuals',ax=axes[1])
         axes[1].set_title('')
+    
+        fig.savefig('Leonardo_'+style+'.pdf', bbox_inches='tight')
+
+
+    #------------------------------------------------------------------------------
+    # RV
+    #------------------------------------------------------------------------------
+    #::: iterate over all plot styles
+    for style in ['full', 'phase']:
+    
+        #::: set up the figure
+        fig, axes = plt.subplots(2, 1, figsize=(6,6), gridspec_kw={'height_ratios': [3,1]}, sharex=True)
+        fig.subplots_adjust(hspace=0)
+    
+        #::: alles.plot(...) data and model
+        alles.plot('Donatello','b',style,ax=axes[0])
+        axes[0].set_title('Donatello, '+style)
+    
+        #::: alles.plot(...) residuals
+        alles.plot('Donatello','b',style+'_residuals',ax=axes[1])
+        axes[1].set_title('')
+    
+        fig.savefig('Donatello_'+style+'.pdf', bbox_inches='tight')
 
             
 
-.. image:: _static/tutorials/10_allesclass/full.pdf
-   :target: _static/tutorials/10_allesclass/full.pdf
+.. image:: _static/tutorials/10_allesclass/Leonardo_full.pdf
+   :target: _static/tutorials/10_allesclass/Leonardo_full.pdf
    :align: center
 
-.. image:: _static/tutorials/10_allesclass/phase.pdf
-   :target: _static/tutorials/10_allesclass/phase.pdf
+.. image:: _static/tutorials/10_allesclass/Leonardo_phase.pdf
+   :target: _static/tutorials/10_allesclass/Leonardo_phase.pdf
    :align: center
 
-.. image:: _static/tutorials/10_allesclass/phasezoom.pdf
-   :target: _static/tutorials/10_allesclass/phasezoom.pdf
+.. image:: _static/tutorials/10_allesclass/Leonardo_phasezoom.pdf
+   :target: _static/tutorials/10_allesclass/Leonardo_phasezoom.pdf
    :align: center
 
-.. image:: _static/tutorials/10_allesclass/phasezoom_occ.pdf
-   :target: _static/tutorials/10_allesclass/phasezoom_occ.pdf
+.. image:: _static/tutorials/10_allesclass/Leonardo_phasezoom_occ.pdf
+   :target: _static/tutorials/10_allesclass/Leonardo_phasezoom_occ.pdf
    :align: center
 
-.. image:: _static/tutorials/10_allesclass/phase_variations.pdf
-   :target: _static/tutorials/10_allesclass/phase_variations.pdf
+.. image:: _static/tutorials/10_allesclass/Leonardo_phase_variations.pdf
+   :target: _static/tutorials/10_allesclass/Leonardo_phase_variations.pdf
    :align: center
 
+.. image:: _static/tutorials/10_allesclass/Donatello_full.pdf
+   :target: _static/tutorials/10_allesclass/Donatello_full.pdf
+   :align: center
+
+.. image:: _static/tutorials/10_allesclass/Donatello_phase.pdf
+   :target: _static/tutorials/10_allesclass/Donatello_phase.pdf
+   :align: center
 
 
 

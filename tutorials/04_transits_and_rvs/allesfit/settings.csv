@@ -8,7 +8,7 @@ inst_phot,Leonardo Michelangelo
 inst_rv,Donatello Raphael
 fast_fit,TRUE
 multiprocess,TRUE
-multiprocess_cores,4
+multiprocess_cores,10
 #####################################,
 # Nested Sampling settings,
 #####################################,
