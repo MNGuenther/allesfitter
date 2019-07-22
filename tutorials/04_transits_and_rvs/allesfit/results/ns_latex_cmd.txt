@@ -1,14 +1,14 @@
-\newcommand{\ldcq1Leonardo}{none$=0.24_{-0.13}^{+0.24}$} 
-\newcommand{\ldcq2Leonardo}{none$=0.29_{-0.20}^{+0.36}$} 
-\newcommand{\ldcq1Michelangelo}{none$=0.71_{-0.19}^{+0.18}$} 
-\newcommand{\ldcq2Michelangelo}{none$=0.277_{-0.078}^{+0.11}$} 
-\newcommand{\brsuma}{none$=0.1097_{-0.0029}^{+0.0048}$} 
-\newcommand{\brr}{none$=0.1001_{-0.0014}^{+0.0017}$} 
-\newcommand{\bcosi}{none$=0.025\pm0.014$} 
-\newcommand{\bepoch}{none$=31.70077\pm0.00040$} 
-\newcommand{\bperiod}{none$=3.399873\pm0.000066$} 
-\newcommand{\bK}{none$=0.0984_{-0.0018}^{+0.0024}$} 
-\newcommand{\logerrfluxLeonardo}{none$=-6.241\pm0.072$} 
-\newcommand{\logerrfluxMichelangelo}{none$=-7.739_{-0.073}^{+0.078}$} 
-\newcommand{\logjitterrvDonatello}{none$=-4.47_{-0.41}^{+0.43}$} 
-\newcommand{\logjitterrvRaphael}{none$=-5.65_{-0.41}^{+0.48}$} 
+\newcommand{\hostldcq1Leonardo}{$=0.50\pm0.31$} %none = 0.50\pm0.31
+\newcommand{\hostldcq2Leonardo}{$=0.51_{-0.32}^{+0.30}$} %none = 0.51_{-0.32}^{+0.30}
+\newcommand{\hostldcq1Michelangelo}{$=0.51\pm0.32$} %none = 0.51\pm0.32
+\newcommand{\hostldcq2Michelangelo}{$=0.50\pm0.31$} %none = 0.50\pm0.31
+\newcommand{\brsuma}{$=0.1482_{-0.0051}^{+0.0045}$} %none = 0.1482_{-0.0051}^{+0.0045}
+\newcommand{\brr}{$=0.1082\pm0.0013$} %none = 0.1082\pm0.0013
+\newcommand{\bcosi}{$=0.1008_{-0.0064}^{+0.0054}$} %none = 0.1008_{-0.0064}^{+0.0054}
+\newcommand{\bepoch}{$=1.1023\pm0.0012$} %none = 1.1023\pm0.0012
+\newcommand{\bperiod}{$=3.399852\pm0.000082$} %none = 3.399852\pm0.000082
+\newcommand{\bK}{$=0.0984_{-0.0018}^{+0.0026}$} %none = 0.0984_{-0.0018}^{+0.0026}
+\newcommand{\logerrfluxLeonardo}{$=-6.208\pm0.072$} %none = -6.208\pm0.072
+\newcommand{\logerrfluxMichelangelo}{$=-7.427\pm0.078$} %none = -7.427\pm0.078
+\newcommand{\logjitterrvDonatello}{$=-4.48\pm0.41$} %none = -4.48\pm0.41
+\newcommand{\logjitterrvRaphael}{$=-5.64_{-0.41}^{+0.51}$} %none = -5.64_{-0.41}^{+0.51}

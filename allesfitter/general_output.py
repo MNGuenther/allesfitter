@@ -332,6 +332,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
     
     if inst in base.settings['inst_phot']:
         key='flux'
+        baseline_plus = 1.
         if style in ['full']:
             ylabel='Relative Flux'
         elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
@@ -340,9 +341,10 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
             ylabel='Residuals'
     elif inst in base.settings['inst_rv']:
         key='rv'
+        baseline_plus = 0.
         if style in ['full']:
             ylabel='RV (km/s)'
-        elif style in ['phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variations']:
+        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
             ylabel='RV (km/s) - Baseline'
         elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
             ylabel='Residuals'
@@ -378,17 +380,12 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
         
         
         #::: calculate residuals (if wished)
-        if (key=='flux') and (style in ['full_residuals']):
-            for companion in base.settings['companions_phot']:
-                model = flux_fct(params_median, inst, companion)
-                y -= (model-1.)
-            y -= 1.
-                    
-        if (key=='rv') and (style in ['full_residuals']):
-            for companion in base.settings['companions_rv']:
-                model = rv_fct(params_median, inst, companion)[0]
-                y -= model
-                    
+        if style in ['full_residuals']:
+            model = calculate_model(params_median, inst, key)
+            baseline = calculate_baseline(params_median, inst, key)
+            stellar_var = calculate_stellar_var(params_median, key, xx=x)
+            y -= model+baseline+stellar_var
+            
             
         #::: plot data, not phase        
 #        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
@@ -412,10 +409,6 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
                 p = update_params(s)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-                if inst in base.settings['inst_phot']:
-                    baseline_plus = 1.
-                else:
-                    baseline_plus = 0.
                 stellar_var = calculate_stellar_var(p, key, xx=xx) #evaluated on xx (!)
                 ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
@@ -471,7 +464,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
                 y -= model
                 
                 
-            #::: data, phased        
+            #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
                 ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
@@ -481,13 +474,14 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion+' only')
     
     
-            #::: model, phased
-            xx = np.linspace( -0.25, 0.75, 1000)
-            for i in range(samples.shape[0]):
-                s = samples[i,:]
-                p = update_params(s, phased=True)
-                model = rv_fct(p, inst, companion, xx=xx)[0]
-                ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
+            #::: plot model, phased (if wished)
+            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+                xx = np.linspace( -0.25, 0.75, 1000)
+                for i in range(samples.shape[0]):
+                    s = samples[i,:]
+                    p = update_params(s, phased=True)
+                    model = rv_fct(p, inst, companion, xx=xx)[0]
+                    ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
             
         
         #----------------------------------------------------------------------
