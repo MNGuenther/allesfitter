@@ -104,8 +104,13 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
             timejwst[k][i] -= np.mean(timejwst[k][i])
             timejwst[k][i] *= 24. * 60.
     
+    listfigr = []
+    listaxis = []
+
     ## temporal evolution
     figr, axis = plt.subplots(figsize=(12, 6))
+    listfigr.append(figr)
+    listaxis.append(axis)
     axis.violinplot([timejwst[k][1] for k in indxyear], listyear)
     axis.set_xlabel('Year')
     axis.set_ylabel('Transit time residual [min]')
@@ -117,6 +122,8 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
     
     ## without/with/only TESS prediction comparison
     figr, axis = plt.subplots(figsize=(12, 6))
+    listfigr.append(figr)
+    listaxis.append(axis)
     axis.violinplot(timejwst[1], range(len(liststrgruns)), points=2000)
     axis.set_xticks(range(len(liststrgruns)))
     axis.set_xticklabels(ticklabl)
@@ -128,7 +135,7 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
     plt.savefig(path)
     plt.close()
     
-    return
+    return listfigr, listaxis
 
     # all parameter summary
     figr, axis = plt.subplots()
