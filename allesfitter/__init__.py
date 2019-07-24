@@ -1,4 +1,4 @@
-e #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Oct  5 14:18:20 2018
@@ -247,4 +247,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '0.9.4'
+__version__ = '0.9.5'

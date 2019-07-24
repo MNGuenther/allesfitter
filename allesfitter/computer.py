@@ -610,50 +610,55 @@ def rv_fct(params, inst, companion, xx=None):
         t_exp = None
         n_int = None
    
-    model_rv1, model_rv2 = ellc.rv(
-                      t_obs =       xx, 
-                      radius_1 =    params[companion+'_radius_1'], 
-                      radius_2 =    params[companion+'_radius_2'], 
-                      sbratio =     params[companion+'_sbratio_'+inst], 
-                      incl =        params[companion+'_incl'], 
-                      t_zero =      params[companion+'_epoch'],
-                      period =      params[companion+'_period'],
-                      a =           params[companion+'_a'],
-                      q =           params[companion+'_q'],
-                      f_c =         params[companion+'_f_c'],
-                      f_s =         params[companion+'_f_s'],
-                      ldc_1 =       params['host_ldc_'+inst],
-                      ldc_2 =       params[companion+'_ldc_'+inst],
-                      gdc_1 =       params['host_gdc_'+inst],
-                      gdc_2 =       params[companion+'_gdc_'+inst],
-                      didt =        params['didt_'+inst], 
-                      domdt =       params['domdt_'+inst], 
-                      rotfac_1 =    params['host_rotfac_'+inst], 
-                      rotfac_2 =    params[companion+'_rotfac_'+inst], 
-                      hf_1 =        params['host_hf_'+inst], #1.5, 
-                      hf_2 =        params[companion+'_hf_'+inst], #1.5,
-                      bfac_1 =      params['host_bfac_'+inst],
-                      bfac_2 =      params[companion+'_bfac_'+inst], 
-                      heat_1 =      params['host_geom_albedo_'+inst]/2.,
-                      heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
-                      lambda_1 =    params['host_lambda_'+inst],
-                      lambda_2 =    params[companion+'_lambda_'+inst], 
-                      vsini_1 =     params['host_vsini_'+inst],
-                      vsini_2 =     params[companion+'_vsini_'+inst], 
-                      t_exp =       t_exp,
-                      n_int =       n_int,
-                      grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
-                      grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
-                      ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
-                      ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
-                      shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
-                      shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
-                      spots_1 =     params['host_spots_'+inst], 
-                      spots_2 =     params[companion+'_spots_'+inst], 
-                      #flux_weighted =   config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
-                      flux_weighted =   False,
-                      verbose =     False
-                      )
+    if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
+        model_rv1, model_rv2 = ellc.rv(
+                          t_obs =       xx, 
+                          radius_1 =    params[companion+'_radius_1'], 
+                          radius_2 =    params[companion+'_radius_2'], 
+                          sbratio =     params[companion+'_sbratio_'+inst], 
+                          incl =        params[companion+'_incl'], 
+                          t_zero =      params[companion+'_epoch'],
+                          period =      params[companion+'_period'],
+                          a =           params[companion+'_a'],
+                          q =           params[companion+'_q'],
+                          f_c =         params[companion+'_f_c'],
+                          f_s =         params[companion+'_f_s'],
+                          ldc_1 =       params['host_ldc_'+inst],
+                          ldc_2 =       params[companion+'_ldc_'+inst],
+                          gdc_1 =       params['host_gdc_'+inst],
+                          gdc_2 =       params[companion+'_gdc_'+inst],
+                          didt =        params['didt_'+inst], 
+                          domdt =       params['domdt_'+inst], 
+                          rotfac_1 =    params['host_rotfac_'+inst], 
+                          rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                          hf_1 =        params['host_hf_'+inst], #1.5, 
+                          hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                          bfac_1 =      params['host_bfac_'+inst],
+                          bfac_2 =      params[companion+'_bfac_'+inst], 
+                          heat_1 =      params['host_geom_albedo_'+inst]/2.,
+                          heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                          lambda_1 =    params['host_lambda_'+inst],
+                          lambda_2 =    params[companion+'_lambda_'+inst], 
+                          vsini_1 =     params['host_vsini_'+inst],
+                          vsini_2 =     params[companion+'_vsini_'+inst], 
+                          t_exp =       t_exp,
+                          n_int =       n_int,
+                          grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
+                          grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
+                          ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
+                          ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
+                          shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
+                          shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                          spots_1 =     params['host_spots_'+inst], 
+                          spots_2 =     params[companion+'_spots_'+inst], 
+                          #flux_weighted =   config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
+                          flux_weighted =   False,
+                          verbose =     False
+                          )
+        
+    else:
+        model_rv1 = np.zeros_like(xx)
+        model_rv2 = np.zeros_like(xx)
     
     return model_rv1, model_rv2
 
@@ -754,7 +759,8 @@ def calculate_lnlike_total(params):
                 
                 
                 #::: if that baseline is in FCTs
-                elif ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs ):
+                if ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs ):
+#                    print('CASE 2a')
                     
                     #::: calculate errors, baseline and stellar variability
                     yerr_w = calculate_yerr_w(params, inst, key)
@@ -771,14 +777,15 @@ def calculate_lnlike_total(params):
 
 
                 #::: if that baseline is in GPs
-                if ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs ):
+                elif ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs ):
+#                    print('CASE 2b')
                 
-                    #::: calculate the errors and stellar variability
+                    #::: calculate the errors and stellar variability (assuming baseline=0.)
                     yerr_w = calculate_yerr_w(params, inst, key)
-                    stellar_var = calculate_stellar_var(params, inst, key, model=model, yerr_w=yerr_w)
+                    stellar_var = calculate_stellar_var(params, inst, key, model=model, baseline=0., yerr_w=yerr_w)
                 
                     #::: calculate the baseline's gp.log_likelihood (instead of evaluating the gp)
-                    x = 1.*config.BASEMENT.data[inst]['time']
+                    x = config.BASEMENT.data[inst]['time'] #pointer!
                     y = config.BASEMENT.data[inst][key] - model - stellar_var
                     gp = baseline_get_gp(params, inst, key)
                     try:
@@ -1280,32 +1287,44 @@ def calculate_stellar_var(params, inst, key, model=None, baseline=None, yerr_w=N
     #--------------------------------------------------------------------------
     stellar_var_method = config.BASEMENT.settings['stellar_var_'+key]   
     
-    if key=='flux': key2 = 'inst_phot'
-    elif key=='rv': key2 = 'inst_rv'
-    else: KeyError('Kaput.')
-    
-    if inst=='all': insts = config.BASEMENT.settings[key2]
-    else: insts = [inst]
-    
-    y_list,yerr_w_list = [],[]
-    for inst in insts:
-        if model is None: model = calculate_model(params, inst, key)
-        if baseline is None: baseline = calculate_baseline(params, inst, key, model=model)
-        residuals = config.BASEMENT.data[inst][key] - model - baseline
-        y_list += list(residuals)
+    if stellar_var_method not in ['none']:
+        if key=='flux': key2 = 'inst_phot'
+        elif key=='rv': key2 = 'inst_rv'
+        else: KeyError('Kaput.')
         
-        if yerr_w is None: yerr_w_list += list(calculate_yerr_w(params, inst, key))
-        else: yerr_w_list += list(yerr_w)
-          
-    if inst=='all': ind_sort = config.BASEMENT.data[key2]['ind_sort']
-    else: ind_sort = slice(None)
+        if inst=='all': insts = config.BASEMENT.settings[key2]
+        else: insts = [inst]
+        
+        y_list,yerr_w_list = [],[]
+        for inst in insts:
+            if model is None: 
+                model_i = calculate_model(params, inst, key)
+            else:
+                model_i = model
+            if baseline is None: 
+                baseline_i = calculate_baseline(params, inst, key, model=model)
+            else:
+                baseline_i = baseline
+            residuals = config.BASEMENT.data[inst][key] - model_i - baseline_i
+            y_list += list(residuals)
+            
+            if yerr_w is None: 
+                yerr_w_list += list(calculate_yerr_w(params, inst, key))
+            else: 
+                yerr_w_list += list(yerr_w)
+              
+        if inst=='all': ind_sort = config.BASEMENT.data[key2]['ind_sort']
+        else: ind_sort = slice(None)
+        
+        x = 1.*config.BASEMENT.data[key2]['time']
+        y = np.array(y_list)[ind_sort]
+        yerr_w = np.array(yerr_w_list)[ind_sort]  
+        if xx is None: xx = 1.*x
     
-    x = 1.*config.BASEMENT.data[key2]['time']
-    y = np.array(y_list)[ind_sort]
-    yerr_w = np.array(yerr_w_list)[ind_sort]  
-    if xx is None: xx = 1.*x
+        return stellar_var_switch[stellar_var_method](x, y, yerr_w, xx, params, key)
     
-    return stellar_var_switch[stellar_var_method](x, y, yerr_w, xx, params, key)
+    else:
+        return 0.
     
 
 
