@@ -38,7 +38,7 @@ from tqdm import tqdm
     
     
 
-def ns_plot_bayes_factors(run_names, labels, return_dlogZ=False):
+def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
     '''
     Inputs:
     -------
@@ -79,6 +79,9 @@ def ns_plot_bayes_factors(run_names, labels, return_dlogZ=False):
     
     fig, ax = ns_compare_logZ(run_names, labels)
     '''
+    if labels is None:
+        labels = run_names
+        
     if isinstance(run_names,list):
         delta_logZ, delta_logZ_err, delta_labels = get_delta_logZ_and_delta_labels(run_names, labels)
     elif isinstance(run_names,tuple):

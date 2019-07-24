@@ -49,7 +49,7 @@ from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 GPs = ['sample_GP_real', 'sample_GP_complex', 'sample_GP_Matern32', 'sample_GP_SHO']
-
+FCTs = ['none', 'offset', 'linear', 'hybrid_offset', 'hybrid_poly_0', 'hybrid_poly_1', 'hybrid_poly_2', 'hybrid_poly_3', 'hybrid_poly_4', 'hybrid_poly_5', 'hybrid_poly_6', 'hybrid_spline', 'sample_offset', 'sample_linear']
 
 
 
@@ -692,6 +692,7 @@ def calculate_external_priors(params):
 #::: calculate all instruments linked (for stellar variability)
 #==============================================================================
 def calculate_lnlike_total(params):
+#    print('\ncalculating lnlike total')
     
     lnlike_total = 0
     
@@ -700,44 +701,114 @@ def calculate_lnlike_total(params):
     #::: for all instruments
     #--------------------------------------------------------------------------   
     for key, key2 in zip(['flux','rv'], ['inst_phot', 'inst_rv']):      
-                    
+               
+#        print('\n',key)
+#        print('a',config.BASEMENT.settings['stellar_var_'+key])
+#        print('b',config.BASEMENT.settings['stellar_var_'+key] in FCTs)
+        
+#        print('c',[config.BASEMENT.settings['baseline_'+key+'_'+inst] for inst in config.BASEMENT.settings[key2]])
+#        print('d',all( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs for inst in config.BASEMENT.settings[key2]] ))
+        
         #--------------------------------------------------------------------------       
-        #::: CASE 3) and 4)
+        #::: CASE 1)
+        #::: flux/rv stellar variability in FCTs --> can be calculated per inst (only GP needs to know about all other instruments) 
+        #::: all flux/rv baselines in FCTs
         #-------------------------------------------------------------------------- 
-        if ( config.BASEMENT.settings['stellar_var_'+key] == 'none' ):
+        if ( config.BASEMENT.settings['stellar_var_'+key] in FCTs ) and all( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs for inst in config.BASEMENT.settings[key2]] ):
+#            print('CASE 1')
             for inst in config.BASEMENT.settings[key2]:
-                lnlike_total += calculate_lnlike(params, inst, key)
                 
-                if np.isnan(lnlike_total) or np.isinf(lnlike_total):
-                    return -np.inf
+                #::: calculate the model; if there are any NaN, return -np.inf
+                model = calculate_model(params, inst, key)
+                if any(np.isnan(model)) or any(np.isinf(model)): return -np.inf
+                
+                #::: calculate errors, baseline and stellar variability
+                yerr_w = calculate_yerr_w(params, inst, key)
+                baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
+                stellar_var = calculate_stellar_var(params, inst, key, model=model, baseline=baseline, yerr_w=yerr_w)
+                
+                #::: calculate residuals and inv_simga2
+                residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+                if any(np.isnan(residuals)): raise ValueError('There are NaN in the residuals. Something horrible happened.')
+                inv_sigma2_w = 1./yerr_w**2
+                
+                #::: calculate lnlike
+                lnlike_total += -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+            
                 
                 
-        #--------------------------------------------------------------------------       
-        #::: CASE 1) 
-        #::: if stellar variability GP and
-        #::: baseline GP,
-        #::: raise an error
         #--------------------------------------------------------------------------  
-        elif ( config.BASEMENT.settings['stellar_var_'+key] in GPs )\
-           and any( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs for inst in config.BASEMENT.settings[key2]] ):
-            raise KeyError('Currently you cannot use a GP for stellar variability and a GP for the baseline at the same time.')
-
+        #::: CASES 2a) and 2b)
+        #::: stellar variability in FCTs --> can be calculated per inst (only GP needs to know about all other instruments) 
+        #::: baseline in FCTs or in GPs
+        #::: then DO NOT calculate the residuals via flux - gp.predict
+        #::: but use gp.log_likelihood instead
+        #--------------------------------------------------------------------------  
+        elif ( config.BASEMENT.settings['stellar_var_'+key] in FCTs ) and any( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs for inst in config.BASEMENT.settings[key2]] ):
+#            print('CASE 2')
+            for inst in config.BASEMENT.settings[key2]:
+                
+                #::: calculate the model; if there are any NaN, return -np.inf
+                model = calculate_model(params, inst, key)
+                if any(np.isnan(model)) or any(np.isinf(model)): return -np.inf
+                
+                
+                #::: if that baseline is in FCTs
+                elif ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs ):
                     
+                    #::: calculate errors, baseline and stellar variability
+                    yerr_w = calculate_yerr_w(params, inst, key)
+                    baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
+                    stellar_var = calculate_stellar_var(params, inst, key, model=model, baseline=baseline, yerr_w=yerr_w)
+                    
+                    #::: calculate residuals and inv_simga2
+                    residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+                    if any(np.isnan(residuals)): raise ValueError('There are NaN in the residuals. Something horrible happened.')
+                    inv_sigma2_w = 1./yerr_w**2
+                    
+                    #::: calculate lnlike
+                    lnlike_total += -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+
+
+                #::: if that baseline is in GPs
+                if ( config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs ):
+                
+                    #::: calculate the errors and stellar variability
+                    yerr_w = calculate_yerr_w(params, inst, key)
+                    stellar_var = calculate_stellar_var(params, inst, key, model=model, yerr_w=yerr_w)
+                
+                    #::: calculate the baseline's gp.log_likelihood (instead of evaluating the gp)
+                    x = 1.*config.BASEMENT.data[inst]['time']
+                    y = config.BASEMENT.data[inst][key] - model - stellar_var
+                    gp = baseline_get_gp(params, inst, key)
+                    try:
+                        gp.compute(x, yerr=yerr_w)
+                        lnlike_total += gp.log_likelihood(y)
+                    except:
+                        return -np.inf
+                    
+                    
+                else:
+                    raise ValueError('Kaput.')
+                    
+                    
+                
         #--------------------------------------------------------------------------       
-        #::: CASE 2) 
-        #::: if stellar variability GP and
-        #::: no baseline GP,
+        #::: CASE 3) 
+        #::: stellar variability in GPs
+        #::: baseline in FCTs
         #::: do stuff
         #-------------------------------------------------------------------------- 
-        else:
+        elif ( config.BASEMENT.settings['stellar_var_'+key] in GPs ):
+#            print('CASE 3')
             y, yerr_w = [], []
             for inst in config.BASEMENT.settings[key2]:
                 
                 #::: calculate the model. if there are any NaN, return -np.inf
                 model_i = calculate_model(params, inst, key)
-                if any(np.isnan(model_i)) or any(np.isinf(model_i)):
-                    return -np.inf
-                
+                if any(np.isnan(model_i)) or any(np.isinf(model_i)): return -np.inf
+                               
+                #::: calculate the errors and baseline
                 yerr_w_i = calculate_yerr_w(params, inst, key)
                 baseline_i = calculate_baseline(params, inst, key, model=model_i, yerr_w=yerr_w_i)
                 residuals_i = config.BASEMENT.data[inst][key] - model_i - baseline_i
@@ -745,17 +816,33 @@ def calculate_lnlike_total(params):
                 y += list(residuals_i)
                 yerr_w += list(yerr_w_i)
                 
+            #::: sort in time
             ind_sort = config.BASEMENT.data[key2]['ind_sort']
-            x = config.BASEMENT.data[key2]['time']
+            x = 1.*config.BASEMENT.data[key2]['time']
             y = np.array(y)[ind_sort]
             yerr = np.array(yerr_w)[ind_sort]  
             
+            #::: calculate the stellar variability's gp.log_likelihood (instead of evaluating the gp)
             gp = stellar_var_get_gp(params, key)
             try:
                 gp.compute(x, yerr=yerr)
                 lnlike_total += gp.log_likelihood(y)
             except:
                 return -np.inf
+            
+            
+                
+        #--------------------------------------------------------------------------       
+        #::: CASE 4) 
+        #::: stellar variability in GPs
+        #::: baseline in GPs
+        #::: raise an error
+        #--------------------------------------------------------------------------  
+        elif ( config.BASEMENT.settings['stellar_var_'+key] in GPs )\
+           and any( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in GPs for inst in config.BASEMENT.settings[key2]] ):
+            raise KeyError('Currently you cannot use a GP for stellar variability and a GP for the baseline at the same time.')
+
+                    
             
     #--------------------------------------------------------------------------  
     #::: add external priors
@@ -779,54 +866,54 @@ def calculate_lnlike_total(params):
 #::: calculate all instruments separately 
 #::: (only possible if no stellar variability GP is involved)
 #==============================================================================
-def calculate_lnlike(params, inst, key):
-        
-    #::: calculate the model. if there are any NaN, return -np.inf
-    model = calculate_model(params, inst, key)
-    if any(np.isnan(model)) or any(np.isinf(model)):
-        return -np.inf
-            
-    #--------------------------------------------------------------------------       
-    #::: CASE 3) 
-    #::: if no stellar variability GP and
-    #::: no baseline GP,
-    #::: then calculate lnlike manually
-    #--------------------------------------------------------------------------  
-    elif ( config.BASEMENT.settings['stellar_var_'+key] not in GPs ) \
-        and (config.BASEMENT.settings['baseline_'+key+'_'+inst] not in GPs ):
-        
-        yerr_w = calculate_yerr_w(params, inst, key)
-        baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
-        
-        residuals = config.BASEMENT.data[inst][key] - model - baseline
-        inv_sigma2_w = 1./yerr_w**2
-        
-        lnlike = -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
-    
-        if any(np.isnan(residuals)):
-            raise ValueError('There are NaN in the residuals. Something horrible happened.')
-    
-    
-    #--------------------------------------------------------------------------  
-    #::: CASE 4)
-    #::: if no stellar variability GP and
-    #::: baseline GP, 
-    #::: then DO NOT calculate the residuals via flux - gp.predict
-    #::: but use gp.log_likelihood instead
-    #--------------------------------------------------------------------------  
-    else:
-        x = config.BASEMENT.data[inst]['time']
-        y = config.BASEMENT.data[inst][key] - model
-        yerr_w = calculate_yerr_w(params, inst, key)
-        gp = baseline_get_gp(params, inst, key)
-        try:
-            gp.compute(x, yerr=yerr_w)
-            lnlike = gp.log_likelihood(y)
-        except:
-            lnlike = -np.inf
-        
-        
-    return lnlike
+#def calculate_lnlike(params, inst, key):
+#        
+#    #::: calculate the model. if there are any NaN, return -np.inf
+#    model = calculate_model(params, inst, key)
+#    if any(np.isnan(model)) or any(np.isinf(model)):
+#        return -np.inf
+#            
+#    #--------------------------------------------------------------------------       
+#    #::: CASE 3) 
+#    #::: if no stellar variability GP and
+#    #::: no baseline GP,
+#    #::: then calculate lnlike manually
+#    #--------------------------------------------------------------------------  
+#    elif ( config.BASEMENT.settings['stellar_var_'+key] not in GPs ) \
+#        and (config.BASEMENT.settings['baseline_'+key+'_'+inst] not in GPs ):
+#        
+#        yerr_w = calculate_yerr_w(params, inst, key)
+#        baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
+#        
+#        residuals = config.BASEMENT.data[inst][key] - model - baseline
+#        inv_sigma2_w = 1./yerr_w**2
+#        
+#        lnlike = -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+#    
+#        if any(np.isnan(residuals)):
+#            raise ValueError('There are NaN in the residuals. Something horrible happened.')
+#    
+#    
+#    #--------------------------------------------------------------------------  
+#    #::: CASE 4)
+#    #::: if no stellar variability GP and
+#    #::: baseline GP, 
+#    #::: then DO NOT calculate the residuals via flux - gp.predict
+#    #::: but use gp.log_likelihood instead
+#    #--------------------------------------------------------------------------  
+#    else:
+#        x = config.BASEMENT.data[inst]['time']
+#        y = config.BASEMENT.data[inst][key] - model
+#        yerr_w = calculate_yerr_w(params, inst, key)
+#        gp = baseline_get_gp(params, inst, key)
+#        try:
+#            gp.compute(x, yerr=yerr_w)
+#            lnlike = gp.log_likelihood(y)
+#        except:
+#            lnlike = -np.inf
+#        
+#        
+#    return lnlike
     
     
     
@@ -1186,33 +1273,37 @@ def gp_predict_in_chunks(gp, y, x, chunk_size=5000):
 #==============================================================================
 #::: Stellar Variability: main
 #==============================================================================
-def calculate_stellar_var(params, key, xx=None):
+def calculate_stellar_var(params, inst, key, model=None, baseline=None, yerr_w=None, xx=None):
 
-    if key=='flux':
-        key2 = 'inst_phot'
-    elif key=='rv':
-        key2 = 'inst_rv'
-    else: 
-        KeyError('Kaput.')
+    #--------------------------------------------------------------------------
+    #::: over all instruments (needed for GP)
+    #--------------------------------------------------------------------------
+    stellar_var_method = config.BASEMENT.settings['stellar_var_'+key]   
     
-    y,yerr_w = [],[]
-    for inst in config.BASEMENT.settings[key2]:
-        model = calculate_model(params, inst, key)
-        baseline = calculate_baseline(params, inst, key, model=model)
+    if key=='flux': key2 = 'inst_phot'
+    elif key=='rv': key2 = 'inst_rv'
+    else: KeyError('Kaput.')
+    
+    if inst=='all': insts = config.BASEMENT.settings[key2]
+    else: insts = [inst]
+    
+    y_list,yerr_w_list = [],[]
+    for inst in insts:
+        if model is None: model = calculate_model(params, inst, key)
+        if baseline is None: baseline = calculate_baseline(params, inst, key, model=model)
         residuals = config.BASEMENT.data[inst][key] - model - baseline
+        y_list += list(residuals)
         
-        y += list(residuals)
-        yerr_w += list(calculate_yerr_w(params, inst, key))
-                      
-    ind_sort = config.BASEMENT.data[key2]['ind_sort']
-    x = config.BASEMENT.data[key2]['time']
-    y = np.array(y)[ind_sort]
-    yerr_w = np.array(yerr_w)[ind_sort]  
-
-    if xx is None:  
-        xx = 1.*x
+        if yerr_w is None: yerr_w_list += list(calculate_yerr_w(params, inst, key))
+        else: yerr_w_list += list(yerr_w)
+          
+    if inst=='all': ind_sort = config.BASEMENT.data[key2]['ind_sort']
+    else: ind_sort = slice(None)
     
-    stellar_var_method = config.BASEMENT.settings['stellar_var_'+key]
+    x = 1.*config.BASEMENT.data[key2]['time']
+    y = np.array(y_list)[ind_sort]
+    yerr_w = np.array(yerr_w_list)[ind_sort]  
+    if xx is None: xx = 1.*x
     
     return stellar_var_switch[stellar_var_method](x, y, yerr_w, xx, params, key)
     
@@ -1262,11 +1353,9 @@ def stellar_var_get_gp(params, key):
 #============================================================================== 
 def stellar_var_sample_GP(*args):
     x, y, yerr_w, xx, params, key = args
-    
     gp = stellar_var_get_gp(params, key)
     gp.compute(x, yerr=yerr_w)
     stellar_var = gp_predict_in_chunks(gp, y, xx)[0]
-    
     return stellar_var
 
 
@@ -1275,9 +1364,14 @@ def stellar_var_sample_GP(*args):
 #::: Stellar Variability: sample_linear
 #============================================================================== 
 def stellar_var_sample_linear(*args):
-    x, y, yerr_w, xx, params, inst, key = args
-    xx_norm = (xx-x[0]) / (x[-1]-x[0])
-    return params['stellar_var_slope_'+key+'_'+inst] * xx_norm + params['stellar_var_offset_'+key+'_'+inst]
+    x, y, yerr_w, xx, params, key = args
+    if key=='flux': key2 = 'inst_phot'
+    elif key=='rv': key2 = 'inst_rv'
+    x_all = 1.*config.BASEMENT.data[key2]['time']
+    xx_norm = (xx-x_all[0]) / (x_all[-1]-x_all[0])
+#    xx_norm = (xx - config.BASEMENT.settings['mid_epoch'])
+#    xx_norm = (xx - 2457000.) / 1000.
+    return params['stellar_var_slope_'+key] * xx_norm + params['stellar_var_offset_'+key]
         
     
 

@@ -338,11 +338,10 @@ def derive(samples, mode):
     #::: median stellar density
     derived_samples['mean_host_density'] = []
     for companion in companions:
-        derived_samples['mean_host_density'] += list(derived_samples[companion+'_host_density'])
-    derived_samples['mean_host_density'] = np.array(derived_samples['mean_host_density'])
+        derived_samples['mean_host_density'] = np.append(derived_samples['mean_host_density'], derived_samples[companion+'_host_density'])
     
     
-        
+
     
     ###############################################################################
     #::: write keys for output
