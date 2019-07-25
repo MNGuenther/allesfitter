@@ -67,12 +67,13 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
         if not booltemp:
             continue
         
-        figr, axis = plt.subplots()
+        figr, axis = plt.subplots(figsize=(4, 3))
         chanlist = []
         for i in indxruns:
             chanlist.append((listobjtalle[i].posterior_params[strgpara] - np.mean(listobjtalle[i].posterior_params[strgpara])) * 24. * 60.)
-        axis.violinplot(chanlist, showmedians=True, showextrema=False)
-        axis.set_xticks(np.arange(numbruns) + 1)
+        xpos = 0.6 * (np.arange(numbruns) + 1.)
+        axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
+        axis.set_xticks(xpos)
         axis.set_xticklabels(ticklabl)
         if strgpara == 'b_period':
             axis.set_ylabel('P [min]')
