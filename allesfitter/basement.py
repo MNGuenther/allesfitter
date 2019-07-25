@@ -856,7 +856,7 @@ class Basement():
             if not all(np.diff(time)>=0):
                 raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
             elif not all(np.diff(time)>0):
-                overwrite = str(input('There are reapted time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).'+\
+                overwrite = str(input('There are repeated time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).'+\
                                       'What do you want to do?\n'+\
                                       '1 : continue and hope for the best; no risk, no fun; #yolo\n'+\
                                       '2 : abort\n'))
@@ -957,18 +957,18 @@ class Basement():
             
             #::: calculate the mid_epoch (in the middle of the data set)
             N = int(np.round((end-start)/2./period))
-            mid_epoch = first_epoch + N * period
+            self.settings['mid_epoch'] = first_epoch + N * period
             
             #::: calculate how much the user_epoch has to be shifted to get the mid_epoch
-            N_shift = int(np.round((mid_epoch-user_epoch)/period))
+            N_shift = int(np.round((self.settings['mid_epoch']-user_epoch)/period))
             
             if (N_shift != 0) and (companion+'_epoch' in self.fitkeys):
                 ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
                 ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
                 
                 #::: set the new initial guess
-                self.theta_0[ind_e] = 1.*mid_epoch
-                self.params[companion+'_epoch'] = 1.*mid_epoch
+                self.theta_0[ind_e] = 1.*self.settings['mid_epoch']
+                self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
                 
                 #::: get the bounds / errors
                 #::: if the epoch and period priors are both uniform

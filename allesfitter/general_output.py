@@ -383,7 +383,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
         if style in ['full_residuals']:
             model = calculate_model(params_median, inst, key)
             baseline = calculate_baseline(params_median, inst, key)
-            stellar_var = calculate_stellar_var(params_median, key, xx=x)
+            stellar_var = calculate_stellar_var(params_median, 'all', key, xx=x)
             y -= model+baseline+stellar_var
             
             
@@ -409,7 +409,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
                 p = update_params(s)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-                stellar_var = calculate_stellar_var(p, key, xx=xx) #evaluated on xx (!)
+                stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
                 ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
@@ -433,7 +433,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
         #::: data - baseline_median
         x = 1.*base.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
-        stellar_var_median = calculate_stellar_var(params_median, key, xx=x) #evaluated on x (!)
+        stellar_var_median = calculate_stellar_var(params_median, 'all', key, xx=x) #evaluated on x (!)
         y = base.data[inst][key] - baseline_median - stellar_var_median
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
