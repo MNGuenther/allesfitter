@@ -621,20 +621,20 @@ class Basement():
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,encoding='utf-8',names=True)
         
         #::: make backwards compatible
-        for i, name in enumerate(buf['name']):
+        for i, name in enumerate(np.atleast_1d(buf['name'])):
             if name[:7]=='light_3':
                 buf['name'][i] = 'dil_'+name[8:]
         
-        for i, name in enumerate(buf['name']):
+        for i, name in enumerate(np.atleast_1d(buf['name'])):
             if name[:3]=='ldc':
                 buf['name'][i] = 'host_'+name
                 
         #::: proceed...                    
-        self.allkeys = buf['name'] #len(all rows in params.csv)
-        self.labels = buf['label'] #len(all rows in params.csv)
-        self.units = buf['unit']   #len(all rows in params.csv)
+        self.allkeys = np.atleast_1d(buf['name']) #len(all rows in params.csv)
+        self.labels = np.atleast_1d(buf['label']) #len(all rows in params.csv)
+        self.units = np.atleast_1d(buf['unit'])   #len(all rows in params.csv)
         if 'truth' in buf.dtype.names:
-            self.truths = buf['truth'] #len(all rows in params.csv)
+            self.truths = np.atleast_1d(buf['truth']) #len(all rows in params.csv)
         else:
             self.truths = np.nan * np.ones(len(self.allkeys))
             
@@ -643,11 +643,11 @@ class Basement():
         self.params['user-given:'] = ''                                        #just for printing
         for i,key in enumerate(self.allkeys):
             #::: if it's not a "coupled parameter", then use the given value
-            if buf['value'][i] not in self.allkeys:
-                self.params[key] = np.float(buf['value'][i])
+            if np.atleast_1d(buf['value'])[i] not in self.allkeys:
+                self.params[key] = np.float(np.atleast_1d(buf['value'])[i])
             #::: if it's a "coupled parameter", then write the string of the key it is coupled to
             else:
-                self.params[key] = buf['value'][i]
+                self.params[key] = np.atleast_1d(buf['value'])[i]
                 
         #::: automatically set default params if they were not given
         self.params['automatically set:'] = ''                                 #just for printing
@@ -856,14 +856,15 @@ class Basement():
             if not all(np.diff(time)>=0):
                 raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
             elif not all(np.diff(time)>0):
-                overwrite = str(input('There are repeated time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).'+\
-                                      'What do you want to do?\n'+\
-                                      '1 : continue and hope for the best; no risk, no fun; #yolo\n'+\
-                                      '2 : abort\n'))
-                if (overwrite == '1'):
-                    pass
-                else:
-                    raise ValueError('User aborted operation.')
+                warnings.warn('There are repeated time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).')
+#                overwrite = str(input('There are repeated time stamps in the time array in "'+inst+'.csv". Please make sure the file is not corrupted (e.g. insuffiecient precision in your time stamps).'+\
+#                                      'What do you want to do?\n'+\
+#                                      '1 : continue and hope for the best; no risk, no fun; #yolo\n'+\
+#                                      '2 : abort\n'))
+#                if (overwrite == '1'):
+#                    pass
+#                else:
+#                    raise ValueError('User aborted operation.')
                 
             self.fulldata[inst] = {
                           'time':time,

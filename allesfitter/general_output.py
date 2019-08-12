@@ -48,7 +48,8 @@ from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
 #::: print function that prints into console and logfile at the same time
 ############################################################################### 
 def logprint(*text):
-    print(*text)
+    if config.BASEMENT.settings['print_progress']:
+        print(*text)
     original = sys.stdout
     try:
         with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:
@@ -534,9 +535,9 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
                 if style in ['phase', 'phase_variations']:
                     xx = np.linspace( -0.25, 0.75, 1000)
                 elif style in ['phasezoom']:
-                    xx = np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)
+                    xx = np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)
                 elif style in ['phasezoom_occ']:
-                    xx = np.linspace( (-4.+zoomfactor/2.)/zoomfactor, (4.+zoomfactor/2.)/zoomfactor, 1000)
+                    xx = np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)
     
                 for i in range(samples.shape[0]):
                     s = samples[i,:]

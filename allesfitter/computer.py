@@ -320,6 +320,13 @@ def flux_fct_full(params, inst, companion, xx=None):
         for i in range(1,config.BASEMENT.settings['N_flares']+1):
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
     
+    
+    #::: outlier lightcurve model
+#    if config.BASEMENT.settings['N_outliers'] > 0:
+#        for i in range(1,config.BASEMENT.settings['N_outliers']+1):
+#            model_flux += outlier(xx, params['outlier_tpeak_'+str(i)], params['outlier_ampl_'+str(i)])
+    
+    
     return model_flux
 
 
