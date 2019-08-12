@@ -59,6 +59,7 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
     if boolonlytess:
         ticklabl.append(['only TESS'])
 
+    xpos = 0.6 * (np.arange(numbruns) + 1.)
     for k, strgpara in enumerate(liststrgparaconc):
         booltemp = True
         for i in indxruns:
@@ -67,12 +68,12 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
         if not booltemp:
             continue
         
-        figr, axis = plt.subplots()
+        figr, axis = plt.subplots(figsize=(5, 4))
         chanlist = []
         for i in indxruns:
             chanlist.append((listobjtalle[i].posterior_params[strgpara] - np.mean(listobjtalle[i].posterior_params[strgpara])) * 24. * 60.)
-        axis.violinplot(chanlist, showmedians=True, showextrema=False)
-        axis.set_xticks(np.arange(numbruns) + 1)
+        axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
+        axis.set_xticks(xpos)
         axis.set_xticklabels(ticklabl)
         if strgpara == 'b_period':
             axis.set_ylabel('P [min]')
@@ -80,7 +81,7 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
             axis.set_ylabel(listlablparaconc[k])
         plt.tight_layout()
         
-        path = pathdataoutp + 'viol_%04d.pdf' % (k)
+        path = pathdataoutp + 'viol_%04d.svg' % (k)
         print('Writing to %s...' % path)
         figr.savefig(path)
         plt.close()
@@ -108,29 +109,29 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
     listaxis = []
 
     ## temporal evolution
-    figr, axis = plt.subplots(figsize=(12, 6))
+    figr, axis = plt.subplots(figsize=(5, 4))
     listfigr.append(figr)
     listaxis.append(axis)
     axis.violinplot([timejwst[k][1] for k in indxyear], listyear)
     axis.set_xlabel('Year')
     axis.set_ylabel('Transit time residual [min]')
     plt.tight_layout()
-    path = pathdataoutp + 'jwsttime.pdf'
+    path = pathdataoutp + 'jwsttime.svg'
     print('Writing to %s...' % path)
     plt.savefig(path)
     plt.close()
     
     ## without/with/only TESS prediction comparison
-    figr, axis = plt.subplots(figsize=(12, 6))
+    figr, axis = plt.subplots(figsize=(5, 4))
     listfigr.append(figr)
     listaxis.append(axis)
-    axis.violinplot(timejwst[1], range(len(liststrgruns)), points=2000)
-    axis.set_xticks(range(len(liststrgruns)))
+    axis.violinplot(timejwst[1], xpos, points=2000)
+    axis.set_xticks(xpos)
     axis.set_xticklabels(ticklabl)
     axis.set_ylabel('Transit time residual in 2023 [min]')
     #axis.set_ylim([-300, 300])
     plt.tight_layout()
-    path = pathdataoutp + 'jwstcomp.pdf'
+    path = pathdataoutp + 'jwstcomp.svg'
     print('Writing to %s...' % path)
     plt.savefig(path)
     plt.close()
@@ -138,9 +139,9 @@ def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
     return listfigr, listaxis
 
     # all parameter summary
-    figr, axis = plt.subplots()
+    figr, axis = plt.subplots(figsize=(4, 3))
     chanlist = []
-    axis.violinplot(chanlist, showmedians=True, showextrema=False)
+    axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
     axis.set_xticks(valutick)
     axis.set_xticklabels(labltick)
     axis.set_ylabel(lablparatemp)
