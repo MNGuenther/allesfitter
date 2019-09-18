@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="params.csv" href="the_params_file.html" />
     <link rel="prev" title="Tutorials 08: Phase Curves" href="tutorials_08_phase_curves.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -103,6 +106,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -238,19 +242,19 @@ If ‘sing’ three corresponding parameter called ‘ldc_q1_inst’; ‘ldc_q2_
 <p><code class="docutils literal notranslate"><span class="pre">baseline_[key]_[inst]</span></code></p>
 <p>The baseline / detrending method used per instrument, choose between:</p>
 <ul class="simple">
-<li><cite>sample_offset</cite>: sample for a simple, constant offset. One corresponding parameter called ‘baseline_offset_[key]_[inst]’ has to be given in params.csv.</li>
-<li><cite>sample_linear</cite>: sample for a linear slope. Two corresponding parameters called ‘baseline_offset_[key]_[inst]’ and ‘baseline_slope_[key]_[inst]’ have to be given in params.csv.</li>
-<li><cite>sample_GP_real</cite>:</li>
-<li><cite>sample_GP_complex</cite>:</li>
-<li><cite>sample_GP_Matern32</cite>: sample for the parameters of a Gaussian Process with a Matern 3/2 kernel. At least two corresponding parameters called ‘baseline_gp_matern32_lnsigma_[key]_[inst]’ (the characteristic amplitude of the GP) and ‘baseline_gp_matern32_lnrho_[key]_[inst’ (the characteristic length scale of the GP) have to be given in params.csv.</li>
-<li><cite>sample_GP_SHO</cite>:</li>
-<li><cite>hybrid_offset</cite>:</li>
-<li><cite>hybrid_poly_1</cite>:</li>
-<li><cite>hybrid_poly_2</cite>:</li>
-<li><cite>hybrid_poly_3</cite>:</li>
-<li><cite>hybrid_poly_4</cite>:</li>
-<li><cite>hybrid_spline</cite>:</li>
-<li><cite>hybrid_GP</cite>: do not use this.</li>
+<li><p><cite>sample_offset</cite>: sample for a simple, constant offset. One corresponding parameter called ‘baseline_offset_[key]_[inst]’ has to be given in params.csv.</p></li>
+<li><p><cite>sample_linear</cite>: sample for a linear slope. Two corresponding parameters called ‘baseline_offset_[key]_[inst]’ and ‘baseline_slope_[key]_[inst]’ have to be given in params.csv.</p></li>
+<li><p><cite>sample_GP_real</cite>:</p></li>
+<li><p><cite>sample_GP_complex</cite>:</p></li>
+<li><p><cite>sample_GP_Matern32</cite>: sample for the parameters of a Gaussian Process with a Matern 3/2 kernel. At least two corresponding parameters called ‘baseline_gp_matern32_lnsigma_[key]_[inst]’ (the characteristic amplitude of the GP) and ‘baseline_gp_matern32_lnrho_[key]_[inst’ (the characteristic length scale of the GP) have to be given in params.csv.</p></li>
+<li><p><cite>sample_GP_SHO</cite>:</p></li>
+<li><p><cite>hybrid_offset</cite>:</p></li>
+<li><p><cite>hybrid_poly_1</cite>:</p></li>
+<li><p><cite>hybrid_poly_2</cite>:</p></li>
+<li><p><cite>hybrid_poly_3</cite>:</p></li>
+<li><p><cite>hybrid_poly_4</cite>:</p></li>
+<li><p><cite>hybrid_spline</cite>:</p></li>
+<li><p><cite>hybrid_GP</cite>: do not use this.</p></li>
 </ul>
 </div>
 <div class="section" id="error-settings-per-instrument">
@@ -315,7 +319,7 @@ If ‘sample’ one corresponding parameter called ‘log_err_key_inst’ (photo
         <a href="the_params_file.html" class="btn btn-neutral float-right" title="params.csv" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="tutorials_08_phase_curves.html" class="btn btn-neutral" title="Tutorials 08: Phase Curves" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorials_08_phase_curves.html" class="btn btn-neutral float-left" title="Tutorials 08: Phase Curves" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -341,26 +345,16 @@ If ‘sample’ one corresponding parameter called ‘log_err_key_inst’ (photo
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

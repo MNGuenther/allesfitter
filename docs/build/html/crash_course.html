@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tutorials" href="tutorials.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -86,6 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -160,10 +164,10 @@
 <p>You can download the data file here: <a class="reference download internal" download="" href="_downloads/90c0722ff71e559d071bef70fa86099f/Leonardo.csv"><code class="xref download docutils literal notranslate"><span class="pre">Leonardo.csv</span></code></a></p>
 <p>Now it is your job to model it! The discovery report gives you a first guess for the transit signal:</p>
 <ul class="simple">
-<li>Epoch: 1.09 +- 0.01 days after start of observations</li>
-<li>Period: 3.41 +- 0.01 days</li>
-<li>R_planet / R_star: 0.10 +- 0.01</li>
-<li>(R_star + R_planet) / semi-major axis: somewhere between 0.1 and 0.3</li>
+<li><p>Epoch: 1.09 +- 0.01 days after start of observations</p></li>
+<li><p>Period: 3.41 +- 0.01 days</p></li>
+<li><p>R_planet / R_star: 0.10 +- 0.01</p></li>
+<li><p>(R_star + R_planet) / semi-major axis: somewhere between 0.1 and 0.3</p></li>
 </ul>
 <p>(Your team is still unsure about the stellar parameters, so let us leave these undefined for now.)</p>
 <p>Simply launch <em>allesfitter</em>’s graphical user interface (GUI) via double click on the <a class="reference download internal" download="" href="_downloads/d17a3c5853783cf043b7645ecd8d6208/launch_allesfitter"><code class="xref download docutils literal notranslate"><span class="pre">launch_allesfitter</span></code></a> app (for Mac/Windows/Linux) <em>or</em> via executing the following lines in a Python console:</p>
@@ -173,8 +177,8 @@
 </div>
 <p>Now fill out the fields step by step, hit the run button, and lean back. All of this is demonstrated in this video tutorial:</p>
 <div style="text-align: center;"><iframe width="560" height="315" src="https://www.youtube.com/embed/5LIci8gZZ_8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The video is a bit outdated by now, but still captures 99% of the workflow. The updated crash course on GitHub simplifies and speeds up the modeling.</p>
+<p class="admonition-title">Note</p>
+<p>The video is a bit outdated by now, but still captures 99% of the workflow. The updated crash course on GitHub simplifies and speeds up the modeling.</p>
 </div>
 <p>Congratulations! Now that you successfully modeled the data, you can schedule follow-up observations with the rest of the TMNT network: <em>Michelangelo</em> (photometry), <em>Donatello</em> (RV) and <em>Raphael</em> (RV).</p>
 <p>Now move on to the more advanced tutorials, which step by step introduce GPs, RV modeling, and much more.</p>
@@ -191,7 +195,7 @@
         <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -217,26 +221,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

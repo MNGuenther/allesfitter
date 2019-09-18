@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Performance &amp; timing" href="performance.html" />
+    <link rel="next" title="allesclass" href="allesclass.html" />
     <link rel="prev" title="settings.csv" href="the_settings_file.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -97,6 +100,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -170,39 +174,45 @@
 <h2>Columns explained<a class="headerlink" href="#columns-explained" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
 <blockquote>
-<div>The name of the parameter, often decorated with [key] and [inst]. See ‘rows explained’ for a full list of all possible parameters.</div></blockquote>
+<div><p>The name of the parameter, often decorated with [key] and [inst]. See ‘rows explained’ for a full list of all possible parameters.</p>
+</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">value</span></code></p>
 <blockquote>
-<div>The initial guess value. This is needed to make an initial guess plot, initiate the MCMC walkers, to shift the epoch (if <cite>shift_epoch</cite> in settings.csv is <cite>True</cite>), or to mask out out-of-transit photometry (if <cite>fast_fit</cite> in settings.csv is <cite>True</cite>).</div></blockquote>
+<div><p>The initial guess value. This is needed to make an initial guess plot, initiate the MCMC walkers, to shift the epoch (if <cite>shift_epoch</cite> in settings.csv is <cite>True</cite>), or to mask out out-of-transit photometry (if <cite>fast_fit</cite> in settings.csv is <cite>True</cite>).</p>
+</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">fit</span></code></p>
 <blockquote>
 <div><p>Do you want to fit or freeze this parameter? This can have two values:</p>
 <ul class="simple">
-<li>0: You want to freeze this value to the one given in the column <cite>value</cite>.</li>
-<li>1: You want to sample/fit for this value.</li>
+<li><p>0: You want to freeze this value to the one given in the column <cite>value</cite>.</p></li>
+<li><p>1: You want to sample/fit for this value.</p></li>
 </ul>
 </div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">bounds</span></code></p>
 <blockquote>
 <div><p>The bounds of the fit. This can have the following values:</p>
 <ul class="simple">
-<li><cite>uniform a b</cite>: a uniform prior ranging from a to b</li>
-<li><cite>normal mu sigma</cite>: a normal prior with mean mu and standard deviation sigma</li>
-<li><cite>trunc_normal a b mu sigma</cite>: a truncated normal prior with mean mu and standard deviation sigma, truncated to a range from a to b</li>
+<li><p><cite>uniform a b</cite>: a uniform prior ranging from a to b</p></li>
+<li><p><cite>normal mu sigma</cite>: a normal prior with mean mu and standard deviation sigma</p></li>
+<li><p><cite>trunc_normal a b mu sigma</cite>: a truncated normal prior with mean mu and standard deviation sigma, truncated to a range from a to b</p></li>
 </ul>
 </div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">label</span></code></p>
 <blockquote>
-<div>The labels of each parameter (for the output plots and tables).</div></blockquote>
+<div><p>The labels of each parameter (for the output plots and tables).</p>
+</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">unit</span></code></p>
 <blockquote>
-<div>The units of each parameter (for the output plots and tables).</div></blockquote>
+<div><p>The units of each parameter (for the output plots and tables).</p>
+</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">coupled_with</span></code></p>
 <blockquote>
-<div>Optional column. For example, if you have two files <cite>TESS1</cite> and <cite>TESS2</cite>, and you want to couple their error scaling sampling, you can set <cite>log_err_flux_TESS1</cite> as usual, and leave all rows of <cite>log_err_flux_TESS2</cite> empty besides for its column <cite>coupled_with</cite>, in which you can then write <cite>log_err_flux_TESS1</cite>. <em>allesfitter</em> will not sample for the parameter of log_err_flux_TESS2, but instead copy the value of <cite>log_err_flux_TESS1</cite> at every sampling step. In summary, you will only sample for one parameter, and the other will mirror it.</div></blockquote>
+<div><p>Optional column. For example, if you have two files <cite>TESS1</cite> and <cite>TESS2</cite>, and you want to couple their error scaling sampling, you can set <cite>log_err_flux_TESS1</cite> as usual, and leave all rows of <cite>log_err_flux_TESS2</cite> empty besides for its column <cite>coupled_with</cite>, in which you can then write <cite>log_err_flux_TESS1</cite>. <em>allesfitter</em> will not sample for the parameter of log_err_flux_TESS2, but instead copy the value of <cite>log_err_flux_TESS1</cite> at every sampling step. In summary, you will only sample for one parameter, and the other will mirror it.</p>
+</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">truth</span></code></p>
 <blockquote>
-<div>Optional column. If given, you can give all the ‘true values’ of the parameters (where known), and they will be marked in the output corner plots and trace plots.</div></blockquote>
+<div><p>Optional column. If given, you can give all the ‘true values’ of the parameters (where known), and they will be marked in the output corner plots and trace plots.</p>
+</div></blockquote>
 </div>
 <div class="section" id="rows-explained">
 <h2>Rows explained<a class="headerlink" href="#rows-explained" title="Permalink to this headline">¶</a></h2>
@@ -226,62 +236,54 @@
 <h3>Baselines per instrument:<a class="headerlink" href="#baselines-per-instrument" title="Permalink to this headline">¶</a></h3>
 <p>(If you use the hybrid_* versions in settings.csv, the baseline parameters will be automatically optimized at every step in the sampling. If you use the sample_* options in settings.csv, they get sampled as every other paramter.)</p>
 <ol class="upperroman">
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_offset_[key]_[inst]</span></code>:</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_offset_[key]_[inst]</span></code>:</p>
 <p>This is needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_offset</span></code> in settings.csv.</p>
 </li>
 </ul>
 </li>
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_offset_[key]_[inst]</span></code> and</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_slope_[key]_[inst]</span></code>:</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_offset_[key]_[inst]</span></code> and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_slope_[key]_[inst]</span></code>:</p>
 <p>These are needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_linear</span></code> in settings.csv. (Note if you want to physically interpret the slope result: to calculate the slope, the center point of the line fit per instrument will be put in the middle of the time stamps, and the time array will be normalized to 0 to 1.)</p>
 </li>
 </ul>
 </li>
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_real_lna_[key]_[inst]</span></code> and</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_real_lnc_[key]_[inst]</span></code>:</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_real_lna_[key]_[inst]</span></code> and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_real_lnc_[key]_[inst]</span></code>:</p>
 <p>These are needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_GP_real</span></code> in settings.csv.</p>
 </li>
 </ul>
 </li>
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lna_[key]_[inst]</span></code>,</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnb_[key]_[inst]</span></code>,</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnc_[key]_[inst]</span></code> and</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnd_[key]_[inst]</span></code>:</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lna_[key]_[inst]</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnb_[key]_[inst]</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnc_[key]_[inst]</span></code> and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_complex_lnd_[key]_[inst]</span></code>:</p>
 <p>These are needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_GP_complex</span></code> in settings.csv.</p>
 </li>
 </ul>
 </li>
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_matern32_lnsigma_[key]_[inst]</span></code> and</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_matern32_lnrho_[key]_[inst]</span></code>:</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_matern32_lnsigma_[key]_[inst]</span></code> and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_matern32_lnrho_[key]_[inst]</span></code>:</p>
 <p>These are needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_GP_Matern32</span></code> in settings.csv. <em>lnsigma</em> is the characteristic amplitude of the GP. <em>lnrho</em> is the characteristic length scale of the GP.</p>
 </li>
 </ul>
 </li>
-<li><ul class="first">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnS0_[key]_[inst]</span></code>,</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnQ_[key]_[inst]</span></code> and</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnomega0_[key]_[inst]</span></code>:</p>
-<p>These are needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_GP_SHO</span></code> in settings.csv.</p>
+<li><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnS0_[key]_[inst]</span></code>: …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnQ_[key]_[inst]</span></code>: …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_gp_sho_lnomega0_[key]_[inst]</span></code>: ln(omega0) relates to the rotation period as follows: P_rot = (2*pi) / exp(lnomega0). Hence, if you have a prior on the rotation period, you can set lnomega0 as follows: lnomega0 = ln( (2*pi) / P_rot ).</p>
+<p>These are all needed if you selected <code class="docutils literal notranslate"><span class="pre">sample_GP_SHO</span></code> in settings.csv.</p>
 </li>
 </ul>
 </li>
 </ol>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">For all sample_GP_* options, you can always optionally add <code class="docutils literal notranslate"><span class="pre">baseline_gp_offset_[key]_[inst]</span></code>, in which case the GP mean is set to this parameter (rather than assumed to be 0). Note that the GP is constrained on the residuals (data-model), so typically the GP mean is 0; but, for example, if you need to sample for the systemic velocity of your RV data, you will need this.</p>
+<p class="admonition-title">Note</p>
+<p>For all sample_GP_* options, you can always optionally add <code class="docutils literal notranslate"><span class="pre">baseline_gp_offset_[key]_[inst]</span></code>, in which case the GP mean is set to this parameter (rather than assumed to be 0). Note that the GP is constrained on the residuals (data-model), so typically the GP mean is 0; but, for example, if you need to sample for the systemic velocity of your RV data, you will need this.</p>
 </div>
 </div>
 </div>
@@ -295,10 +297,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="performance.html" class="btn btn-neutral float-right" title="Performance &amp; timing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="allesclass.html" class="btn btn-neutral float-right" title="allesclass" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="the_settings_file.html" class="btn btn-neutral" title="settings.csv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="the_settings_file.html" class="btn btn-neutral float-left" title="settings.csv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -324,26 +326,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Crash course" href="crash_course.html" />
     <link rel="prev" title="Acknowledge &amp; cite" href="cite.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -90,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
@@ -166,59 +170,43 @@
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>Standard packages (install via conda/pip; anaconda is recommended):</p>
 <ul class="simple">
-<li>python (&gt;=2.7 or &gt;=3.5)</li>
-<li>numpy</li>
-<li>scikit-learn</li>
-<li>matplotlib</li>
-<li>seaborn</li>
-<li>tqdm</li>
+<li><p>python (&gt;=2.7 or &gt;=3.5)</p></li>
+<li><p>numpy</p></li>
+<li><p>scikit-learn</p></li>
+<li><p>matplotlib</p></li>
+<li><p>seaborn</p></li>
+<li><p>tqdm</p></li>
 </ul>
 <p>Special packages (install via pip):</p>
 <ul class="simple">
-<li>ellc (&gt;=1.8.0) <a class="footnote-reference" href="#f1" id="id1">[1]</a></li>
-<li>dynesty (&gt;=0.9.3) <a class="footnote-reference" href="#f2" id="id2">[2]</a></li>
-<li>emcee (&gt;=3.0rc2) <a class="footnote-reference" href="#f3" id="id3">[3]</a></li>
-<li>celerite (&gt;=0.3.0) <a class="footnote-reference" href="#f4" id="id4">[4]</a></li>
-<li>corner (&gt;=2.0.1) <a class="footnote-reference" href="#f5" id="id5">[5]</a></li>
-<li>rebound (&gt;=3.8.0) <a class="footnote-reference" href="#f6" id="id6">[6]</a></li>
+<li><p>ellc (&gt;=1.8.0) <a class="footnote-reference brackets" href="#f1" id="id1">1</a></p></li>
+<li><p>dynesty (&gt;=0.9.3) <a class="footnote-reference brackets" href="#f2" id="id2">2</a></p></li>
+<li><p>emcee (&gt;=3.0rc2) <a class="footnote-reference brackets" href="#f3" id="id3">3</a></p></li>
+<li><p>celerite (&gt;=0.3.0) <a class="footnote-reference brackets" href="#f4" id="id4">4</a></p></li>
+<li><p>corner (&gt;=2.0.1) <a class="footnote-reference brackets" href="#f5" id="id5">5</a></p></li>
+<li><p>rebound (&gt;=3.8.0) <a class="footnote-reference brackets" href="#f6" id="id6">6</a></p></li>
 </ul>
 <p class="rubric">Footnotes</p>
-<table class="docutils footnote" frame="void" id="f1" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>requires a Fortran compiler; on Mac, you can install one e.g. via <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gcc</span></code></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="f2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>optional; for Nested Sampling</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="f3" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>optional; for MCMC</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="f4" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td>optional; for Gaussian Processes</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="f5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td>optional; if you want corner plots (you know you do.)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="f6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td>optional; if you want top-down-view plots of the orbits</td></tr>
-</tbody>
-</table>
+<dl class="footnote brackets">
+<dt class="label" id="f1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>requires a Fortran compiler; on Mac, you can install one e.g. via <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gcc</span></code></p>
+</dd>
+<dt class="label" id="f2"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>optional; for Nested Sampling</p>
+</dd>
+<dt class="label" id="f3"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><p>optional; for MCMC</p>
+</dd>
+<dt class="label" id="f4"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dd><p>optional; for Gaussian Processes</p>
+</dd>
+<dt class="label" id="f5"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><p>optional; if you want corner plots (you know you do.)</p>
+</dd>
+<dt class="label" id="f6"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
+<dd><p>optional; if you want top-down-view plots of the orbits</p>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -233,7 +221,7 @@
         <a href="crash_course.html" class="btn btn-neutral float-right" title="Crash course" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cite.html" class="btn btn-neutral" title="Acknowledge &amp; cite" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cite.html" class="btn btn-neutral float-left" title="Acknowledge &amp; cite" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -259,26 +247,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

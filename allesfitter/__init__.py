@@ -50,9 +50,9 @@ from . import nested_sampling_output
 
 from .general_output import show_initial_guess, draw_initial_guess_samples, get_labels, get_data, get_settings
 from .nested_sampling_output import get_ns_posterior_samples, get_ns_params, ns_output
-from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_posterior_samples
+from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_posterior_samples, draw_mcmc_posterior_samples_at_maximum_likelihood
 
-from .computer import calculate_model, calculate_baseline, calculate_stellar_var, update_params
+from .computer import calculate_model, calculate_baseline, calculate_stellar_var, calculate_yerr_w, update_params
 
 from .priors import transform_priors
 from .priors.estimate_noise import estimate_noise
@@ -68,6 +68,7 @@ def GUI():
 class allesclass():
     def __init__(self,datadir):
         config.init(datadir)
+        self.BASEMENT = config.BASEMENT
         self.fulldata = config.BASEMENT.fulldata
         self.data = config.BASEMENT.data
         self.settings = config.BASEMENT.settings
@@ -94,19 +95,21 @@ class allesclass():
             self.posterior_params = nested_sampling_output.draw_ns_posterior_samples(results, as_type='dic') # all weighted posterior_samples
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
         elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5') ):
-            copyfile(os.path.join(datadir,'results','mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
+            copyfile(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
             self.posterior_samples = draw_mcmc_posterior_samples(reader) # all weighted posterior_samples           
             self.posterior_params = draw_mcmc_posterior_samples(reader, as_type='dic') # all weighted posterior_samples
+            self.posterior_samples_at_maximum_likelihood = draw_mcmc_posterior_samples_at_maximum_likelihood(reader)
+            self.posterior_params_at_maximum_likelihood = draw_mcmc_posterior_samples_at_maximum_likelihood(reader, as_type='dic')
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
-#        except:
-#            pass
+            os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
+            
         
         
     
     #::: plot
     
-    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time'):
+    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True):
         '''
         Required input:
         ---------------
@@ -146,7 +149,7 @@ class allesclass():
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', base=self)
+        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, base=self)
         return fig, ax
         
         
@@ -167,10 +170,20 @@ class allesclass():
             
     def get_posterior_median_stellar_var(self, inst, key, xx=None, phased=False):
         if phased==False:
-            return calculate_stellar_var(self.posterior_params_median, key, xx=xx)
+            return calculate_stellar_var(self.posterior_params_median, inst, key, xx=xx)
         elif phased==True:
             raise ValueError('Not yet implemented.')    
     
+    def get_posterior_median_residuals(self, inst, key):
+        model = self.get_posterior_median_model(inst, key)
+        baseline = self.get_posterior_median_baseline(inst, key, model=model)
+        stellar_var = self.get_posterior_median_stellar_var(inst, key)
+        return self.data[inst][key] - model - baseline - stellar_var
+    
+    def get_posterior_median_yerr(self, inst, key):
+        return calculate_yerr_w(self.posterior_params_median, inst, key)
+
+        
     
     #::: initial guess
     
@@ -188,7 +201,7 @@ class allesclass():
     
     def get_initial_guess_stellar_var(self, inst, key, xx=None, phased=False):
         if phased==False:
-            return calculate_stellar_var(self.initial_guess_params_median, key, xx=xx)
+            return calculate_stellar_var(self.initial_guess_params_median, inst, key, xx=xx)
         elif phased==True:
             raise ValueError('Not yet implemented.')
     

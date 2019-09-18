@@ -162,18 +162,16 @@ def ns_output(datadir):
     #::: traceplot    
     cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
     tfig, taxes = dyplot.traceplot(results2, labels=labels, quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
-    plt.tight_layout()
+#    plt.tight_layout()
     
     
     #::: cornerplot
     ndim = results2['samples'].shape[1]
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.99 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
 
 
     #::: runplot
-#    rfig, raxes = dyplot.runplot(results)
-#    rfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_run.jpg'), dpi=100, bbox_inches='tight' )
-#    plt.close(rfig)
+    rfig, raxes = dyplot.runplot(results)
     
 
     #::: set allesfitter titles
@@ -202,6 +200,8 @@ def ns_output(datadir):
     plt.close(tfig)
     cfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_corner.pdf'), bbox_inches='tight' )
     plt.close(cfig)
+    rfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_run.pdf'), bbox_inches='tight' )
+    plt.close(rfig)
 
 
     #::: save the tables

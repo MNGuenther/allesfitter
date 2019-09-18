@@ -155,7 +155,7 @@ def get_logZ(run_names):
     logZ = []
     logZ_err = []
     
-    for rname in run_names:
+    for rname in np.atleast_1d(run_names):
         
         try: #new version
             fname = os.path.join( rname, 'results', 'save_ns.pickle.gz' )

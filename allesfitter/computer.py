@@ -1029,7 +1029,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     '''
     
     if model is None: 
-        model = calculate_model(params, inst, key, xx=None)
+        model = calculate_model(params, inst, key, xx=None) #the model has to be evaluated on the time grid
     if yerr_w is None: 
         yerr_w = calculate_yerr_w(params, inst, key)
     x = config.BASEMENT.data[inst]['time']

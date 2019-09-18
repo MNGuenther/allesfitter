@@ -295,7 +295,7 @@ def afplot(samples, companion):
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
+def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, rasterized=True):
     '''
     Inputs:
     -------
@@ -390,9 +390,9 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
             
         #::: plot data, not phase        
 #        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
-        ax.errorbar(x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True )  
+        ax.errorbar(x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized )  
         if base.settings['color_plot']:
-            ax.scatter(x, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 ) 
+            ax.scatter(x, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 ) 
             
         if timelabel=='Time_since':
             ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=inst)
@@ -411,7 +411,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
                 stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx, baseline+stellar_var+baseline_plus, 'g-', alpha=alpha, zorder=12 )
+                ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
         
@@ -468,10 +468,10 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
+                ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
+                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )            
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion+' only')
     
     
@@ -518,14 +518,14 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None):
             if len(x) > 500:
                 if style in ['phase_variations', 
                              'phase_variations_residuals']:
-                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=True, zorder=11 )                    
+                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=rasterized, zorder=11 )                    
                 else: 
-                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=True )
-                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=True, zorder=11 )
+                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
+                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=True, zorder=11 )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )  
                 if base.settings['color_plot']:
-                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=True, cmap='inferno', zorder=11 )          
+                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion)
     
     

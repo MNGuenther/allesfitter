@@ -129,13 +129,14 @@ def mcmc_fit(datadir):
             raise ValueError('User aborted operation.')
             
     
-    #::: set up a backend
-    backend = emcee.backends.HDFBackend(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'))
-    
-    
     #::: continue on the backend / reset the backend
-    if not continue_old_run:
-        backend.reset(config.BASEMENT.settings['mcmc_nwalkers'], config.BASEMENT.ndim)
+    if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5')) and not continue_old_run:
+        #backend.reset(config.BASEMENT.settings['mcmc_nwalkers'], config.BASEMENT.ndim)
+        os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'))
+        
+        
+    #::: set up a fresh backend
+    backend = emcee.backends.HDFBackend(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'))
     
     
     #::: helper fct
@@ -154,11 +155,32 @@ def mcmc_fit(datadir):
             if b[0] == 'uniform':
                 p0[:,i] = np.clip(p0[:,i], b[1], b[2]) 
         
+        #::: if pre-runs == True
+        for i in range(config.BASEMENT.settings['mcmc_pre_run_loops']):
+            logprint("\nRunning pre-run loop",i,'/',config.BASEMENT.settings['mcmc_pre_run_loops'])
+            
+            #::: run the sampler        
+            sampler.run_mcmc(p0,
+                             config.BASEMENT.settings['mcmc_pre_run_steps'],
+                             progress=config.BASEMENT.settings['print_progress'])
+            
+            #::: get maximum likelhood solution
+            log_prob = sampler.get_log_prob(flat=True)
+            posterior_samples = sampler.get_chain(flat=True)
+            ind_max = np.argmax(log_prob)
+            p0 = posterior_samples[ind_max,:] + config.BASEMENT.init_err * np.random.randn(config.BASEMENT.settings['mcmc_nwalkers'], config.BASEMENT.ndim)
+
+            #::: reset sampler and backend
+            #backend.reset(config.BASEMENT.settings['mcmc_nwalkers'], config.BASEMENT.ndim)
+            os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'))
+            sampler.reset()
+        
         #::: run the sampler        
+        logprint("\nRunning full MCMC")
         sampler.run_mcmc(p0,
                          (config.BASEMENT.settings['mcmc_total_steps'] - already_completed_steps)/config.BASEMENT.settings['mcmc_thin_by'], 
                          thin_by=config.BASEMENT.settings['mcmc_thin_by'], 
-                         progress=True)
+                         progress=config.BASEMENT.settings['print_progress'])
         
         return sampler
 

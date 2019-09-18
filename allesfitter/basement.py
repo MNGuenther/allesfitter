@@ -157,7 +157,9 @@ class Basement():
         multiprocess_cores                    : optional. Default is cpu_count()-1.
         ###############################################################################
         # MCMC settings
-        ###############################################################################
+        ###############################################################################      
+        mcmc_pre_run_loops                    : optional. Default is 0.         
+        mcmc_pre_run_steps                    : optional. Default is 0. 
         mcmc_nwalkers                         : optional. Default is 100.
         mcmc_total_steps                      : optional. Default is 2000.
         mcmc_burn_steps                       : optional. Default is 1000.
@@ -364,6 +366,10 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: MCMC settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'mcmc_pre_run_loops' not in self.settings: 
+            self.settings['mcmc_pre_run_loops'] = 0
+        if 'mcmc_pre_run_steps' not in self.settings: 
+            self.settings['mcmc_pre_run_steps'] = 0
         if 'mcmc_nwalkers' not in self.settings: 
             self.settings['mcmc_nwalkers'] = 100
         if 'mcmc_total_steps' not in self.settings: 
@@ -373,7 +379,7 @@ class Basement():
         if 'mcmc_thin_by' not in self.settings: 
             self.settings['mcmc_thin_by'] = 1
                 
-        for key in ['mcmc_nwalkers','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
+        for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
         
         

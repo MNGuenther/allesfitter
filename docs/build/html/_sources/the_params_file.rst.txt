@@ -115,10 +115,10 @@ V)
 
 VI)
 
-  * ``baseline_gp_sho_lnS0_[key]_[inst]``, 
-  * ``baseline_gp_sho_lnQ_[key]_[inst]`` and 
-  * ``baseline_gp_sho_lnomega0_[key]_[inst]``: 
+  * ``baseline_gp_sho_lnS0_[key]_[inst]``: ...
+  * ``baseline_gp_sho_lnQ_[key]_[inst]``: ...
+  * ``baseline_gp_sho_lnomega0_[key]_[inst]``: ln(omega0) relates to the rotation period as follows: P_rot = (2*pi) / exp(lnomega0). Hence, if you have a prior on the rotation period, you can set lnomega0 as follows: lnomega0 = ln( (2*pi) / P_rot ).
 
-    These are needed if you selected ``sample_GP_SHO`` in settings.csv.
+    These are all needed if you selected ``sample_GP_SHO`` in settings.csv. 
 
 .. note:: For all sample_GP_* options, you can always optionally add ``baseline_gp_offset_[key]_[inst]``, in which case the GP mean is set to this parameter (rather than assumed to be 0). Note that the GP is constrained on the residuals (data-model), so typically the GP mean is 0; but, for example, if you need to sample for the systemic velocity of your RV data, you will need this.

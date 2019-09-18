@@ -34,7 +34,8 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint
+from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .utils.latex_printer import round_tex
 
 
 
@@ -60,6 +61,27 @@ def draw_mcmc_posterior_samples(sampler, Nsamples=None, as_type='2d_array'):
         for key in config.BASEMENT.fitkeys:
             ind = np.where(config.BASEMENT.fitkeys==key)[0]
             posterior_samples_dic[key] = posterior_samples[:,ind].flatten()
+        return posterior_samples_dic
+
+
+
+###############################################################################
+#::: draw the maximum likelihood samples from the MCMC save.5 (internally in the code)
+###############################################################################
+def draw_mcmc_posterior_samples_at_maximum_likelihood(sampler, as_type='1d_array'):
+    log_prob = sampler.get_log_prob(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
+    posterior_samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
+    ind_max = np.argmax(log_prob)
+    posterior_samples = posterior_samples[ind_max,:]
+    
+    if as_type=='1d_array':
+        return posterior_samples
+
+    elif as_type=='dic':
+        posterior_samples_dic = {}
+        for key in config.BASEMENT.fitkeys:
+            ind = np.where(config.BASEMENT.fitkeys==key)[0]
+            posterior_samples_dic[key] = posterior_samples[ind].flatten()
         return posterior_samples_dic
 
 
@@ -101,15 +123,73 @@ def plot_MCMC_chains(sampler):
 ###############################################################################
 #::: plot the MCMC corner plot
 ###############################################################################
+#def plot_MCMC_corner(sampler):
+#    samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
+#    
+#    fig = corner(samples, 
+#                 labels = config.BASEMENT.fitkeys,
+#                 range = [0.999]*config.BASEMENT.ndim,
+#                 quantiles=[0.15865, 0.5, 0.84135],
+#                 show_titles=True, title_kwargs={"fontsize": 14},
+#                 truths=config.BASEMENT.fittruths)
+#            
+#    return fig
+
 def plot_MCMC_corner(sampler):
     samples = sampler.get_chain(flat=True, discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']))
     
+    params_median, params_ll, params_ul = get_params_from_samples(samples)
+    params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()
+    
+    
+    #::: make pretty titles for the corner plot  
+    labels, units = [], []
+    for i,l in enumerate(config.BASEMENT.fitlabels):
+        labels.append( str(config.BASEMENT.fitlabels[i]) )
+        units.append( str(config.BASEMENT.fitunits[i]) )
+        
+    for companion in config.BASEMENT.settings['companions_all']:
+        
+        if companion+'_epoch' in config.BASEMENT.fitkeys:
+            ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
+            samples[:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
+            units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d')    #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
+            config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
+            params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
+                
+    for i,l in enumerate(labels):
+        if units[i]!='':
+            labels[i] = str(labels[i]+' ('+units[i]+')')
+        
+        
+    #::: corner plot
     fig = corner(samples, 
-                 labels = config.BASEMENT.fitkeys,
+                 labels = labels,
                  range = [0.999]*config.BASEMENT.ndim,
                  quantiles=[0.15865, 0.5, 0.84135],
-                 show_titles=True, title_kwargs={"fontsize": 14},
+                 show_titles=False, title_kwargs={"fontsize": 14},
+#                 label_kwargs={"fontsize": 20},
+                 max_n_ticks=3,
                  truths=config.BASEMENT.fittruths)
+    caxes = np.reshape(np.array(fig.axes), (config.BASEMENT.ndim,config.BASEMENT.ndim))
+    
+
+    #::: set allesfitter titles
+    for i, key in enumerate(config.BASEMENT.fitkeys): 
+        
+        value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
+        ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
+        if len(config.BASEMENT.fitkeys)>1:
+            caxes[i,i].set_title(ctitle)
+            for i in range(caxes.shape[0]):
+                for j in range(caxes.shape[1]):
+                    caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
+                    caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+        else:
+            caxes.set_title(ctitle)
+            caxes.xaxis.set_label_coords(0.5, -0.5)
+            caxes.yaxis.set_label_coords(-0.5, 0.5)
+        
             
     return fig
 
@@ -171,7 +251,7 @@ def mcmc_output(datadir):
     
     #::: load the mcmc_save.h5
     #::: copy over into tmp file (in case chain is still running and you want a quick look already)     
-    copyfile(os.path.join(datadir,'results','mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
+    copyfile(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
     reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
     completed_steps = reader.get_chain().shape[0]*config.BASEMENT.settings['mcmc_thin_by']
     if completed_steps < config.BASEMENT.settings['mcmc_total_steps']: 
@@ -192,7 +272,7 @@ def mcmc_output(datadir):
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)
-    fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.pdf'), bbox_inches='tight' )
+    fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
     plt.close(fig)
 
     #::: plot the corner
@@ -212,7 +292,7 @@ def mcmc_output(datadir):
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     #::: clean up and delete the tmp file
-    os.remove(os.path.join(datadir,'results','mcmc_save_tmp.h5'))
+    os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
     
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)
     

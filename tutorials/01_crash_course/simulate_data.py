@@ -76,7 +76,7 @@ flux_Leonardo += 3e-4*np.sin(time_Leonardo/2.7)
 flux_err_Leonardo = 2e-3*np.ones_like(flux_Leonardo)
 header = 'time,flux,flux_err'
 X = np.column_stack(( time_Leonardo, flux_Leonardo, flux_err_Leonardo ))
-np.savetxt('allesfit_new/Leonardo.csv', X, delimiter=',', header=header)
+np.savetxt('allesfit/Leonardo.csv', X, delimiter=',', header=header)
 
 
 
@@ -88,4 +88,4 @@ ax.plot(time_Leonardo, flux_Leonardo, 'b.', label='Leonardo')
 ax.legend()
 ax.set(xlabel='BJD', ylabel='Flux')
 plt.tight_layout()
-fig.savefig('allesfit_new/data.png', bbox_inches='tight')
+fig.savefig('allesfit/data.png', bbox_inches='tight')
