@@ -201,10 +201,12 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
             
             #model, phased
             xx = np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)
+            xx2 = params_median[companion+'_epoch'] + np.linspace( -4./zoomfactor, 4./zoomfactor, 1000)*params_median[companion+'_period']
             for ii in range(samples.shape[0]):
                 s = samples[ii,:]
-                p = update_params(s, phased=True)
-                model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
+                p = update_params(s)
+#                p = update_params(s, phased=True)
+                model = flux_fct(p, inst, companion, xx=xx2) #evaluated on xx2 (!)
                 if ppm:
                     model = (model-1)*1e6
                 ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12, lw=2 )
@@ -435,6 +437,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         x = 1.*base.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
         stellar_var_median = calculate_stellar_var(params_median, 'all', key, xx=x) #evaluated on x (!)
+        
         y = base.data[inst][key] - baseline_median - stellar_var_median
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
@@ -478,10 +481,12 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             #::: plot model, phased (if wished)
             if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
                 xx = np.linspace( -0.25, 0.75, 1000)
+                xx2 = params_median[companion+'_epoch']+np.linspace( -0.25, 0.75, 1000)*params_median[companion+'_period']
                 for i in range(samples.shape[0]):
                     s = samples[i,:]
-                    p = update_params(s, phased=True)
-                    model = rv_fct(p, inst, companion, xx=xx)[0]
+                    p = update_params(s)
+#                    p = update_params(s, phased=True)
+                    model = rv_fct(p, inst, companion, xx=xx2)[0]
                     ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
             
         
@@ -534,15 +539,19 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                 
                 if style in ['phase', 'phase_variations']:
                     xx = np.linspace( -0.25, 0.75, 1000)
+                    xx2 = params_median[companion+'_epoch'] + np.linspace( -0.25, 0.75, 1000)*params_median[companion+'_period']
                 elif style in ['phasezoom']:
                     xx = np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)
+                    xx2 = params_median[companion+'_epoch'] + np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)*params_median[companion+'_period']
                 elif style in ['phasezoom_occ']:
                     xx = np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)
+                    xx2 = params_median[companion+'_epoch'] + np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)*params_median[companion+'_period']
     
                 for i in range(samples.shape[0]):
                     s = samples[i,:]
-                    p = update_params(s, phased=True)
-                    model = flux_fct(p, inst, companion, xx=xx) #evaluated on xx (!)
+                    p = update_params(s)
+#                    p = update_params(s, phased=True)
+                    model = flux_fct(p, inst, companion, xx=xx2) #evaluated on xx (!)
                     ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         

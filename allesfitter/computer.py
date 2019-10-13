@@ -53,18 +53,28 @@ FCTs = ['none', 'offset', 'linear', 'hybrid_offset', 'hybrid_poly_0', 'hybrid_po
 
 
 
+
+def divide(a,b):
+    if a is not None:
+        return 1.*a/b
+    else:
+        return None
+    
+    
+    
+
 ###############################################################################
 #::: convert input params into ellc params
 ###############################################################################  
-def update_params(theta, phased=False):
+def update_params(theta):
     
     params = config.BASEMENT.params.copy()
     
     #::: phased?
-    if phased:
-        params['phased'] = True
-    else:
-        params['phased'] = False
+#    if phased:
+#        params['phased'] = True
+#    else:
+#        params['phased'] = False
         
     
     #::: first, sync over from theta
@@ -79,10 +89,10 @@ def update_params(theta, phased=False):
             
     
     #::: phase-folded? (it's important to have this before calculating the semi-major axis!)
-    if phased:
-        for companion in config.BASEMENT.settings['companions_all']:
-            params[companion+'_epoch'] = 0.
-            params[companion+'_period'] = 1.
+#    if phased:
+#        for companion in config.BASEMENT.settings['companions_all']:
+#            params[companion+'_epoch'] = 0.
+#            params[companion+'_period'] = 1.
     
     
     #::: general params (used for both photometry and RV)
@@ -232,13 +242,13 @@ def flux_fct(params, inst, companion, xx=None):
     
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
-    if params['phased']==True:
+#    if params['phased']==True:
+#        return flux_fct_full(params, inst, companion, xx=xx)
+    
+    if config.BASEMENT.settings['fit_ttvs']==False:
         return flux_fct_full(params, inst, companion, xx=xx)
     
-    elif config.BASEMENT.settings['fit_ttvs']==False:
-        return flux_fct_full(params, inst, companion, xx=xx)
-    
-    elif config.BASEMENT.settings['fit_ttvs']==True:
+    else:
         return flux_fct_piecewise(params, inst, companion, xx=xx)
 
 
@@ -288,12 +298,12 @@ def flux_fct_full(params, inst, companion, xx=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      params['host_geom_albedo_'+inst]/2.,
-                          heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                          heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst], 
                           lambda_2 =    params[companion+'_lambda_'+inst], 
-                          vsini_1 =     params['host_vsini_'+inst],
-                          vsini_2 =     params[companion+'_vsini_'+inst], 
+                          vsini_1 =     params['host_vsini'],
+                          vsini_2 =     params[companion+'_vsini'], 
                           t_exp =       t_exp,
                           n_int =       n_int,
                           grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -393,12 +403,12 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
                                   hf_2 =        params[companion+'_hf_'+inst], #1.5,
                                   bfac_1 =      params['host_bfac_'+inst],
                                   bfac_2 =      params[companion+'_bfac_'+inst], 
-                                  heat_1 =      params['host_geom_albedo_'+inst]/2.,
-                                  heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                                  heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
+                                  heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
                                   lambda_1 =    params['host_lambda_'+inst], 
                                   lambda_2 =    params[companion+'_lambda_'+inst], 
-                                  vsini_1 =     params['host_vsini_'+inst],
-                                  vsini_2 =     params[companion+'_vsini_'+inst], 
+                                  vsini_1 =     params['host_vsini'],
+                                  vsini_2 =     params[companion+'_vsini'], 
                                   t_exp =       t_exp,
                                   n_int =       n_int,
                                   grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -473,8 +483,8 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       heat_2 =      0,
                       lambda_1 =    params['host_lambda_'+inst], 
                       lambda_2 =    params[companion+'_lambda_'+inst], 
-                      vsini_1 =     params['host_vsini_'+inst],
-                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      vsini_1 =     params['host_vsini'],
+                      vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
                       n_int =       n_int,
                       grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -518,8 +528,8 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       heat_2 =      0.1,
                       lambda_1 =    params['host_lambda_'+inst], 
                       lambda_2 =    params[companion+'_lambda_'+inst], 
-                      vsini_1 =     params['host_vsini_'+inst],
-                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      vsini_1 =     params['host_vsini'],
+                      vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
                       n_int =       n_int,
                       grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -563,8 +573,8 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       heat_2 =      0.1,
                       lambda_1 =    params['host_lambda_'+inst], 
                       lambda_2 =    params[companion+'_lambda_'+inst], 
-                      vsini_1 =     params['host_vsini_'+inst],
-                      vsini_2 =     params[companion+'_vsini_'+inst], 
+                      vsini_1 =     params['host_vsini'],
+                      vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
                       n_int =       n_int,
                       grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -616,7 +626,7 @@ def rv_fct(params, inst, companion, xx=None):
     else:
         t_exp = None
         n_int = None
-   
+    
     if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
         model_rv1, model_rv2 = ellc.rv(
                           t_obs =       xx, 
@@ -642,12 +652,12 @@ def rv_fct(params, inst, companion, xx=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      params['host_geom_albedo_'+inst]/2.,
-                          heat_2 =      params[companion+'_geom_albedo_'+inst]/2.,
+                          heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst],
                           lambda_2 =    params[companion+'_lambda_'+inst], 
-                          vsini_1 =     params['host_vsini_'+inst],
-                          vsini_2 =     params[companion+'_vsini_'+inst], 
+                          vsini_1 =     params['host_vsini'],
+                          vsini_2 =     params[companion+'_vsini'], 
                           t_exp =       t_exp,
                           n_int =       n_int,
                           grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
@@ -658,8 +668,8 @@ def rv_fct(params, inst, companion, xx=None):
                           shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
                           spots_1 =     params['host_spots_'+inst], 
                           spots_2 =     params[companion+'_spots_'+inst], 
-                          #flux_weighted =   config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
-                          flux_weighted =   False,
+                          flux_weighted = config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
+#                          flux_weighted =   False,
                           verbose =     False
                           )
         

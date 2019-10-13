@@ -439,8 +439,10 @@ class Basement():
                     
         for companion in self.settings['companions_rv']:
             for inst in self.settings['inst_rv']:
-                if companion+'_flux_weighted_'+inst not in self.settings: 
-                    self.settings['flux_weighted_'+inst] = False
+                if companion+'_flux_weighted_'+inst in self.settings: 
+                    self.settings[companion+'_flux_weighted_'+inst] = set_bool(self.settings[companion+'_flux_weighted_'+inst])
+                else:
+                    self.settings[companion+'_flux_weighted_'+inst] = False
         
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -736,10 +738,10 @@ class Basement():
                     self.params[companion+'_bfac_'+inst] = None
                     
                 if 'host_geom_albedo_'+inst not in self.params:
-                    self.params['host_geom_albedo_'+inst] = 0
+                    self.params['host_geom_albedo_'+inst] = None
                     
                 if companion+'_geom_albedo_'+inst not in self.params:
-                    self.params[companion+'_geom_albedo_'+inst] = 0
+                    self.params[companion+'_geom_albedo_'+inst] = None
                     
                 if 'host_lambda_'+inst not in self.params:
                     self.params['host_lambda_'+inst] = None
@@ -747,11 +749,11 @@ class Basement():
                 if companion+'_lambda_'+inst not in self.params:
                     self.params[companion+'_lambda_'+inst] = None
                     
-                if 'host_vsini_'+inst not in self.params:
-                    self.params['host_vsini_'+inst] = None
+                if 'host_vsini' not in self.params:
+                    self.params['host_vsini'] = None
                     
-                if companion+'_vsini_'+inst not in self.params:
-                    self.params[companion+'_vsini_'+inst] = None
+                if companion+'_vsini' not in self.params:
+                    self.params[companion+'_vsini'] = None
                     
                 if 'host_spots_'+inst not in self.params:
                     self.params['host_spots_'+inst] = None
@@ -777,10 +779,11 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
-                    self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
-                if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
-                    self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                if self.params[companion+'_geom_albedo_'+inst] is not None:
+                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
+                        self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
+                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
+                        self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
               
                 
        
@@ -976,6 +979,8 @@ class Basement():
                 #::: set the new initial guess
                 self.theta_0[ind_e] = 1.*self.settings['mid_epoch']
                 self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
+#                print('\n', 'New epochs:')
+#                print(self.params[companion+'_epoch'])
                 
                 #::: get the bounds / errors
                 #::: if the epoch and period priors are both uniform

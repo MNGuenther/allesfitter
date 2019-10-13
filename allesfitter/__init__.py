@@ -55,7 +55,7 @@ from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_post
 from .computer import calculate_model, calculate_baseline, calculate_stellar_var, calculate_yerr_w, update_params
 
 from .priors import transform_priors
-from .priors.estimate_noise import estimate_noise
+from .priors.estimate_noise import estimate_noise, estimate_noise_out_of_transit
 
 from .postprocessing.nested_sampling_compare_logZ import ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
