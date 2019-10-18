@@ -459,7 +459,7 @@ class Basement():
         for inst in self.settings['inst_phot']:
             for key in ['flux']:
                 if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_spline'
+                    self.settings['baseline_'+key+'_'+inst] = 'none'
 
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
                      warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
@@ -468,7 +468,7 @@ class Basement():
         for inst in self.settings['inst_rv']:
             for key in ['rv']:
                 if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_offset'
+                    self.settings['baseline_'+key+'_'+inst] = 'none'
                     
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
                      warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')

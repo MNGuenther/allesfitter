@@ -742,7 +742,8 @@ def calculate_lnlike_total(params):
                 
                 #::: calculate the model; if there are any NaN, return -np.inf
                 model = calculate_model(params, inst, key)
-                if any(np.isnan(model)) or any(np.isinf(model)): return -np.inf
+                if any(np.isnan(model)) or any(np.isinf(model)): 
+                    return -np.inf
                 
                 #::: calculate errors, baseline and stellar variability
                 yerr_w = calculate_yerr_w(params, inst, key)
@@ -751,7 +752,16 @@ def calculate_lnlike_total(params):
                 
                 #::: calculate residuals and inv_simga2
                 residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
-                if any(np.isnan(residuals)): raise ValueError('There are NaN in the residuals. Something horrible happened.')
+                if any(np.isnan(residuals)): 
+                    return -np.inf
+#                    print(model)
+#                    print(inst, key)
+#                    print(yerr_w)
+#                    print(baseline)
+#                    print(stellar_var)
+#                    for key in params:
+#                        print(key, params[key])
+#                    raise ValueError('There are NaN in the residuals. Something horrible happened.')
                 inv_sigma2_w = 1./yerr_w**2
                 
                 #::: calculate lnlike
@@ -1108,11 +1118,16 @@ def baseline_hybrid_spline(*args):
     spl = UnivariateSpline(x[ind],y[ind],w=weights[ind],s=np.sum(weights[ind]))
     baseline = spl(xx)
     
+#    if any(np.isnan(baseline)):
+#        import matplotlib.pyplot as plt
+#        print(x[ind])
+#        print(y[ind])
+#        print(weights[ind])
 #        plt.figure()
 #        plt.plot(x,y,'k.', color='grey')
 #        plt.plot(xx,baseline,'r-', lw=2)
 #        plt.show()
-#        raw_input('press enter to continue')
+#        input('press enter to continue')
     
     return baseline   
 

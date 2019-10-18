@@ -57,7 +57,7 @@ from .computer import calculate_model, calculate_baseline, calculate_stellar_var
 from .priors import transform_priors
 from .priors.estimate_noise import estimate_noise, estimate_noise_out_of_transit
 
-from .postprocessing.nested_sampling_compare_logZ import ns_plot_bayes_factors
+from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
 
 def GUI():
@@ -260,4 +260,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '0.9.5'
+__version__ = '0.9.6'
