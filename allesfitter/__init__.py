@@ -109,7 +109,7 @@ class allesclass():
     
     #::: plot
     
-    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True):
+    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
         '''
         Required input:
         ---------------
@@ -149,7 +149,7 @@ class allesclass():
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, base=self)
+        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, marker=marker, linestyle=linestyle, color=color, markersize=markersize, base=self)
         return fig, ax
         
         
@@ -260,4 +260,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '0.9.6'
+__version__ = '0.9.8'

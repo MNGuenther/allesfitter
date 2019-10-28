@@ -34,7 +34,7 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples
 from .utils.latex_printer import round_tex
 
 
@@ -269,6 +269,12 @@ def mcmc_output(datadir):
         fig, axes = afplot(posterior_samples, companion)
         fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
         plt.close(fig)
+        
+    for companion in config.BASEMENT.settings['companions_phot']:
+        for inst in config.BASEMENT.settings['inst_phot']:
+            fig, axes = afplot_per_transit(posterior_samples, inst, companion)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)

@@ -976,11 +976,15 @@ class Basement():
                 ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
                 ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
                 
+                print('\n')
+                print('############################################################################')
+                print('user_epoch', user_epoch, self.bounds[ind_e])
+                print('user_period', period, self.bounds[ind_p])
+                print('----------------------------------------------------------------------------')
+                  
                 #::: set the new initial guess
                 self.theta_0[ind_e] = 1.*self.settings['mid_epoch']
                 self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
-#                print('\n', 'New epochs:')
-#                print(self.params[companion+'_epoch'])
                 
                 #::: get the bounds / errors
                 #::: if the epoch and period priors are both uniform
@@ -1008,10 +1012,12 @@ class Basement():
                     self.bounds[ind_e][3] = self.bounds[ind_e][3] + N_shift * self.bounds[ind_p][3] #mean (in case the prior-mean is not the initial-guess-mean)
                     self.bounds[ind_e][4] = np.sqrt( self.bounds[ind_e][4]**2 + N_shift**2 * self.bounds[ind_p][4]**2 ) #std (in case the prior-mean is not the initial-guess-mean)
             
+                #::: if the epoch prior is uniform and period prior is normal
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'normal'):
                     self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][2]) #lower bound epoch + Nshift * period + Nshift * std_period
                     self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][2]) #upper bound + Nshift * period + Nshift * std_period
 
+                #::: if the epoch prior is uniform and period prior is trunc_normal
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'trunc_normal'):
                     self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][4]) #lower bound epoch + Nshift * period + Nshift * std_period
                     self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][4]) #upper bound + Nshift * period + Nshift * std_period
@@ -1031,18 +1037,17 @@ class Basement():
                 else:
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
                     
-            
-#            print('\n')
-#            print('############################################################################')
-#            print('user_epoch', user_epoch)
-#            print('first_epoch; N', first_epoch, N)
-#            print('mid_epoch, error; N_shift', mid_epoch, N_shift)
-#            print('----------------------------------------------------------------------------')
-#            print('old bounds, epoch:', buf)
-#            print('old bounds, period:', self.bounds[ind_p])
-#            print('new bounds, epoch:', self.bounds[ind_e])
-#            print('############################################################################')
-#            print('\n')
+        
+                print('first_epoch; N', first_epoch, N)
+                print('mid_epoch, error; N_shift', self.settings['mid_epoch'], N_shift)
+                print('----------------------------------------------------------------------------')
+                print('new epoch:', self.settings['mid_epoch'], self.bounds[ind_e])
+                print('############################################################################')
+                print('\n')
+#                err
+                
+                print('\n', 'New epochs:')
+                print(self.params[companion+'_epoch'])
                     
         '''
         #::: change epoch entry from params.csv to set epoch into the middle of the range

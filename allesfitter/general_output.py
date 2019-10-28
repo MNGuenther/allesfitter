@@ -29,6 +29,7 @@ import os, sys
 import warnings
 from astropy.time import Time
 #import pickle
+from tqdm import tqdm
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 
@@ -40,8 +41,8 @@ from .computer import update_params,\
                      calculate_baseline,calculate_stellar_var,\
                      calculate_yerr_w
 from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
-                     
-                     
+from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
+                    
                      
                      
 ###############################################################################
@@ -297,7 +298,7 @@ def afplot(samples, companion):
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, rasterized=True):
+def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
     '''
     Inputs:
     -------
@@ -313,7 +314,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         None or 'b'/'c'/etc.
         
     style:
-        'full' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variation'
+        'full' / 'per_transit' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variation'
         'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_variation_residuals'
         
     timelabel:
@@ -392,7 +393,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             
         #::: plot data, not phase        
 #        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
-        ax.errorbar(x, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized )  
+        ax.errorbar(x, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize, capsize=0, rasterized=rasterized )  
         if base.settings['color_plot']:
             ax.scatter(x, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 ) 
             
@@ -404,22 +405,44 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             
         #::: plot model + baseline, not phased
         if style in ['full']:
-            if ((x[-1] - x[0]) < 1): dt = 2./24./60. #if <1 day of data: plot with 2 min resolution
-            else: dt = 30./24./60. #else: plot with 30 min resolution
-            xx = np.arange( x[0], x[-1]+dt, dt) 
-            for i in range(samples.shape[0]):
-                s = samples[i,:]
-                p = update_params(s)
-                model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-                baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-                stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
-                ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-        
+            
+            #if <1 day of photometric data: plot with 2 min resolution
+            if ((x[-1] - x[0]) < 1): 
+                dt = 2./24./60. 
+            #else: plot with 30 min resolution
+            else: 
+                dt = 30./24./60. 
+                    
+            if key == 'flux':
+                xx_full = np.arange( x[0], x[-1]+dt, dt)
+                Npoints_chunk = 48
+                for i_chunk in range(int(1.*len(xx_full)/Npoints_chunk)+2):
+                    xx = xx_full[i_chunk*Npoints_chunk:(i_chunk+1)*Npoints_chunk] #plot in chunks of 48 points (1 day)
+                    if len(xx)>0 and any( (x>xx[0]) & (x<xx[-1]) ): #plot only where there is data
+                        for i in range(samples.shape[0]):
+                            s = samples[i,:]
+                            p = update_params(s)
+                            model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                            baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                            stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
+                            ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+                            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
+            elif key=='rv':
+                xx = np.arange( x[0], x[-1]+dt, dt)
+                for i in range(samples.shape[0]):
+                    s = samples[i,:]
+                    p = update_params(s)
+                    model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                    baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                    stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
+                    ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+                    ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
         #::: other stuff
         if timelabel=='Time_since':
             x = np.copy(xsave)
+            
+            
             
             
     #==========================================================================
@@ -471,10 +494,10 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )
+                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=rasterized )
+                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )            
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion+' only')
     
     
@@ -523,12 +546,12 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             if len(x) > 500:
                 if style in ['phase_variations', 
                              'phase_variations_residuals']:
-                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', rasterized=rasterized, zorder=11 )                    
+                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=color, rasterized=rasterized, zorder=11 )                    
                 else: 
                     ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
-                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )
+                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, fmt='b.', capsize=0, rasterized=rasterized, zorder=11 )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )  
                 if base.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion)
@@ -572,6 +595,71 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                      'phase_variation_residuals']:
                 ax.set( ylim=[0.9999,1.0001] )
 
+
+
+
+    
+###############################################################################
+#::: plot individual transits
+###############################################################################
+def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
+        
+    if base==None:
+        base = config.BASEMENT
+        
+    if inst in base.settings['inst_phot']:
+        key = 'flux'
+        ylabel = 'Realtive Flux'
+        baseline_plus = 1.
+    elif inst in base.settings['inst_rv']:
+        key = 'rv'   
+        ylabel = 'RV (km/s)'
+        
+    if samples.shape[0]==1:
+        alpha = 1.
+    else:
+        alpha = 0.1
+        
+    params_median, params_ll, params_ul = get_params_from_samples(samples)
+    width = 8./24.
+    x = base.data[inst]['time']
+    y = 1.*base.data[inst][key]
+    yerr_w = calculate_yerr_w(params_median, inst, key)
+    
+    tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], width)
+    N_transits = len(tmid_observed_transits)
+    
+    fig, axes = plt.subplots(N_transits,1,figsize=(6,4*N_transits),sharey=True)
+    axes = np.atleast_1d(axes)
+    axes[0].set(title=inst)
+    
+    for i, t in enumerate(tmid_observed_transits):
+        ax = axes[i]
+        
+        #::: mark data
+        ind = np.where((x >= (t - width/2.)) & (x <= (t + width/2.)))[0]
+        
+        #::: plot model
+        ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized )  
+        ax.set(xlabel='Time (BJD)', ylabel=ylabel)
+        
+        #::: plot model + baseline, not phased
+        dt = 2./24./60. 
+        xx = np.arange(x[ind][0], x[ind][-1]+dt, dt)
+        for i in range(samples.shape[0]):
+            s = samples[i,:]
+            p = update_params(s)
+            model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+            baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+            stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
+            ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
+        ax.set(xlim=[t-4./24., t+4./24.])
+        ax.axvline(t,color='g',lw=2,ls='--')
+    
+    return fig, axes
+            
+                
 
 
     
@@ -734,6 +822,12 @@ def plot_initial_guess(return_figs=False):
             fig, axes = afplot(samples, companion)
             fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
+            
+        for companion in config.BASEMENT.settings['companions_phot']:
+            for inst in config.BASEMENT.settings['inst_phot']:
+                fig, axes = afplot_per_transit(samples, inst, companion)
+                fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+                plt.close(fig)
         return None
     
     else:

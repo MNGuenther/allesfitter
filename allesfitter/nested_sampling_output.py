@@ -39,7 +39,7 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples
 from .utils.colormaputil import truncate_colormap
 from .utils.latex_printer import round_tex
                      
@@ -122,6 +122,12 @@ def ns_output(datadir):
 #        f.close()        
         plt.close(fig)
 
+    for companion in config.BASEMENT.settings['companions_phot']:
+        for inst in config.BASEMENT.settings['inst_phot']:
+            fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
+            
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples

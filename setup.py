@@ -16,22 +16,24 @@ Web: www.mnguenther.com
 
 from setuptools import setup, find_packages
 
+
+
+
+
 setup(
     name = 'allesfitter',
-    packages=find_packages(),
-    version = '0.9.6',
+    packages = find_packages(),
+    version = '0.9.8',
     description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
     author_email = 'maxgue@mit.edu',
     url = 'https://github.com/MNGuenther/allesfitter',
     download_url = 'https://github.com/MNGuenther/allesfitter',
     license='MIT',
-    classifiers=[
-        'Development Status :: 4 - Beta', #3 - Alpha / 4 - Beta / 5 - Production/Stable
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-    ],
+    classifiers=['Development Status :: 4 - Beta', #3 - Alpha / 4 - Beta / 5 - Production/Stable
+                 'Intended Audience :: Science/Research',
+                 'License :: OSI Approved :: MIT License',
+                 'Programming Language :: Python'],
     #install_requires=['numpy>=1.10'],
     include_package_data = True
     )
