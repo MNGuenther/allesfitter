@@ -416,7 +416,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             if key == 'flux':
                 xx_full = np.arange( x[0], x[-1]+dt, dt)
                 Npoints_chunk = 48
-                for i_chunk in range(int(1.*len(xx_full)/Npoints_chunk)+2):
+                for i_chunk in tqdm(range(int(1.*len(xx_full)/Npoints_chunk)+2)):
                     xx = xx_full[i_chunk*Npoints_chunk:(i_chunk+1)*Npoints_chunk] #plot in chunks of 48 points (1 day)
                     if len(xx)>0 and any( (x>xx[0]) & (x<xx[-1]) ): #plot only where there is data
                         for i in range(samples.shape[0]):
@@ -630,32 +630,37 @@ def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, mar
     N_transits = len(tmid_observed_transits)
     
     fig, axes = plt.subplots(N_transits,1,figsize=(6,4*N_transits),sharey=True)
-    axes = np.atleast_1d(axes)
-    axes[0].set(title=inst)
     
-    for i, t in enumerate(tmid_observed_transits):
-        ax = axes[i]
+    if N_transits>0:
+        axes = np.atleast_1d(axes)
+        axes[0].set(title=inst)
         
-        #::: mark data
-        ind = np.where((x >= (t - width/2.)) & (x <= (t + width/2.)))[0]
-        
-        #::: plot model
-        ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized )  
-        ax.set(xlabel='Time (BJD)', ylabel=ylabel)
-        
-        #::: plot model + baseline, not phased
-        dt = 2./24./60. 
-        xx = np.arange(x[ind][0], x[ind][-1]+dt, dt)
-        for i in range(samples.shape[0]):
-            s = samples[i,:]
-            p = update_params(s)
-            model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-            baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-            stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-            ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
-            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-        ax.set(xlim=[t-4./24., t+4./24.])
-        ax.axvline(t,color='g',lw=2,ls='--')
+        for i, t in enumerate(tmid_observed_transits):
+            ax = axes[i]
+            
+            #::: mark data
+            ind = np.where((x >= (t - width/2.)) & (x <= (t + width/2.)))[0]
+            
+            #::: plot model
+            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized )  
+            ax.set(xlabel='Time (BJD)', ylabel=ylabel)
+            
+            #::: plot model + baseline, not phased
+            dt = 2./24./60. 
+            xx = np.arange(x[ind][0], x[ind][-1]+dt, dt)
+            for i in range(samples.shape[0]):
+                s = samples[i,:]
+                p = update_params(s)
+                model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
+                ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+                ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
+            ax.set(xlim=[t-4./24., t+4./24.])
+            ax.axvline(t,color='g',lw=2,ls='--')
+            
+    else:
+        warnings.warn('No transit of companion '+companion+' for '+inst+'.')
     
     return fig, axes
             

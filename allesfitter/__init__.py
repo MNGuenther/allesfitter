@@ -60,6 +60,7 @@ from .priors.estimate_noise import estimate_noise, estimate_noise_out_of_transit
 from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
 
+
 def GUI():
     allesfitter_path = os.path.dirname( os.path.realpath(__file__) )
     os.system( 'jupyter notebook "' + os.path.join(allesfitter_path,'GUI.ipynb') + '"')
@@ -104,7 +105,13 @@ class allesclass():
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
             os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             
-        
+        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle') ):
+            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'ns_derived_samples.pickle'),'rb'))
+            
+        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_derived_samples.pickle') ):
+            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'mcmc_derived_samples.pickle'),'rb'))
+            
+            
         
     
     #::: plot
@@ -260,4 +267,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '0.9.8'
+__version__ = '0.9.9'

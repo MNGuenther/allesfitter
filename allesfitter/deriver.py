@@ -123,7 +123,7 @@ def derive(samples, mode):
         derived_samples[companion+'_R_companion_(R_earth)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_earth.value #in R_earth
         derived_samples[companion+'_R_companion_(R_jup)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_jup.value #in R_jup
 
-        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in mmag
+        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in ppt
 
 
         #::: orbit
@@ -301,7 +301,7 @@ def derive(samples, mode):
                 dil = 0
         #        if np.mean(dil)<0.5: dil = 1-dil
         
-            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in mmag
+            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in ppt
             
             derived_samples[companion+'_depth_occ_undiluted_'+inst] = derived_samples[companion+'_depth_occ_diluted_'+inst] / (1. - dil) #in ppm
             derived_samples[companion+'_ampl_ellipsoidal_undiluted_'+inst] = derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] / (1. - dil) #in ppm
@@ -405,20 +405,18 @@ def derive(samples, mode):
         labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
         
         names.append( companion+'_depth_undiluted' )
-        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (mmag)' )
-            
+        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (ppt)' )
+        
+        names.append( companion+'_depth_occ_undiluted_'+inst )
+        labels.append( '$\delta_\mathrm{occ; undil; '+inst+'}$ (ppm)' )
         
         for inst in config.BASEMENT.settings['inst_phot']:
             
             names.append( companion+'_depth_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{dil; '+inst+'}$ (mmag)' )
-            
-            
-            names.append( companion+'_depth_occ_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; undil; '+inst+'}$ (ppm)' )
+            labels.append( '$\delta_\mathrm{dil; '+companion+'; '+inst+'}$ (ppt)' )
             
             names.append( companion+'_depth_occ_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; dil; '+inst+'}$ (ppm)' )
+            labels.append( '$\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppm)' )
             
             names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
             labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )

@@ -976,11 +976,11 @@ class Basement():
                 ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
                 ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
                 
-                print('\n')
-                print('############################################################################')
-                print('user_epoch', user_epoch, self.bounds[ind_e])
-                print('user_period', period, self.bounds[ind_p])
-                print('----------------------------------------------------------------------------')
+#                print('\n')
+#                print('############################################################################')
+#                print('user_epoch', user_epoch, self.bounds[ind_e])
+#                print('user_period', period, self.bounds[ind_p])
+#                print('----------------------------------------------------------------------------')
                   
                 #::: set the new initial guess
                 self.theta_0[ind_e] = 1.*self.settings['mid_epoch']
@@ -1038,17 +1038,17 @@ class Basement():
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
                     
         
-                print('first_epoch; N', first_epoch, N)
-                print('mid_epoch, error; N_shift', self.settings['mid_epoch'], N_shift)
-                print('----------------------------------------------------------------------------')
-                print('new epoch:', self.settings['mid_epoch'], self.bounds[ind_e])
-                print('############################################################################')
-                print('\n')
+#                print('first_epoch; N', first_epoch, N)
+#                print('mid_epoch, error; N_shift', self.settings['mid_epoch'], N_shift)
+#                print('----------------------------------------------------------------------------')
+#                print('new epoch:', self.settings['mid_epoch'], self.bounds[ind_e])
+#                print('############################################################################')
+#                print('\n')
 #                err
                 
-                print('\n', 'New epochs:')
-                print(self.params[companion+'_epoch'])
-                    
+#                print('\n', 'New epochs:')
+#                print(self.params[companion+'_epoch'])
+#                    
         '''
         #::: change epoch entry from params.csv to set epoch into the middle of the range
         for companion in self.settings['companions_all']:
@@ -1154,6 +1154,10 @@ class Basement():
         ind_in = np.sort(np.unique(ind_in))
         self.fulldata[inst]['all_ind_in'] = ind_in
         self.fulldata[inst]['all_ind_out'] = np.delete( np.arange(len(self.fulldata[inst]['time'])), ind_in )
+        
+        if len(ind_in)==0:
+            raise ValueError(inst+'.csv does not contain any in-transit data. Check that your epoch and period guess are correct.')
+        
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
