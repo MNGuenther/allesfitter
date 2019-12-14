@@ -405,9 +405,9 @@ def plot_top_down_view(params_median, params_star, a=None, timestep=None, scalin
               
     plt.axis('equal')
 #    ax.set(xlim=[-0.12,0.12], ylim=[-0.12,0.12])
-    loc = plticker.MultipleLocator(base=0.05) # this locator puts ticks at regular intervals
-    ax.xaxis.set_major_locator(loc)
-    ax.yaxis.set_major_locator(loc)
+#    loc = plticker.MultipleLocator(base=0.05) # this locator puts ticks at regular intervals
+#    ax.xaxis.set_major_locator(loc)
+#    ax.yaxis.set_major_locator(loc)
 
     return fig, ax
 
