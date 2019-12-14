@@ -30,7 +30,7 @@ def get_first_epoch(time, epoch, period, width=0):
         set >0 to include transit egress to mark the first transit
     place the first_epoch at the start of the data to avoid luser mistakes
     '''
-    time = np.sort(time)
+    time = np.sort(np.atleast_1d(time))
     start = np.nanmin( time )
     first_epoch = 1.*epoch + width/2. #add width/2 to catch egress
     if start<=first_epoch: first_epoch -= int((first_epoch-start)/period) * period

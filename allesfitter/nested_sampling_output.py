@@ -40,6 +40,7 @@ import warnings
 from . import config
 from . import deriver
 from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples
+from .plot_top_down_view import plot_top_down_view
 from .utils.colormaputil import truncate_colormap
 from .utils.latex_printer import round_tex
                      
@@ -218,6 +219,16 @@ def ns_output(datadir):
     #::: derive values (using stellar parameters from params_star.csv)
     if os.path.exists(os.path.join(config.BASEMENT.datadir,'params_star.csv')):
         deriver.derive(posterior_samples, 'ns')
+    else:
+        print('File "params_star.csv" not found. Cannot derive final parameters.')
+   
+    
+    #::: make top-down orbit plot (using stellar parameters from params_star.csv)
+    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+        params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
+        fig, ax = plot_top_down_view(params_median, params_star)
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+        plt.close(fig)        
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
