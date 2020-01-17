@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome! &mdash; allesfitter 0.3.0 documentation</title>
+  <title>Welcome! &mdash; allesfitter 1.0.0 documentation</title>
   
 
   
@@ -25,7 +25,6 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -35,8 +34,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Why allesfitter?" href="why_allesfitter.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -59,6 +57,10 @@
           
             
             
+              <div class="version">
+                1.0.0
+              </div>
+            
           
 
           
@@ -80,19 +82,11 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a></li>
-<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a></li>
-<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a></li>
-<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome!</a></li>
 </ul>
-
+</div>
             
           
         </div>
@@ -160,75 +154,7 @@
 <a class="reference external image-reference" href="_static/images/promo.gif"><img alt="_images/promo.gif" class="align-center" src="_images/promo.gif" /></a>
 <p>[German-ish for <em>everything-fitter</em>]</p>
 <p><em>allesfitter</em> (Günther &amp; Daylan, in prep.; <a class="reference external" href="https://github.com/MNGuenther/allesfitter">GitHub</a>) is a public and user-friendly astronomy software package for modeling photometric and RV data. It can accommodate multiple exoplanets, multi-star systems, star spots, stellar flares, and various noise models. A graphical user interface allows to define all input. Then, <em>allesfitter</em> automatically runs a nested sampling or MCMC fit, and produces ascii tables, latex tables, and plots. For all this, <em>allesfitter</em> constructs an inference framework that unites the versatile packages <em>ellc</em> (light curve and RV models; Maxted 2016), <em>aflare</em> (flare model; Davenport et al. 2014), <em>dynesty</em> (static and dynamic nested sampling; Speagle 2019), <em>emcee</em> (Markov Chain Monte Carlo sampling; Foreman-Mackey et al. 2013) and <em>celerite</em> (Gaussian Process models; Foreman-Mackey et al. 2017).</p>
-<div class="section" id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="why_allesfitter.html">Why allesfitter?</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_graphical_user_interface.html">The ease and flexibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_models.html">The models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_samplers.html">The samplers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_noise.html">The noise</a></li>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_the_final_touch.html">The final touch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="why_allesfitter_unleash_the_bayesian_evidence.html">Unleash the Bayesian evidence…</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="cite.html">Acknowledge &amp; cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#installing-allesfitter">Installing allesfitter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="crash_course.html">Crash course</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_01b_behind_the_gui.html">Tutorials 01b: Behind the GUI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_01c_your_first_own_fit.html">Tutorials 01c: Your first own allesfit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_02_transits.html">Tutorials 02: Transits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_03_transits_with_GPs.html">Tutorials 03: Transits with GPs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_04_transits_and_rvs.html">Tutorials 04: Transits and RVs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_05_transits_and_rvs_with_stellar_variability.html">Tutorials 05: Transits and RVs with Stellar Variability</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_06_flares.html">Tutorials 06: Stellar Flares</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_07_spots.html">Tutorials 07: Star Spots</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials_08_phase_curves.html">Tutorials 08: Phase Curves</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the_settings_file.html">settings.csv</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#general-settings">General settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#fit-performance-settings">Fit performance settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#mcmc-settings">MCMC settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#nested-sampling-settings">Nested Sampling settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#limb-darkening-law-per-object-and-instrument">Limb darkening law per object and instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#baseline-settings-per-instrument">Baseline settings per instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#error-settings-per-instrument">Error settings per instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#exposure-times-for-interpolation">Exposure times for interpolation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-points-for-exposure-interpolation">Number of points for exposure interpolation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-spots-per-object-and-instrument">Number of spots per object and instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#number-of-flares-in-total">Number of flares (in total)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#ttvs">TTVs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#stellar-grid-per-object-and-instrument">Stellar grid per object and instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#stellar-shape-per-object-and-instrument">Stellar shape per object and instrument</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_settings_file.html#flux-weighted-rvs-per-object-and-instrument">Flux weighted RVs per object and instrument</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="the_params_file.html">params.csv</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="the_params_file.html#columns-explained">Columns explained</a></li>
-<li class="toctree-l2"><a class="reference internal" href="the_params_file.html#rows-explained">Rows explained</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="allesclass.html">allesclass</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="allesclass.html#the-allesclass-plot-function">1) The allesclass plot function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="allesclass.html#full-control">2) Full control</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance &amp; timing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="performance.html#test-1">Test 1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="performance.html#test-2">Test 2</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
-</ul>
-</div>
-</div>
+<p>The documentation has moved to a new fancy website: www.allesfitter.com</p>
 </div>
 
 
@@ -236,13 +162,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="why_allesfitter.html" class="btn btn-neutral float-right" title="Why allesfitter?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
   
 
   <hr/>
