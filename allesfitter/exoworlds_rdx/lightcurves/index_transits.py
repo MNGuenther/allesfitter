@@ -33,8 +33,8 @@ def get_first_epoch(time, epoch, period, width=0):
     time = np.sort(np.atleast_1d(time))
     start = np.nanmin( time )
     first_epoch = 1.*epoch + width/2. #add width/2 to catch egress
-    if start<=first_epoch: first_epoch -= int((first_epoch-start)/period) * period
-    else: first_epoch += int((start-first_epoch)/period) * period
+    if start<=first_epoch: first_epoch -= np.floor((first_epoch-start)/period) * period
+    else: first_epoch += np.ceil((start-first_epoch)/period) * period
     return first_epoch - width/2.  #subtract width/2 to get midpoint again
     
     

@@ -24,9 +24,9 @@ copyright = '2019, Maximilian N. Guenther, Tansu Daylan'
 author = 'Maximilian N. Guenther, Tansu Daylan'
 
 # The short X.Y version
-version = '1.0.0'
+version = ''
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = '0.3.0'
 
 
 # -- General configuration ---------------------------------------------------

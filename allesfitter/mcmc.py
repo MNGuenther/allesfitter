@@ -214,3 +214,11 @@ def mcmc_fit(datadir):
     print_autocorr(sampler)
     
     
+    #::: return a German saying
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'utils', 'quotes2.txt')) as dataset:
+            return(np.random.choice([l for l in dataset]))
+    except:
+        return('42')
+    
+    
