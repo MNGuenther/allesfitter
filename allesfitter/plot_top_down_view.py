@@ -47,7 +47,7 @@ from allesfitter.exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 
-def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylabel='y', zlabel='z', color=False, periastron=False, trails=True, show_orbit=True, lw=1., glow=False, slices=False, plotparticles=[], primary=None, fancy=False):
+def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylabel='y', zlabel='z', color=False, periastron=False, trails=True, show_orbit=True, lw=1., glow=False, slices=False, plotparticles=[], primary=None, fancy=False, ax=None):
     """
     Convenience function for plotting instantaneous orbits.
 
@@ -102,7 +102,8 @@ def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylab
     if slices:
         if figsize is None:
             figsize = (8,8)
-        fig, ax = plt.subplots(2, 2, figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(2, 2, figsize=figsize)
         gs = gridspec.GridSpec(2, 2, width_ratios=[3., 2.], height_ratios=[2.,3.],wspace=0., hspace=0.) 
         OrbitPlotOneSlice(sim, plt.subplot(gs[2]), lim=lim, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw, axes="xy",fancy=fancy, plotparticles=plotparticles, primary=primary, glow=glow)
         OrbitPlotOneSlice(sim, plt.subplot(gs[3]), lim=lim, limz=limz, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw,fancy=fancy, axes="zy", plotparticles=plotparticles, primary=primary, glow=glow)
@@ -118,11 +119,15 @@ def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylab
     else:
         if figsize is None:
             figsize = (5,5)
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         OrbitPlotOneSlice(sim, ax, lim=lim, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw,fancy=fancy, plotparticles=plotparticles, primary=primary, glow=glow)
-    return fig
+    return plt.gcf(), ax
+
+
+
 
 def get_color(color):
     """
@@ -143,6 +148,7 @@ def get_color(color):
     hexcolor = hexcolor.lstrip('#')
     lv = len(hexcolor)
     return tuple(int(hexcolor[i:i + lv // 3], 16)/255. for i in range(0, lv, lv // 3)) # tuple of rgb values
+
 
 
 
@@ -354,7 +360,7 @@ def OrbitPlotOneSlice(sim, ax, lim=None, limz=None, Narc=100, color=False, peria
 
 
 
-def plot_top_down_view(params_median, params_star, a=None, timestep=None, scaling=30., colors=sns.color_palette('deep'), linewidth=2, plot_arrow=False):
+def plot_top_down_view(params_median, params_star, a=None, timestep=None, scaling=30., colors=sns.color_palette('deep'), linewidth=2, plot_arrow=False, ax=None):
     
     sim = rebound.Simulation()
     sim.add(m=1)
@@ -384,8 +390,7 @@ def plot_top_down_view(params_median, params_star, a=None, timestep=None, scalin
 #    print('Mean anomaly, c:', sim.particles[0].M )
 #    err
     
-    fig = OrbitPlot(sim, xlabel='AU', ylabel='AU', color=colors, lw=linewidth) #color=[sns.color_palette('deep')[i] for i in [0,1,3]],
-    ax = plt.gca()
+    fig, ax = OrbitPlot(sim, xlabel='AU', ylabel='AU', color=colors, lw=linewidth, ax=ax) #color=[sns.color_palette('deep')[i] for i in [0,1,3]],
     
     for i, companion in enumerate(config.BASEMENT.settings['companions_all']):
         

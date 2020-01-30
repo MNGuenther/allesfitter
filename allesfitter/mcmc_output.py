@@ -257,9 +257,14 @@ def mcmc_output(datadir):
     completed_steps = reader.get_chain().shape[0]*config.BASEMENT.settings['mcmc_thin_by']
     if completed_steps < config.BASEMENT.settings['mcmc_total_steps']: 
         #go into quick look mode
-        #set burn_steps automatically to 75% of the chain length
+        #check how many total steps are actually done so far:
         config.BASEMENT.settings['mcmc_total_steps'] = config.BASEMENT.settings['mcmc_thin_by']*reader.get_chain().shape[0]
-        config.BASEMENT.settings['mcmc_burn_steps'] = int(0.75*config.BASEMENT.settings['mcmc_total_steps'])
+        #if this is at least twice the wished-for burn_steps, then let's keep those
+        #otherwise, set burn_steps automatically to 75% of how many total steps are actually done so far
+        if config.BASEMENT.settings['mcmc_total_steps'] > 2*config.BASEMENT.settings['mcmc_burn_steps']:
+            pass
+        else:
+            config.BASEMENT.settings['mcmc_burn_steps'] = int(0.75*config.BASEMENT.settings['mcmc_total_steps'])
     
     #::: print autocorr
     print_autocorr(reader)
@@ -302,9 +307,12 @@ def mcmc_output(datadir):
     if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
         params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
         params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
-        fig, ax = plot_top_down_view(params_median, params_star)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
-        plt.close(fig)        
+        try:
+            fig, ax = plot_top_down_view(params_median, params_star)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+            plt.close(fig)        
+        except:
+            warnings.warn('Orbital plots could not be produced.')
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
         

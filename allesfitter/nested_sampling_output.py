@@ -226,9 +226,12 @@ def ns_output(datadir):
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
     if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
         params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
-        fig, ax = plot_top_down_view(params_median, params_star)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
-        plt.close(fig)        
+        try:
+            fig, ax = plot_top_down_view(params_median, params_star)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+            plt.close(fig)        
+        except:
+            warnings.warn('Orbital plots could not be produced.')
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     

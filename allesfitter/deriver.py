@@ -333,7 +333,29 @@ def derive(samples, mode):
             for other_companion in companions:
                 if other_companion is not companion:
                     derived_samples[companion+'_period/'+other_companion+'_period'] = get_params(companion+'_period') / get_params(other_companion+'_period')
-        
+                        
+                    
+        #::: limb darkening
+        for inst in config.BASEMENT.settings['inst_all']:
+            
+            #::: host
+            if config.BASEMENT.settings['host_ld_law_'+inst] is None:
+                pass
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
+                derived_samples['host_ldc_u1_'+inst] = get_params('host_ldc_q1_'+inst)
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
+                derived_samples['host_ldc_u1_'+inst] = 2 * np.sqrt(get_params('host_ldc_q1_'+inst)) * get_params('host_ldc_q2_'+inst)
+                derived_samples['host_ldc_u2_'+inst] = np.sqrt(get_params('host_ldc_q1_'+inst)) * (1. - 2. * get_params('host_ldc_q2_'+inst))
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
+                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+                
+            else:
+                print(config.BASEMENT.settings['host_ld_law_'+inst] )
+                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+            
         
     #::: median stellar density
     derived_samples['mean_host_density'] = []
@@ -450,8 +472,34 @@ def derive(samples, mode):
                 if other_companion is not companion:
                     names.append( companion+'_period/'+other_companion+'_period' )
                     labels.append( '$P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
-                    
-
+           
+            
+    #::: host
+    for inst in config.BASEMENT.settings['inst_all']:    
+        if config.BASEMENT.settings['host_ld_law_'+inst] is None:
+            pass
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
+            names.append( 'host_ldc_u1_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
+            names.append( 'host_ldc_u1_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            names.append( 'host_ldc_u2_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{2; '+inst+'}$' )
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
+            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+            
+        else:
+            print(config.BASEMENT.settings['host_ld_law_'+inst] )
+            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+                
+        names.append( companion+'_ampl_gdc_diluted_'+inst )
+        labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+        
+        
     names.append( 'mean_host_density' )
     labels.append( '$rho_\mathrm{\star; mean}$ (cgs)' )
         
