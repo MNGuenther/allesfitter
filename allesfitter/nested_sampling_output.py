@@ -39,7 +39,7 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples
+from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples, plot_ttv_results
 from .plot_top_down_view import plot_top_down_view
 from .utils.colormaputil import truncate_colormap
 from .utils.latex_printer import round_tex
@@ -236,6 +236,12 @@ def ns_output(datadir):
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
+    #::: plot TTV results (if wished for)
+    if config.BASEMENT.settings['fit_ttvs'] == True:
+        plot_ttv_results(params_median, params_ll, params_ul)
+    
+    
+    #::: clean up
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)
     
     

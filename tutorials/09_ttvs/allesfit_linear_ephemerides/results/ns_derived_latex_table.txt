@@ -1,0 +1,36 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$R_\star/a_\mathrm{b}$ & $0.190_{-0.011}^{+0.010}$ & derived \\ 
+$R_\mathrm{b}/a_\mathrm{b}$ & $0.0239_{-0.0022}^{+0.0034}$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$) & $5.26_{-0.39}^{+0.48}$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{jup}}$) & $0.469_{-0.035}^{+0.043}$ & derived \\ 
+$a_\mathrm{b}$ ($\mathrm{R_{\odot}}$) & $2.00_{-0.15}^{+0.16}$ & derived \\ 
+$a_\mathrm{b}$ (AU) & $0.00929_{-0.00068}^{+0.00075}$ & derived \\ 
+$i_\mathrm{b}$ (deg) & $80.41\pm0.86$ & derived \\ 
+$b_\mathrm{tra;b}$ & $0.874_{-0.028}^{+0.031}$ & derived \\ 
+$T_\mathrm{tot;b}$ (h) & $3.56_{-0.13}^{+0.13}$ & derived \\ 
+$rho_\mathrm{\star;b}$ (cgs) & $0.237_{-0.034}^{+0.046}$ & derived \\ 
+$T_\mathrm{eq;b}$ (K) & $955\pm47$ & derived \\ 
+$\delta_\mathrm{undil; b}$ (ppt) & $15.9_{-1.5}^{+2.9}$ & derived \\ 
+$\delta_\mathrm{dil; b; Leonardo}$ (ppt) & $15.9_{-1.5}^{+2.9}$ & derived \\ 
+$P_\mathrm{b} / P_\mathrm{c}$ & $0.666809\pm0.000083$ & derived \\ 
+$R_\star/a_\mathrm{c}$ & $0.1304\pm0.0099$ & derived \\ 
+$R_\mathrm{c}/a_\mathrm{c}$ & $0.0171\pm0.0018$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{\oplus}}$) & $5.42\pm0.34$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{jup}}$) & $0.483\pm0.031$ & derived \\ 
+$a_\mathrm{c}$ ($\mathrm{R_{\odot}}$) & $2.91_{-0.24}^{+0.29}$ & derived \\ 
+$a_\mathrm{c}$ (AU) & $0.0136_{-0.0011}^{+0.0013}$ & derived \\ 
+$i_\mathrm{c}$ (deg) & $85.1\pm1.0$ & derived \\ 
+$b_\mathrm{tra;c}$ & $0.659_{-0.096}^{+0.082}$ & derived \\ 
+$T_\mathrm{tot;c}$ (h) & $4.679_{-0.10}^{+0.095}$ & derived \\ 
+$T_\mathrm{full;c}$ (h) & $2.89_{-0.45}^{+0.28}$ & derived \\ 
+$rho_\mathrm{\star;c}$ (cgs) & $0.328_{-0.063}^{+0.088}$ & derived \\ 
+$T_\mathrm{eq;c}$ (K) & $790.\pm43$ & derived \\ 
+$\delta_\mathrm{undil; c}$ (ppt) & $17.2_{-1.2}^{+1.2}$ & derived \\ 
+$\delta_\mathrm{dil; c; Leonardo}$ (ppt) & $17.2_{-1.2}^{+1.2}$ & derived \\ 
+$P_\mathrm{c} / P_\mathrm{b}$ & $1.49968\pm0.00019$ & derived \\ 
+Limb darkening $u_\mathrm{1; Leonardo}$ & $0.57_{-0.33}^{+0.29}$ & derived \\ 
+Limb darkening $u_\mathrm{2; Leonardo}$ & $0.18_{-0.31}^{+0.34}$ & derived \\ 
+$rho_\mathrm{\star; mean}$ (cgs) & $0.274_{-0.056}^{+0.094}$ & derived \\ 

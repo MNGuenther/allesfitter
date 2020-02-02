@@ -1,0 +1,36 @@
+#name,value,fit,bounds,label,unit
+#companion b astrophysical params,,,,,
+b_rr,0.1,1,uniform 0.05 0.15,$R_b / R_\star$,
+b_rsuma,0.12,1,uniform 0.0 0.7,$(R_\star + R_b) / a_b$,
+b_cosi,0,1,uniform 0.0 0.5,$\cos{i_b}$,
+b_epoch,1.1,0,uniform 1.09 1.11,$T_{0;b}$,BJD
+b_period,3.4,0,uniform 3.39 3.41,$P_b$,d
+#companion c astrophysical params,,,,,
+c_rr,0.12,1,uniform 0.05 0.15,$R_b / R_\star$,
+c_rsuma,0.12,1,uniform 0.0 0.7,$(R_\star + R_b) / a_b$,
+c_cosi,0,1,uniform 0.0 0.5,$\cos{i_b}$,
+c_epoch,0.3,0,uniform 0.29 0.31,$T_{0;b}$,BJD
+c_period,5.1,0,uniform 5.09 5.11,$P_b$,d
+#limb darkening coefficients per instrument,,,,,
+host_ldc_q1_Leonardo,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{Leonardo}}$,
+host_ldc_q2_Leonardo,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{Leonardo}}$,
+#errors per instrument,,,,,
+log_err_flux_Leonardo,-6,1,uniform -12.0 0.0,$\log{\sigma_\mathrm{Leonardo}}$,log (rel. flux)
+#baseline per instrument,,,,,
+baseline_offset_flux_Leonardo,0,1,uniform -0.01 0.01,$\mathrm{offset (Leonardo)}$,rel. flux
+#TTV companion b
+b_ttv_transit_1,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;1}$,d
+b_ttv_transit_2,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;2}$,d
+b_ttv_transit_3,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;3}$,d
+b_ttv_transit_4,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;4}$,d
+b_ttv_transit_5,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;5}$,d
+b_ttv_transit_6,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;6}$,d
+b_ttv_transit_7,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;7}$,d
+b_ttv_transit_8,0,1,uniform -0.05 0.05,TTV$_\mathrm{b;8}$,d
+#TTV companion c
+c_ttv_transit_1,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;1}$,d
+c_ttv_transit_2,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;2}$,d
+c_ttv_transit_3,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;3}$,d
+c_ttv_transit_4,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;4}$,d
+c_ttv_transit_5,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;5}$,d
+c_ttv_transit_6,0,1,uniform -0.05 0.05,TTV$_\mathrm{c;6}$,d

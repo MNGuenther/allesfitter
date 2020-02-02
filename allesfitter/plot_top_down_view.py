@@ -360,7 +360,7 @@ def OrbitPlotOneSlice(sim, ax, lim=None, limz=None, Narc=100, color=False, peria
 
 
 
-def plot_top_down_view(params_median, params_star, a=None, timestep=None, scaling=30., colors=sns.color_palette('deep'), linewidth=2, plot_arrow=False, ax=None):
+def plot_top_down_view(params_median, params_star, a=None, timestep=None, scaling=5., colors=sns.color_palette('deep'), linewidth=2, plot_arrow=False, ax=None):
     
     sim = rebound.Simulation()
     sim.add(m=1)

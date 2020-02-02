@@ -767,7 +767,7 @@ def show_initial_guess(datadir, do_logprint=True, do_plot=True, return_figs=Fals
     
 
 ###############################################################################
-#::: show initial guess
+#::: logprint initial guess
 ###############################################################################
 def logprint_initial_guess():
     '''
@@ -816,7 +816,7 @@ def logprint_initial_guess():
 
 
 ###############################################################################
-#::: show initial guess
+#::: plot initial guess
 ###############################################################################
 def plot_initial_guess(return_figs=False):
     
@@ -843,7 +843,25 @@ def plot_initial_guess(return_figs=False):
         return fig_list
             
     
-
+    
+    
+###############################################################################
+#::: plot initial guess
+###############################################################################
+def plot_ttv_results(params_median, params_ll, params_ul):
+    for companion in config.BASEMENT.settings['companions_all']:
+        fig, axes = plt.subplots()
+        axes.axhline(0, color='grey', linestyle='--')
+        for i in range(len(config.BASEMENT.data[companion+'_tmid_observed_transits'])):
+            axes.errorbar( i+1, params_median[companion+'_ttv_transit_'+str(i+1)]*24*60, 
+                           yerr=np.array([[ params_ll[companion+'_ttv_transit_'+str(i+1)]*24*60, params_ul[companion+'_ttv_transit_'+str(i+1)]*24*60 ]]).T, 
+                           color=config.BASEMENT.settings[companion+'_color'], fmt='.')
+        axes.set(xlabel='Tranist Nr.', ylabel='TTV (mins)')
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'ttv_results_'+companion+'.pdf'), bbox_inches='tight' )
+        plt.close(fig)
+    
+    
+    
     
 ###############################################################################
 #::: get latex labels
