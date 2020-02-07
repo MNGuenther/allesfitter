@@ -429,8 +429,8 @@ def derive(samples, mode):
         names.append( companion+'_depth_undiluted' )
         labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (ppt)' )
         
-        names.append( companion+'_depth_occ_undiluted_'+inst )
-        labels.append( '$\delta_\mathrm{occ; undil; '+inst+'}$ (ppm)' )
+        names.append( companion+'_depth_occ_undiluted' )
+        labels.append( '$\delta_\mathrm{occ; undil; '+companion+'}$ (ppm)' )
         
         for inst in config.BASEMENT.settings['inst_phot']:
             
