@@ -1,0 +1,32 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$R_b / R_\star$ & $0.1003_{-0.0012}^{+0.0015}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1097_{-0.0018}^{+0.0036}$ & & fit \\ 
+$\cos{i_b}$ & $0.0155_{-0.0099}^{+0.016}$ & & fit \\ 
+$T_{0;b}$ & $14.7$ & BJD& fixed \\ 
+$P_b$ & $3.4$ & d& fixed \\ 
+$R_b / R_\star$ & $0.1249_{-0.0031}^{+0.0029}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1202_{-0.0066}^{+0.0062}$ & & fit \\ 
+$\cos{i_b}$ & $0.045_{-0.018}^{+0.012}$ & & fit \\ 
+$T_{0;b}$ & $15.6$ & BJD& fixed \\ 
+$P_b$ & $5.1$ & d& fixed \\ 
+$q_{1; \mathrm{Leonardo}}$ & $0.38_{-0.11}^{+0.17}$ & & fit \\ 
+$q_{2; \mathrm{Leonardo}}$ & $0.62_{-0.17}^{+0.20}$ & & fit \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.196\pm0.021$ & log (rel. flux)& fit \\ 
+$\mathrm{offset (Leonardo)}$ & $0.000022\pm0.000076$ & rel. flux& fit \\ 
+TTV$_\mathrm{b;1}$ & $-0.00756\pm0.00098$ & d& fit \\ 
+TTV$_\mathrm{b;2}$ & $-0.0213\pm0.0013$ & d& fit \\ 
+TTV$_\mathrm{b;3}$ & $-0.00384\pm0.00099$ & d& fit \\ 
+TTV$_\mathrm{b;4}$ & $0.01784_{-0.00092}^{+0.00097}$ & d& fit \\ 
+TTV$_\mathrm{b;5}$ & $0.01322\pm0.00098$ & d& fit \\ 
+TTV$_\mathrm{b;6}$ & $-0.00804_{-0.00090}^{+0.00098}$ & d& fit \\ 
+TTV$_\mathrm{b;7}$ & $-0.0184\pm0.0011$ & d& fit \\ 
+TTV$_\mathrm{b;8}$ & $-0.00444_{-0.00091}^{+0.00100}$ & d& fit \\ 
+TTV$_\mathrm{c;1}$ & $0.00139\pm0.0010$ & d& fit \\ 
+TTV$_\mathrm{c;2}$ & $0.00972\pm0.0010$ & d& fit \\ 
+TTV$_\mathrm{c;3}$ & $-0.00628\pm0.0010$ & d& fit \\ 
+TTV$_\mathrm{c;4}$ & $-0.00590\pm0.0010$ & d& fit \\ 
+TTV$_\mathrm{c;5}$ & $0.01033\pm0.00094$ & d& fit \\ 
+TTV$_\mathrm{c;6}$ & $-0.0017\pm0.0011$ & d& fit \\ 

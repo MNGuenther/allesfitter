@@ -55,10 +55,13 @@ from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_post
 from .computer import calculate_model, calculate_baseline, calculate_stellar_var, calculate_yerr_w, update_params
 
 from .priors import transform_priors
-from .priors.estimate_noise import estimate_noise
+from .priors.estimate_noise import estimate_noise, estimate_noise_out_of_transit
 
-from .postprocessing.nested_sampling_compare_logZ import ns_plot_bayes_factors
+from .prepare_ttv_fit import prepare_ttv_fit
+
+from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
+
 
 def GUI():
     allesfitter_path = os.path.dirname( os.path.realpath(__file__) )
@@ -104,12 +107,18 @@ class allesclass():
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
             os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             
-        
+        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle') ):
+            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'ns_derived_samples.pickle'),'rb'))
+            
+        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_derived_samples.pickle') ):
+            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'mcmc_derived_samples.pickle'),'rb'))
+            
+            
         
     
     #::: plot
     
-    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True):
+    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
         '''
         Required input:
         ---------------
@@ -149,7 +158,7 @@ class allesclass():
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, base=self)
+        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, marker=marker, linestyle=linestyle, color=color, markersize=markersize, base=self)
         return fig, ax
         
         
@@ -260,4 +269,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '0.9.5'
+__version__ = '1.0.1'

@@ -1,2 +1,11 @@
 include allesfitter/GUI.ipynb
 include allesfitter/LOGO_circ.png
+graft allesfitter
+exclude build/
+exclude dist/
+exclude tutorials/
+exclude docs/
+prune build/
+prune dist/
+prune tutorials/
+prune docs/

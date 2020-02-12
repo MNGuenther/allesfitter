@@ -123,7 +123,7 @@ def derive(samples, mode):
         derived_samples[companion+'_R_companion_(R_earth)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_earth.value #in R_earth
         derived_samples[companion+'_R_companion_(R_jup)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_jup.value #in R_jup
 
-        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in mmag
+        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in ppt
 
 
         #::: orbit
@@ -301,7 +301,7 @@ def derive(samples, mode):
                 dil = 0
         #        if np.mean(dil)<0.5: dil = 1-dil
         
-            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in mmag
+            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in ppt
             
             derived_samples[companion+'_depth_occ_undiluted_'+inst] = derived_samples[companion+'_depth_occ_diluted_'+inst] / (1. - dil) #in ppm
             derived_samples[companion+'_ampl_ellipsoidal_undiluted_'+inst] = derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] / (1. - dil) #in ppm
@@ -333,7 +333,29 @@ def derive(samples, mode):
             for other_companion in companions:
                 if other_companion is not companion:
                     derived_samples[companion+'_period/'+other_companion+'_period'] = get_params(companion+'_period') / get_params(other_companion+'_period')
-        
+                        
+                    
+        #::: limb darkening
+        for inst in config.BASEMENT.settings['inst_all']:
+            
+            #::: host
+            if config.BASEMENT.settings['host_ld_law_'+inst] is None:
+                pass
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
+                derived_samples['host_ldc_u1_'+inst] = get_params('host_ldc_q1_'+inst)
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
+                derived_samples['host_ldc_u1_'+inst] = 2 * np.sqrt(get_params('host_ldc_q1_'+inst)) * get_params('host_ldc_q2_'+inst)
+                derived_samples['host_ldc_u2_'+inst] = np.sqrt(get_params('host_ldc_q1_'+inst)) * (1. - 2. * get_params('host_ldc_q2_'+inst))
+                
+            elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
+                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+                
+            else:
+                print(config.BASEMENT.settings['host_ld_law_'+inst] )
+                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+            
         
     #::: median stellar density
     derived_samples['mean_host_density'] = []
@@ -405,20 +427,18 @@ def derive(samples, mode):
         labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
         
         names.append( companion+'_depth_undiluted' )
-        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (mmag)' )
-            
+        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (ppt)' )
+        
+        names.append( companion+'_depth_occ_undiluted' )
+        labels.append( '$\delta_\mathrm{occ; undil; '+companion+'}$ (ppm)' )
         
         for inst in config.BASEMENT.settings['inst_phot']:
             
             names.append( companion+'_depth_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{dil; '+inst+'}$ (mmag)' )
-            
-            
-            names.append( companion+'_depth_occ_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; undil; '+inst+'}$ (ppm)' )
+            labels.append( '$\delta_\mathrm{dil; '+companion+'; '+inst+'}$ (ppt)' )
             
             names.append( companion+'_depth_occ_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; dil; '+inst+'}$ (ppm)' )
+            labels.append( '$\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppm)' )
             
             names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
             labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )
@@ -452,8 +472,34 @@ def derive(samples, mode):
                 if other_companion is not companion:
                     names.append( companion+'_period/'+other_companion+'_period' )
                     labels.append( '$P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
-                    
-
+           
+            
+    #::: host
+    for inst in config.BASEMENT.settings['inst_all']:    
+        if config.BASEMENT.settings['host_ld_law_'+inst] is None:
+            pass
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
+            names.append( 'host_ldc_u1_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
+            names.append( 'host_ldc_u1_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            names.append( 'host_ldc_u2_'+inst )
+            labels.append( 'Limb darkening $u_\mathrm{2; '+inst+'}$' )
+            
+        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
+            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+            
+        else:
+            print(config.BASEMENT.settings['host_ld_law_'+inst] )
+            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+                
+        names.append( companion+'_ampl_gdc_diluted_'+inst )
+        labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+        
+        
     names.append( 'mean_host_density' )
     labels.append( '$rho_\mathrm{\star; mean}$ (cgs)' )
         

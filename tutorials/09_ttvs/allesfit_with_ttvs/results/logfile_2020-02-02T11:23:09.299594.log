@@ -1,0 +1,142 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['b', 'c']     
+companions_rv                  []             
+inst_phot                      ['Leonardo']   
+inst_rv                        []             
+multiprocess                   True           
+multiprocess_cores             15             
+fast_fit                       True           
+fast_fit_width                 0.3333333333333333
+shift_epoch                    True           
+ns_modus                       dynamic        
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      rwalk          
+ns_tol                         0.01           
+host_ld_law_Leonardo           quad           
+baseline_flux_Leonardo         sample_offset  
+error_flux_Leonardo            sample         
+fit_ttvs                       True           
+host_grid_Leonardo             very_sparse    
+b_grid_Leonardo                very_sparse    
+c_grid_Leonardo                very_sparse    
+
+automatically set:            
+companions_all                 ['b', 'c']     
+inst_all                       ['Leonardo']   
+print_progress                 True           
+inst_for_b_epoch               ['Leonardo']   
+inst_for_c_epoch               ['Leonardo']   
+phase_variations               False          
+secondary_eclipse              False          
+mcmc_pre_run_loops             0              
+mcmc_pre_run_steps             0              
+mcmc_nwalkers                  100            
+mcmc_total_steps               2000           
+mcmc_burn_steps                1000           
+mcmc_thin_by                   1              
+b_ld_law_Leonardo              None           
+host_shape_Leonardo            sphere         
+b_shape_Leonardo               sphere         
+c_ld_law_Leonardo              None           
+c_shape_Leonardo               sphere         
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+c_color                        (0.8666666666666667, 0.5176470588235295, 0.3215686274509804)
+t_exp_Leonardo                 None           
+t_exp_n_int_Leonardo           None           
+host_N_spots_Leonardo          0              
+b_N_spots_Leonardo             0              
+c_N_spots_Leonardo             0              
+N_flares                       0              
+mid_epoch                      15.6           
+
+Parameters:
+--------------------------
+
+user-given:                   
+b_rr                           0.1             free  ['uniform', 0.05, 0.15]       
+b_rsuma                        0.12            free  ['uniform', 0.0, 0.7]         
+b_cosi                         0.0             free  ['uniform', 0.0, 0.5]         
+b_epoch                        14.7            set  
+b_period                       3.4             set  
+c_rr                           0.12            free  ['uniform', 0.05, 0.15]       
+c_rsuma                        0.12            free  ['uniform', 0.0, 0.7]         
+c_cosi                         0.0             free  ['uniform', 0.0, 0.5]         
+c_epoch                        15.6            set  
+c_period                       5.1             set  
+host_ldc_q1_Leonardo           0.5             free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_Leonardo           0.5             free  ['uniform', 0.0, 1.0]         
+log_err_flux_Leonardo          -6.0            free  ['uniform', -12.0, 0.0]       
+baseline_offset_flux_Leonardo  0.0             free  ['uniform', -0.01, 0.01]      
+b_ttv_transit_1                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_2                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_3                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_4                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_5                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_6                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_7                0.0             free  ['uniform', -0.05, 0.05]      
+b_ttv_transit_8                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_1                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_2                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_3                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_4                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_5                0.0             free  ['uniform', -0.05, 0.05]      
+c_ttv_transit_6                0.0             free  ['uniform', -0.05, 0.05]      
+
+automatically set:            
+dil_Leonardo                   0.0             set  
+b_sbratio_Leonardo             0.0             set  
+b_a                            None            set  
+b_q                            1.0             set  
+b_K                            0.0             set  
+b_f_c                          0.0             set  
+b_f_s                          0.0             set  
+host_ldc_Leonardo              None            set  
+b_ldc_Leonardo                 None            set  
+host_gdc_Leonardo              None            set  
+b_gdc_Leonardo                 None            set  
+didt_Leonardo                  None            set  
+domdt_Leonardo                 None            set  
+host_rotfac_Leonardo           1.0             set  
+b_rotfac_Leonardo              1.0             set  
+host_hf_Leonardo               1.5             set  
+b_hf_Leonardo                  1.5             set  
+host_bfac_Leonardo             None            set  
+b_bfac_Leonardo                None            set  
+host_geom_albedo_Leonardo      None            set  
+b_geom_albedo_Leonardo         None            set  
+host_lambda_Leonardo           None            set  
+b_lambda_Leonardo              None            set  
+host_vsini                     None            set  
+b_vsini                        None            set  
+host_spots_Leonardo            None            set  
+b_spots_Leonardo               None            set  
+c_sbratio_Leonardo             0.0             set  
+c_a                            None            set  
+c_q                            1.0             set  
+c_K                            0.0             set  
+c_f_c                          0.0             set  
+c_f_s                          0.0             set  
+c_ldc_Leonardo                 None            set  
+c_gdc_Leonardo                 None            set  
+c_rotfac_Leonardo              1.0             set  
+c_hf_Leonardo                  1.5             set  
+c_bfac_Leonardo                None            set  
+c_geom_albedo_Leonardo         None            set  
+c_lambda_Leonardo              None            set  
+c_vsini                        None            set  
+c_spots_Leonardo               None            set  
+
+External priors:
+--------------------------
+
+Stellar density prior (automatically set): ['normal', 10.259874865082413, 1.897280902436023] (g cm^-3)
+
+ndim: 24

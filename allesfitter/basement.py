@@ -439,8 +439,10 @@ class Basement():
                     
         for companion in self.settings['companions_rv']:
             for inst in self.settings['inst_rv']:
-                if companion+'_flux_weighted_'+inst not in self.settings: 
-                    self.settings['flux_weighted_'+inst] = False
+                if companion+'_flux_weighted_'+inst in self.settings: 
+                    self.settings[companion+'_flux_weighted_'+inst] = set_bool(self.settings[companion+'_flux_weighted_'+inst])
+                else:
+                    self.settings[companion+'_flux_weighted_'+inst] = False
         
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -457,7 +459,7 @@ class Basement():
         for inst in self.settings['inst_phot']:
             for key in ['flux']:
                 if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_spline'
+                    self.settings['baseline_'+key+'_'+inst] = 'none'
 
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
                      warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
@@ -466,7 +468,7 @@ class Basement():
         for inst in self.settings['inst_rv']:
             for key in ['rv']:
                 if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'hybrid_offset'
+                    self.settings['baseline_'+key+'_'+inst] = 'none'
                     
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
                      warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
@@ -493,6 +495,14 @@ class Basement():
         if 'color_plot' not in self.settings.keys():
             self.settings['color_plot'] = False
             
+            
+            
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Companion colors
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        for i, companion in enumerate( self.settings['companions_all'] ):
+            self.settings[companion+'_color'] = sns.color_palette()[i]
+        
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Exposure time interpolation
@@ -680,6 +690,7 @@ class Basement():
                     
                 if companion+'_period' not in self.params:
                     self.params[companion+'_period'] = None
+                    raise ValueError('It seems like you forgot to include the params for companion '+companion+' in the params.csv file...')
                     
                 if companion+'_sbratio_'+inst not in self.params:
                     self.params[companion+'_sbratio_'+inst] = 0.               
@@ -736,10 +747,10 @@ class Basement():
                     self.params[companion+'_bfac_'+inst] = None
                     
                 if 'host_geom_albedo_'+inst not in self.params:
-                    self.params['host_geom_albedo_'+inst] = 0
+                    self.params['host_geom_albedo_'+inst] = None
                     
                 if companion+'_geom_albedo_'+inst not in self.params:
-                    self.params[companion+'_geom_albedo_'+inst] = 0
+                    self.params[companion+'_geom_albedo_'+inst] = None
                     
                 if 'host_lambda_'+inst not in self.params:
                     self.params['host_lambda_'+inst] = None
@@ -747,11 +758,11 @@ class Basement():
                 if companion+'_lambda_'+inst not in self.params:
                     self.params[companion+'_lambda_'+inst] = None
                     
-                if 'host_vsini_'+inst not in self.params:
-                    self.params['host_vsini_'+inst] = None
+                if 'host_vsini' not in self.params:
+                    self.params['host_vsini'] = None
                     
-                if companion+'_vsini_'+inst not in self.params:
-                    self.params[companion+'_vsini_'+inst] = None
+                if companion+'_vsini' not in self.params:
+                    self.params[companion+'_vsini'] = None
                     
                 if 'host_spots_'+inst not in self.params:
                     self.params['host_spots_'+inst] = None
@@ -777,10 +788,11 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
-                    self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
-                if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
-                    self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                if self.params[companion+'_geom_albedo_'+inst] is not None:
+                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
+                        self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
+                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
+                        self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
               
                 
        
@@ -798,11 +810,13 @@ class Basement():
                 warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst)
         
         
+        
         #::: coupled params
         if 'coupled_with' in buf.dtype.names:
             self.coupled_with = buf['coupled_with']
         else:
             self.coupled_with = [None]*len(self.allkeys)
+            
             
             
         #::: deal with coupled params
@@ -839,6 +853,37 @@ class Basement():
         self.ndim = len(self.theta_0)                   #len(ndim)
 
     
+    
+        #::: check if all initial guess lie within their bounds
+        for th, b, key in zip(self.theta_0, self.bounds, self.fitkeys):
+            
+            if (b[0] == 'uniform') and not (b[1] <= th <= b[2]): 
+                raise ValueError('The initial guess for '+key+' lies outside of its bounds.')
+                
+            elif (b[0] == 'normal') and ( np.abs(th - b[1]) > 3*b[2] ):
+                answer = input('The initial guess for '+key+' lies more than 3 sigma from its prior\n'+\
+                      'What do you want to do?\n'+\
+                      '1 : continue at any sacrifice \n'+\
+                      '2 : stop and let me fix the params.csv file \n')
+                if answer==1: 
+                    pass
+                else:
+                    raise ValueError('User aborted the run.')
+                    
+            elif (b[0] == 'trunc_normal') and not (b[1] <= th <= b[2]): 
+                raise ValueError('The initial guess for '+key+' lies outside of its bounds.')
+                
+            elif (b[0] == 'trunc_normal') and ( np.abs(th - b[3]) > 3*b[4] ): 
+                answer = input('The initial guess for '+key+' lies more than 3 sigma from its prior\n'+\
+                      'What do you want to do?\n'+\
+                      '1 : continue at any sacrifice \n'+\
+                      '2 : stop and let me fix the params.csv file \n')
+                if answer==1: 
+                    pass
+                else:
+                    raise ValueError('User aborted the run.')
+            
+            
     
 
     ###############################################################################
@@ -969,13 +1014,22 @@ class Basement():
             #::: calculate how much the user_epoch has to be shifted to get the mid_epoch
             N_shift = int(np.round((self.settings['mid_epoch']-user_epoch)/period))
             
+            #::: set the new initial guess
+            self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
+                
+            #::: if a fit param, also update the bounds accordingly
             if (N_shift != 0) and (companion+'_epoch' in self.fitkeys):
                 ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
                 ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
                 
+#                print('\n')
+#                print('############################################################################')
+#                print('user_epoch', user_epoch, self.bounds[ind_e])
+#                print('user_period', period, self.bounds[ind_p])
+#                print('----------------------------------------------------------------------------')
+                  
                 #::: set the new initial guess
                 self.theta_0[ind_e] = 1.*self.settings['mid_epoch']
-                self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
                 
                 #::: get the bounds / errors
                 #::: if the epoch and period priors are both uniform
@@ -1003,10 +1057,12 @@ class Basement():
                     self.bounds[ind_e][3] = self.bounds[ind_e][3] + N_shift * self.bounds[ind_p][3] #mean (in case the prior-mean is not the initial-guess-mean)
                     self.bounds[ind_e][4] = np.sqrt( self.bounds[ind_e][4]**2 + N_shift**2 * self.bounds[ind_p][4]**2 ) #std (in case the prior-mean is not the initial-guess-mean)
             
+                #::: if the epoch prior is uniform and period prior is normal
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'normal'):
                     self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][2]) #lower bound epoch + Nshift * period + Nshift * std_period
                     self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][2]) #upper bound + Nshift * period + Nshift * std_period
 
+                #::: if the epoch prior is uniform and period prior is trunc_normal
                 elif (self.bounds[ind_e][0] == 'uniform') & (self.bounds[ind_p][0] == 'trunc_normal'):
                     self.bounds[ind_e][1] = self.bounds[ind_e][1] + N_shift * (period + self.bounds[ind_p][4]) #lower bound epoch + Nshift * period + Nshift * std_period
                     self.bounds[ind_e][2] = self.bounds[ind_e][2] + N_shift * (period + self.bounds[ind_p][4]) #upper bound + Nshift * period + Nshift * std_period
@@ -1026,19 +1082,18 @@ class Basement():
                 else:
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
                     
-            
-#            print('\n')
-#            print('############################################################################')
-#            print('user_epoch', user_epoch)
-#            print('first_epoch; N', first_epoch, N)
-#            print('mid_epoch, error; N_shift', mid_epoch, N_shift)
-#            print('----------------------------------------------------------------------------')
-#            print('old bounds, epoch:', buf)
-#            print('old bounds, period:', self.bounds[ind_p])
-#            print('new bounds, epoch:', self.bounds[ind_e])
-#            print('############################################################################')
-#            print('\n')
-                    
+        
+#                print('first_epoch; N', first_epoch, N)
+#                print('mid_epoch, error; N_shift', self.settings['mid_epoch'], N_shift)
+#                print('----------------------------------------------------------------------------')
+#                print('new epoch:', self.settings['mid_epoch'], self.bounds[ind_e])
+#                print('############################################################################')
+#                print('\n')
+#                err
+                
+#                print('\n', 'New epochs:')
+#                print(self.params[companion+'_epoch'])
+#                    
         '''
         #::: change epoch entry from params.csv to set epoch into the middle of the range
         for companion in self.settings['companions_all']:
@@ -1144,6 +1199,10 @@ class Basement():
         ind_in = np.sort(np.unique(ind_in))
         self.fulldata[inst]['all_ind_in'] = ind_in
         self.fulldata[inst]['all_ind_out'] = np.delete( np.arange(len(self.fulldata[inst]['time'])), ind_in )
+        
+        if len(ind_in)==0:
+            raise ValueError(inst+'.csv does not contain any in-transit data. Check that your epoch and period guess are correct.')
+        
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
@@ -1167,35 +1226,35 @@ class Basement():
                 all_times += list(self.data[inst]['time'])
                 all_flux += list(self.data[inst]['flux'])
             
-            flux_min = np.nanmin(all_flux)
-            flux_max = np.nanmax(all_flux)
-            
             self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(all_times,self.params[companion+'_epoch'],self.params[companion+'_period'],self.settings['fast_fit_width'])
         
-            if self.settings['fit_ttvs']:  
-                N_days = int( np.max(all_times) - np.min(all_times) )
-                figsizex = np.min( [1, int(N_days/20.)] )*5
-                fig, ax = plt.subplots(figsize=(figsizex, 4)) #figsize * 5 for every 20 days
-                for inst in self.settings['inst_phot']:
-                    ax.plot(self.data[inst]['time'], self.data[inst]['flux'],ls='none',marker='.',label=inst)
-                ax.plot( self.data[companion+'_tmid_observed_transits'], np.ones_like(self.data[companion+'_tmid_observed_transits'])*0.995*flux_min, 'k^' )
-                for i, tmid in enumerate(self.data[companion+'_tmid_observed_transits']):
-                    ax.text( tmid, 0.9925*flux_min, str(i+1), ha='center' )  
-                ax.set(ylim=[0.99*flux_min, flux_max], xlabel='Time (BJD)', ylabel='Realtive Flux') 
-                if not os.path.exists( os.path.join(self.datadir,'results') ):
-                    os.makedirs(os.path.join(self.datadir,'results'))
-                ax.legend()
-                fname = os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf')
-                if os.path.exists(fname):
-                    overwrite = str(input('Figure "preparation_for_TTV_fit_'+companion+'.pdf" already exists.\n'+\
-                                          'What do you want to do?\n'+\
-                                          '1 : overwrite it\n'+\
-                                          '2 : skip it and move on\n'))
-                    if (overwrite == '1'):
-                        fig.savefig(fname, bbox_inches='tight' )    
-                    else:
-                        pass        
-                plt.close(fig)
+            #::: plots
+            # if self.settings['fit_ttvs']:  
+            #     flux_min = np.nanmin(all_flux)
+            #     flux_max = np.nanmax(all_flux)
+            #     N_days = int( np.max(all_times) - np.min(all_times) )
+            #     figsizex = np.min( [1, int(N_days/20.)] )*5
+            #     fig, ax = plt.subplots(figsize=(figsizex, 4)) #figsize * 5 for every 20 days
+            #     for inst in self.settings['inst_phot']:
+            #         ax.plot(self.data[inst]['time'], self.data[inst]['flux'],ls='none',marker='.',label=inst)
+            #     ax.plot( self.data[companion+'_tmid_observed_transits'], np.ones_like(self.data[companion+'_tmid_observed_transits'])*0.995*flux_min, 'k^' )
+            #     for i, tmid in enumerate(self.data[companion+'_tmid_observed_transits']):
+            #         ax.text( tmid, 0.9925*flux_min, str(i+1), ha='center' )  
+            #     ax.set(ylim=[0.99*flux_min, flux_max], xlabel='Time (BJD)', ylabel='Realtive Flux') 
+            #     if not os.path.exists( os.path.join(self.datadir,'results') ):
+            #         os.makedirs(os.path.join(self.datadir,'results'))
+            #     ax.legend()
+            #     fname = os.path.join(self.datadir,'results','preparation_for_TTV_fit_'+companion+'.pdf')
+            #     if os.path.exists(fname):
+            #         overwrite = str(input('Figure "preparation_for_TTV_fit_'+companion+'.pdf" already exists.\n'+\
+            #                               'What do you want to do?\n'+\
+            #                               '1 : overwrite it\n'+\
+            #                               '2 : skip it and move on\n'))
+            #         if (overwrite == '1'):
+            #             fig.savefig(fname, bbox_inches='tight' )    
+            #         else:
+            #             pass        
+            #     plt.close(fig)
             
             width = self.settings['fast_fit_width']
             for inst in self.settings['inst_phot']:

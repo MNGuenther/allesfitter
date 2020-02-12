@@ -47,7 +47,7 @@ from allesfitter.exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 
-def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylabel='y', zlabel='z', color=False, periastron=False, trails=True, show_orbit=True, lw=1., glow=False, slices=False, plotparticles=[], primary=None, fancy=False):
+def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylabel='y', zlabel='z', color=False, periastron=False, trails=True, show_orbit=True, lw=1., glow=False, slices=False, plotparticles=[], primary=None, fancy=False, ax=None):
     """
     Convenience function for plotting instantaneous orbits.
 
@@ -102,7 +102,8 @@ def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylab
     if slices:
         if figsize is None:
             figsize = (8,8)
-        fig, ax = plt.subplots(2, 2, figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(2, 2, figsize=figsize)
         gs = gridspec.GridSpec(2, 2, width_ratios=[3., 2.], height_ratios=[2.,3.],wspace=0., hspace=0.) 
         OrbitPlotOneSlice(sim, plt.subplot(gs[2]), lim=lim, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw, axes="xy",fancy=fancy, plotparticles=plotparticles, primary=primary, glow=glow)
         OrbitPlotOneSlice(sim, plt.subplot(gs[3]), lim=lim, limz=limz, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw,fancy=fancy, axes="zy", plotparticles=plotparticles, primary=primary, glow=glow)
@@ -118,11 +119,15 @@ def OrbitPlot(sim, figsize=None, lim=None, limz=None, Narc=100, xlabel='x', ylab
     else:
         if figsize is None:
             figsize = (5,5)
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         OrbitPlotOneSlice(sim, ax, lim=lim, Narc=Narc, color=color, periastron=periastron, trails=trails, show_orbit=show_orbit, lw=lw,fancy=fancy, plotparticles=plotparticles, primary=primary, glow=glow)
-    return fig
+    return plt.gcf(), ax
+
+
+
 
 def get_color(color):
     """
@@ -143,6 +148,7 @@ def get_color(color):
     hexcolor = hexcolor.lstrip('#')
     lv = len(hexcolor)
     return tuple(int(hexcolor[i:i + lv // 3], 16)/255. for i in range(0, lv, lv // 3)) # tuple of rgb values
+
 
 
 
@@ -353,38 +359,38 @@ def OrbitPlotOneSlice(sim, ax, lim=None, limz=None, Narc=100, color=False, peria
 
 
 
-    
 
-
-def plot_top_down_view(params_median, params_star, timestep=None, scaling=30., plot_arrow=False):
+def plot_top_down_view(params_median, params_star, a=None, timestep=None, scaling=5., colors=sns.color_palette('deep'), linewidth=2, plot_arrow=False, ax=None):
     
     sim = rebound.Simulation()
     sim.add(m=1)
     
     for i, companion in enumerate(config.BASEMENT.settings['companions_all']):
-        if timestep is None:
-            timestep = params_median[companion+'_epoch']
-        print(timestep)
+        if (i==0) and (timestep is None): 
+            timestep = params_median[companion+'_epoch'] #calculate it for the timestep where the first companion is in transit
         first_epoch = get_first_epoch(timestep, params_median[companion+'_epoch'], params_median[companion+'_period'])
         phase = calc_phase(timestep, params_median[companion+'_period'], first_epoch)
         ecc = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
         w = np.arccos( params_median[companion+'_f_c'] / np.sqrt(ecc) ) #in rad
         inc = params_median[companion+'_incl']/180.*np.pi
-        a = params_star['R_star'] / params_median[companion+'_radius_1'] #in Rsun 
-        a *= 0.004650467260962157 #in AU
+        if a is None:
+            a1 = params_star['R_star'] / params_median[companion+'_radius_1'] #in Rsun 
+            a1 *= 0.004650467260962157 #in AU
+        else:
+            a1 = a[i]
 #        print(a, inc, ecc, w, phase*2*np.pi)
         if ecc>0:
-            sim.add(a=a, inc=inc-np.pi/2., e=ecc, omega=w, f=phase*2*np.pi)
+            sim.add(a=a1, inc=inc-np.pi/2., e=ecc, omega=w, f=phase*2*np.pi)
         else:
-            sim.add(a=a, inc=inc--np.pi/2., f=phase*2*np.pi)
+            sim.add(a=a1, inc=inc--np.pi/2., f=phase*2*np.pi)
+#    print(len(sim.particles))
     
 #    print('Epoch, Period and mean anomaly, b:', sim.particles[0].M )
 #    print('Mean anomaly, c:', sim.particles[0].M )
 #    print('Mean anomaly, c:', sim.particles[0].M )
 #    err
     
-    fig = OrbitPlot(sim, xlabel='AU', ylabel='AU', color=[sns.color_palette('deep')[i] for i in [0,1,3]], lw=2)
-    ax = plt.gca()
+    fig, ax = OrbitPlot(sim, xlabel='AU', ylabel='AU', color=colors, lw=linewidth, ax=ax) #color=[sns.color_palette('deep')[i] for i in [0,1,3]],
     
     for i, companion in enumerate(config.BASEMENT.settings['companions_all']):
         
@@ -395,7 +401,7 @@ def plot_top_down_view(params_median, params_star, timestep=None, scaling=30., p
         
         x = sim.particles.get(i+1).x
         y = sim.particles.get(i+1).y
-        p = Circle((x,y), R_companion, color=np.array(sns.color_palette('deep'))[[0,1,3],:][i])
+        p = Circle((x,y), R_companion, color=colors[i])
         ax.add_artist(p)
         
     if plot_arrow:
@@ -403,13 +409,11 @@ def plot_top_down_view(params_median, params_star, timestep=None, scaling=30., p
         plt.arrow( 0.1*x1, 0, 0.7*x1, 0, color='silver', zorder=1 ) 
               
     plt.axis('equal')
-    ax.set(xlim=[-0.12,0.12], ylim=[-0.12,0.12])
-    loc = plticker.MultipleLocator(base=0.05) # this locator puts ticks at regular intervals
-    ax.xaxis.set_major_locator(loc)
-    ax.yaxis.set_major_locator(loc)
+#    ax.set(xlim=[-0.12,0.12], ylim=[-0.12,0.12])
+#    loc = plticker.MultipleLocator(base=0.05) # this locator puts ticks at regular intervals
+#    ax.xaxis.set_major_locator(loc)
+#    ax.yaxis.set_major_locator(loc)
 
     return fig, ax
 
 
-    
-    

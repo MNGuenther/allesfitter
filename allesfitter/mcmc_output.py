@@ -34,7 +34,8 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples, plot_ttv_results
+from .plot_top_down_view import plot_top_down_view
 from .utils.latex_printer import round_tex
 
 
@@ -234,6 +235,7 @@ def mcmc_output(datadir):
     '''
     config.init(datadir)
     
+    
     #::: security check
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_fit.pdf')):
         try:
@@ -249,6 +251,7 @@ def mcmc_output(datadir):
             warnings.warn("MCMC output files already existed from a previous run, and were automatically overwritten.")
             pass
     
+    
     #::: load the mcmc_save.h5
     #::: copy over into tmp file (in case chain is still running and you want a quick look already)     
     copyfile(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
@@ -256,12 +259,19 @@ def mcmc_output(datadir):
     completed_steps = reader.get_chain().shape[0]*config.BASEMENT.settings['mcmc_thin_by']
     if completed_steps < config.BASEMENT.settings['mcmc_total_steps']: 
         #go into quick look mode
-        #set burn_steps automatically to 75% of the chain length
+        #check how many total steps are actually done so far:
         config.BASEMENT.settings['mcmc_total_steps'] = config.BASEMENT.settings['mcmc_thin_by']*reader.get_chain().shape[0]
-        config.BASEMENT.settings['mcmc_burn_steps'] = int(0.75*config.BASEMENT.settings['mcmc_total_steps'])
+        #if this is at least twice the wished-for burn_steps, then let's keep those
+        #otherwise, set burn_steps automatically to 75% of how many total steps are actually done so far
+        if config.BASEMENT.settings['mcmc_total_steps'] > 2*config.BASEMENT.settings['mcmc_burn_steps']:
+            pass
+        else:
+            config.BASEMENT.settings['mcmc_burn_steps'] = int(0.75*config.BASEMENT.settings['mcmc_total_steps'])
+    
     
     #::: print autocorr
     print_autocorr(reader)
+
 
     #::: plot the fit
     posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
@@ -269,21 +279,31 @@ def mcmc_output(datadir):
         fig, axes = afplot(posterior_samples, companion)
         fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
         plt.close(fig)
+        
+    for companion in config.BASEMENT.settings['companions_phot']:
+        for inst in config.BASEMENT.settings['inst_phot']:
+            fig, axes = afplot_per_transit(posterior_samples, inst, companion)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
+    
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)
     fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
     plt.close(fig)
 
+
     #::: plot the corner
     fig = plot_MCMC_corner(reader)
     fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_corner.pdf'), bbox_inches='tight' )
     plt.close(fig)
 
+
     #::: save the tables
     posterior_samples = draw_mcmc_posterior_samples(reader) #all samples
     save_table(posterior_samples, 'mcmc')
     save_latex_table(posterior_samples, 'mcmc')
+    
     
     #::: derive values (using stellar parameters from params_star.csv)
     if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
@@ -291,10 +311,38 @@ def mcmc_output(datadir):
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
     
+    
+    #::: make top-down orbit plot (using stellar parameters from params_star.csv)
+    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+        params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
+        params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
+        try:
+            fig, ax = plot_top_down_view(params_median, params_star)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+            plt.close(fig)        
+        except:
+            warnings.warn('Orbital plots could not be produced.')
+    else:
+        print('File "params_star.csv" not found. Cannot derive final parameters.')
+        
+        
+    #::: plot TTV results (if wished for)
+    if config.BASEMENT.settings['fit_ttvs'] == True:
+        plot_ttv_results(params_median, params_ll, params_ul)
+        
+        
     #::: clean up and delete the tmp file
     os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
     
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)
+    
+    
+    #::: return a nerdy quote
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'utils', 'quotes.txt')) as dataset:
+            return(np.random.choice([l for l in dataset]))
+    except:
+        return('42')
     
     
 

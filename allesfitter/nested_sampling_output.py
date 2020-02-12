@@ -39,7 +39,8 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
-from .general_output import afplot, save_table, save_latex_table, logprint, get_params_from_samples
+from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples, plot_ttv_results
+from .plot_top_down_view import plot_top_down_view
 from .utils.colormaputil import truncate_colormap
 from .utils.latex_printer import round_tex
                      
@@ -122,6 +123,12 @@ def ns_output(datadir):
 #        f.close()        
         plt.close(fig)
 
+    for companion in config.BASEMENT.settings['companions_phot']:
+        for inst in config.BASEMENT.settings['inst_phot']:
+            fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
+            
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
@@ -214,10 +221,37 @@ def ns_output(datadir):
         deriver.derive(posterior_samples, 'ns')
     else:
         print('File "params_star.csv" not found. Cannot derive final parameters.')
+   
+    
+    #::: make top-down orbit plot (using stellar parameters from params_star.csv)
+    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+        params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
+        try:
+            fig, ax = plot_top_down_view(params_median, params_star)
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+            plt.close(fig)        
+        except:
+            warnings.warn('Orbital plots could not be produced.')
+    else:
+        print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
+    #::: plot TTV results (if wished for)
+    if config.BASEMENT.settings['fit_ttvs'] == True:
+        plot_ttv_results(params_median, params_ll, params_ul)
+    
+    
+    #::: clean up
     logprint('Done. For all outputs, see', config.BASEMENT.outdir)
-
+    
+    
+    #::: return a nerdy quote
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'utils', 'quotes.txt')) as dataset:
+            return(np.random.choice([l for l in dataset]))
+    except:
+        return('42')
+    
     
 
 ###############################################################################

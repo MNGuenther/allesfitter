@@ -6,7 +6,7 @@
 If you use *allesfitter* or parts of it in your work, please cite and acknowledge all software as detailed below.
 
 **Documentation:**
-https://allesfitter.readthedocs.io/en/latest/
+https://www.allesfitter.com/
 
 **Citation:** 
 If you use *allesfitter*, please cite both the paper and the code. Please also acknowledge all software as detailed below.

@@ -150,7 +150,7 @@ def get_delta_logZ_and_delta_labels(run_names, labels):
 
 
 
-def get_logZ(run_names):
+def get_logZ(run_names, quiet=False):
     
     logZ = []
     logZ_err = []
@@ -159,8 +159,9 @@ def get_logZ(run_names):
         
         try: #new version
             fname = os.path.join( rname, 'results', 'save_ns.pickle.gz' )
-            print('--------------------------')
-            print(fname)
+            if not quiet:
+                print('--------------------------')
+                print(fname)
             #::: load the save_ns.pickle    
             f = gzip.GzipFile(fname, 'rb')
             results = pickle.load(f)
@@ -168,8 +169,9 @@ def get_logZ(run_names):
             
         except: #old version
             fname = os.path.join( rname, 'results', 'save_ns.pickle' )
-            print('--------------------------')
-            print(fname)
+            if not quiet:
+                print('--------------------------')
+                print(fname)
             #::: load the save_ns.pickle
             with open( fname,'rb' ) as f:
                 results = pickle.load(f)
@@ -181,16 +183,18 @@ def get_logZ(run_names):
        
         #::: recalculate logZ error if it was NaN (bug in dynesty 0.9.2b)
         if np.isnan(logZerrdynesty) or np.isinf(logZerrdynesty) or (logZerrdynesty/logZdynesty > 1):
-            print('recalculating logZ error...')
+            if not quiet:
+                print('recalculating logZ error...')
             sys.stdout.flush()
             lnzs = np.zeros((10, len(results.logvol)))
-            for i in tqdm(range(10)):
+            for i in tqdm(range(10), disable=quiet):
                 results_s = dyutils.simulate_run(results)
                 lnzs[i] = np.interp(-results.logvol, -results_s.logvol, results_s.logz)
             lnzerr = np.std(lnzs, axis=0)
             logZerrdynesty = lnzerr[-1]
             
-        print('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
+        if not quiet:
+            print('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
         
         logZ.append(logZdynesty)
         logZ_err.append(logZerrdynesty)

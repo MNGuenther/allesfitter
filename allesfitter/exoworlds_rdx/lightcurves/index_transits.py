@@ -30,11 +30,11 @@ def get_first_epoch(time, epoch, period, width=0):
         set >0 to include transit egress to mark the first transit
     place the first_epoch at the start of the data to avoid luser mistakes
     '''
-    time = np.sort(time)
+    time = np.sort(np.atleast_1d(time))
     start = np.nanmin( time )
     first_epoch = 1.*epoch + width/2. #add width/2 to catch egress
-    if start<=first_epoch: first_epoch -= int(np.round((first_epoch-start)/period)) * period
-    else: first_epoch += int(np.round((start-first_epoch)/period)) * period
+    if start<=first_epoch: first_epoch -= np.floor((first_epoch-start)/period) * period
+    else: first_epoch += np.ceil((start-first_epoch)/period) * period
     return first_epoch - width/2.  #subtract width/2 to get midpoint again
     
     
@@ -50,7 +50,7 @@ def index_transits(time, epoch, period, width):
     """
     time = np.sort(time)
     epoch = get_first_epoch(time, epoch, period, width=width)
-    N = int( 1. * ( time[-1] - epoch ) / period ) + 1
+    N = int( 1. * ( time[-1] - epoch ) / period ) + 2
     
     tmid = np.array( [ epoch + i * period for i in range(N) ] )
     

@@ -157,7 +157,7 @@ def mcmc_fit(datadir):
         
         #::: if pre-runs == True
         for i in range(config.BASEMENT.settings['mcmc_pre_run_loops']):
-            logprint("\nRunning pre-run loop",i,'/',config.BASEMENT.settings['mcmc_pre_run_loops'])
+            logprint("\nRunning pre-run loop",i+1,'/',config.BASEMENT.settings['mcmc_pre_run_loops'])
             
             #::: run the sampler        
             sampler.run_mcmc(p0,
@@ -212,5 +212,13 @@ def mcmc_fit(datadir):
     logprint(sampler.acceptance_fraction)
     
     print_autocorr(sampler)
+    
+    
+    #::: return a German saying
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'utils', 'quotes2.txt')) as dataset:
+            return(np.random.choice([l for l in dataset]))
+    except:
+        return('42')
     
     
