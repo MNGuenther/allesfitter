@@ -24,7 +24,8 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt    
+from matplotlib.ticker import ScalarFormatter
 import os
 from shutil import copyfile
 import emcee
@@ -159,21 +160,20 @@ def plot_MCMC_corner(sampler):
             params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
                 
     for i,l in enumerate(labels):
-        if units[i]!='':
+        if len( units[i].strip(' ') ) > 0:
             labels[i] = str(labels[i]+' ('+units[i]+')')
-        
         
     #::: corner plot
     fig = corner(samples, 
                  labels = labels,
                  range = [0.999]*config.BASEMENT.ndim,
                  quantiles=[0.15865, 0.5, 0.84135],
-                 show_titles=False, title_kwargs={"fontsize": 14},
-#                 label_kwargs={"fontsize": 20},
+                 show_titles=False, 
+                 #title_kwargs={"fontsize": 14},
+                 label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'},
                  max_n_ticks=3,
                  truths=config.BASEMENT.fittruths)
     caxes = np.reshape(np.array(fig.axes), (config.BASEMENT.ndim,config.BASEMENT.ndim))
-    
 
     #::: set allesfitter titles
     for i, key in enumerate(config.BASEMENT.fitkeys): 
@@ -181,16 +181,27 @@ def plot_MCMC_corner(sampler):
         value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
         if len(config.BASEMENT.fitkeys)>1:
-            caxes[i,i].set_title(ctitle)
+            # caxes[i,i].set_title(ctitle)
+            caxes[i,i].set_title(ctitle, fontsize=32, rotation=45, horizontalalignment='left')
             for i in range(caxes.shape[0]):
                 for j in range(caxes.shape[1]):
                     caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
                     caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+        
+                    if i==(caxes.shape[0]-1): 
+                        fmt = ScalarFormatter(useOffset=False)
+                        caxes[i,j].xaxis.set_major_formatter(fmt)
+                    if (i>0) and (j==0):
+                        fmt = ScalarFormatter(useOffset=False)
+                        caxes[i,j].yaxis.set_major_formatter(fmt)
+                        
+                    for tick in caxes[i,j].xaxis.get_major_ticks(): tick.label.set_fontsize(24) 
+                    for tick in caxes[i,j].yaxis.get_major_ticks(): tick.label.set_fontsize(24)    
         else:
             caxes.set_title(ctitle)
             caxes.xaxis.set_label_coords(0.5, -0.5)
             caxes.yaxis.set_label_coords(-0.5, 0.5)
-        
+            
             
     return fig
 
@@ -270,27 +281,27 @@ def mcmc_output(datadir):
     
     
     #::: print autocorr
-    print_autocorr(reader)
+    # print_autocorr(reader)
 
 
     #::: plot the fit
-    posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
-    for companion in config.BASEMENT.settings['companions_all']:
-        fig, axes = afplot(posterior_samples, companion)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
-        plt.close(fig)
+    # posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
+    # for companion in config.BASEMENT.settings['companions_all']:
+    #     fig, axes = afplot(posterior_samples, companion)
+    #     fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
+    #     plt.close(fig)
         
-    for companion in config.BASEMENT.settings['companions_phot']:
-        for inst in config.BASEMENT.settings['inst_phot']:
-            fig, axes = afplot_per_transit(posterior_samples, inst, companion)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-            plt.close(fig)
+    # for companion in config.BASEMENT.settings['companions_phot']:
+    #     for inst in config.BASEMENT.settings['inst_phot']:
+    #         fig, axes = afplot_per_transit(posterior_samples, inst, companion)
+    #         fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+    #         plt.close(fig)
     
     
     #::: plot the chains
-    fig, axes = plot_MCMC_chains(reader)
-    fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
-    plt.close(fig)
+    # fig, axes = plot_MCMC_chains(reader)
+    # fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
+    # plt.close(fig)
 
 
     #::: plot the corner
@@ -300,35 +311,35 @@ def mcmc_output(datadir):
 
 
     #::: save the tables
-    posterior_samples = draw_mcmc_posterior_samples(reader) #all samples
-    save_table(posterior_samples, 'mcmc')
-    save_latex_table(posterior_samples, 'mcmc')
+    # posterior_samples = draw_mcmc_posterior_samples(reader) #all samples
+    # save_table(posterior_samples, 'mcmc')
+    # save_latex_table(posterior_samples, 'mcmc')
     
     
     #::: derive values (using stellar parameters from params_star.csv)
-    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-        deriver.derive(posterior_samples, 'mcmc')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+    # if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    #     deriver.derive(posterior_samples, 'mcmc')
+    # else:
+    #     print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
-    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-        params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
-        params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
-        try:
-            fig, ax = plot_top_down_view(params_median, params_star)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
-            plt.close(fig)        
-        except:
-            warnings.warn('Orbital plots could not be produced.')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+    # if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    #     params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
+    #     params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
+    #     try:
+    #         fig, ax = plot_top_down_view(params_median, params_star)
+    #         fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+    #         plt.close(fig)        
+    #     except:
+    #         warnings.warn('Orbital plots could not be produced.')
+    # else:
+    #     print('File "params_star.csv" not found. Cannot derive final parameters.')
         
         
     #::: plot TTV results (if wished for)
-    if config.BASEMENT.settings['fit_ttvs'] == True:
-        plot_ttv_results(params_median, params_ll, params_ul)
+    # if config.BASEMENT.settings['fit_ttvs'] == True:
+    #     plot_ttv_results(params_median, params_ll, params_ul)
         
         
     #::: clean up and delete the tmp file

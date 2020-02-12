@@ -122,9 +122,7 @@ def derive(samples, mode):
         derived_samples[companion+'_R_companion/a'] = get_params(companion+'_rsuma') * get_params(companion+'_rr') / (1. + get_params(companion+'_rr'))
         derived_samples[companion+'_R_companion_(R_earth)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_earth.value #in R_earth
         derived_samples[companion+'_R_companion_(R_jup)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_jup.value #in R_jup
-
-        derived_samples[companion+'_depth_undiluted'] = 1e3*get_params(companion+'_rr')**2 #in ppt
-
+        
 
         #::: orbit
         derived_samples[companion+'_a_(R_sun)'] = star['R_star'] / derived_samples[companion+'_R_star/a']   
@@ -137,6 +135,7 @@ def derive(samples, mode):
         if np.isnan(derived_samples[companion+'_w']).all():
             derived_samples[companion+'_w'] = 0.
         
+        
         #::: mass
         if companion+'_K' in config.BASEMENT.params:
             a_1 = 0.019771142 * get_params(companion+'_K') * get_params(companion+'_period') * np.sqrt(1. - derived_samples[companion+'_e']**2)/sin_d(derived_samples[companion+'_i'])
@@ -146,14 +145,6 @@ def derive(samples, mode):
             derived_samples[companion+'_M_companion_(M_jup)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_jup.value #in M_jup
         else:
             derived_samples[companion+'_M_companion'] = None
-            
-            
-        #::: surface gravity
-        #::: from Southworth+ 2007
-        if companion+'_K' in config.BASEMENT.params:
-            derived_samples[companion+'_g'] = 2*np.pi / get_params(companion+'_period') * (1.-derived_samples[companion+'_e']**2)**0.5 * get_params(companion+'_K') / (derived_samples[companion+'_R_companion/a']**2 * sin_d(derived_samples[companion+'_i']))
-        else:
-            derived_samples[companion+'_g'] = None        
             
             
         #::: time of occultation    
@@ -171,6 +162,7 @@ def derive(samples, mode):
         else:
             derived_samples[companion+'_b_occ'] = None
         
+        
         #::: transit duration 
         derived_samples[companion+'_T_tra_tot'] = get_params(companion+'_period')/np.pi *24.  \
                                   * np.arcsin( derived_samples[companion+'_R_star/a'] \
@@ -182,39 +174,61 @@ def derive(samples, mode):
                                              / sin_d(derived_samples[companion+'_i']) ) #in h
                                   
 
-        #::: secondary eclipse / occultation depth (per inst)
+        #::: primary and secondary eclipse depths (per inst) / transit and occultation depths (per inst)
         for inst in config.BASEMENT.settings['inst_phot']:
             
             N_less_samples = 1000
             
+            derived_samples[companion+'_depth_tr_diluted_'+inst] = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
             derived_samples[companion+'_depth_occ_diluted_'+inst]  = np.zeros(N_less_samples)*np.nan
             derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.zeros(N_less_samples)*np.nan
             derived_samples[companion+'_ampl_sbratio_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
             derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
             derived_samples[companion+'_ampl_gdc_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
             
-            if config.BASEMENT.settings['secondary_eclipse'] is True:
+            
+            #::: iterate through all samples, draw different models and measure the depths
+            logprint('Deriving primary and secondary eclipse depths / transit and occultation depths from model curves...')
+            for i in tqdm( range(N_less_samples) ):
                 
-                def plottle(fname, title, i):
-                    if i==0:
-                        fig = plt.figure()
-                        plt.plot(xx,model,'b.')
-                        plt.title(title)
-                        fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
-                        plt.close(fig)
+                #::: setting the model params and time axes
+                ii = np.random.randint(low=0,high=samples.shape[0])
+                s = samples[ii,:]
+                p = update_params(s)
+                xx0 = p[companion+'_epoch'] + np.arange(-0.25*p[companion+'_period'], 0.75*p[companion+'_period'], 1./24./60.) #one full orbit without the transit (in time units), in 1 min steps
+                ind_tr, ind_out = index_transits(xx0, p[companion+'_epoch'], p[companion+'_period'], np.median(derived_samples[companion+'_T_tra_tot'])/24.) #find the primary eclipse / transit
+            
+            
+                #:: calculating primary eclipse / transit depth
+                xx = xx0[ind_tr]
+                model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+                derived_samples[companion+'_depth_tr_diluted_'+inst][i] = ( 1. - np.min(model) ) * 1e3 #in ppt
+        
+        
+                #:: calculating secondary eclipse / occultation depth
+                if config.BASEMENT.settings['secondary_eclipse'] is True:
+                    xx = xx0[ind_out]
+
+                    def plottle(fname, title, model):
+                        if i==0:
+                            fig = plt.figure()
+                            plt.plot(xx,model,'b.')
+                            plt.title(title)
+                            fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
+                            plt.close(fig)
                     
-                logprint('Deriving occultation depths from model curves...')
-                for i in tqdm( range(N_less_samples) ):
-                    ii = np.random.randint(low=0,high=samples.shape[0])
-                    s = samples[ii,:]
-                    p = update_params(s)
-                    xx = p[companion+'_epoch'] + np.arange(-0.25*p[companion+'_period'], 0.75*p[companion+'_period'], 1./24./60.) #one full orbit without the transit (in time units), in 1 min steps
-                    ind_tr, ind_out = index_transits(xx, p[companion+'_epoch'], p[companion+'_period'], np.median(derived_samples[companion+'_T_tra_tot'])/24.) #ignore the secondary eclipse here
-                    xx = xx[ind_out]
+                # logprint('Deriving occultation depths from model curves...')
+                # for i in tqdm( range(N_less_samples) ):
+                #     ii = np.random.randint(low=0,high=samples.shape[0])
+                #     s = samples[ii,:]
+                #     p = update_params(s)
+                #     xx = p[companion+'_epoch'] + np.arange(-0.25*p[companion+'_period'], 0.75*p[companion+'_period'], 1./24./60.) #one full orbit without the transit (in time units), in 1 min steps
+                #     ind_tr, ind_out = index_transits(xx, p[companion+'_epoch'], p[companion+'_period'], np.median(derived_samples[companion+'_T_tra_tot'])/24.) #ignore the secondary eclipse here
+                #     xx = xx[ind_out]
                     
                     #::: occultation depth (very simplistic; only ok for exoplanets, not binaries)
                     model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-                    plottle('phase_curve_occultation_depth.pdf', 'occultation depth', i)
+                    if i==0: plottle('phase_curve_occultation_depth.pdf', 'occultation depth', model)
                     derived_samples[companion+'_depth_occ_diluted_'+inst][i] = ( np.max(model) - np.min(model) ) * 1e6 #in ppm
 
 
@@ -287,6 +301,7 @@ def derive(samples, mode):
                     
                     
             #resize the arrays to match the true N_samples (by redrawing the 1000 values)
+            derived_samples[companion+'_depth_tr_diluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_diluted_'+inst], N_samples)
             derived_samples[companion+'_depth_occ_diluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_diluted_'+inst], N_samples)
             derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst], N_samples)
             derived_samples[companion+'_ampl_sbratio_diluted_'+inst]      = np.resize(derived_samples[companion+'_ampl_sbratio_diluted_'+inst], N_samples)
@@ -294,15 +309,14 @@ def derive(samples, mode):
             derived_samples[companion+'_ampl_gdc_diluted_'+inst]          = np.resize(derived_samples[companion+'_ampl_gdc_diluted_'+inst], N_samples)
 
     
-        #::: undiluted (not per companions; per inst)
+        #::: undiluted (per companion; per inst)
         for inst in config.BASEMENT.settings['inst_phot']:
             dil = get_params('light_3_'+inst)
             if np.isnan(dil):
                 dil = 0
         #        if np.mean(dil)<0.5: dil = 1-dil
         
-            derived_samples[companion+'_depth_diluted_'+inst] = derived_samples[companion+'_depth_undiluted'] * (1. - dil) #in ppt
-            
+            derived_samples[companion+'_depth_tr_undiluted_'+inst] = derived_samples[companion+'_depth_tr_diluted_'+inst] / (1. - dil) #in ppt
             derived_samples[companion+'_depth_occ_undiluted_'+inst] = derived_samples[companion+'_depth_occ_diluted_'+inst] / (1. - dil) #in ppm
             derived_samples[companion+'_ampl_ellipsoidal_undiluted_'+inst] = derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] / (1. - dil) #in ppm
             derived_samples[companion+'_ampl_sbratio_undiluted_'+inst] = derived_samples[companion+'_ampl_sbratio_diluted_'+inst] / (1. - dil) #in ppm
@@ -321,11 +335,11 @@ def derive(samples, mode):
         derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
   
     
-        #::: stellar surface gravity (via Southworth+ 2007)
+        #::: the companion's surface gravity (individual posterior distribution for each companion; via Southworth+ 2007)
         try:
-            derived_samples[companion+'_host_surface_gravity'] = 2. * np.pi / (get_params(companion+'_period')*86400.) * np.sqrt((1.-derived_samples[companion+'_e']**2)) * get_params(companion+'_K') / (derived_samples[companion+'_R_companion/a'])**2 / sin_d(derived_samples[companion+'_i'])
+            derived_samples[companion+'_surface_gravity'] = 2. * np.pi / (get_params(companion+'_period')*86400.) * np.sqrt((1.-derived_samples[companion+'_e']**2)) * (get_params(companion+'_K')*1e5) / (derived_samples[companion+'_R_companion/a'])**2 / sin_d(derived_samples[companion+'_i'])
         except:
-            derived_samples[companion+'_host_surface_gravity'] = 0.
+            derived_samples[companion+'_surface_gravity'] = 0.
         
         
         #::: period ratios (for ressonance studies)
@@ -420,22 +434,22 @@ def derive(samples, mode):
         names.append( companion+'_host_density' )
         labels.append( '$rho_\mathrm{\star;'+companion+'}$ (cgs)' )
     
-        names.append( companion+'_host_surface_gravity')
-        labels.append( '$\log{g_\mathrm{\star;'+companion+'}}$ (cgs)' )
+        names.append( companion+'_surface_gravity')
+        labels.append( '$g_\mathrm{\star;'+companion+'}$ (cgs)' )
         
         names.append( companion+'_Teq' )
         labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
         
-        names.append( companion+'_depth_undiluted' )
-        labels.append( '$\delta_\mathrm{undil; '+companion+'}$ (ppt)' )
-        
-        names.append( companion+'_depth_occ_undiluted' )
-        labels.append( '$\delta_\mathrm{occ; undil; '+companion+'}$ (ppm)' )
-        
         for inst in config.BASEMENT.settings['inst_phot']:
             
-            names.append( companion+'_depth_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{dil; '+companion+'; '+inst+'}$ (ppt)' )
+            names.append( companion+'_depth_tr_undiluted_'+inst )
+            labels.append( '$\delta_\mathrm{tr; undil; '+companion+'; '+inst+'}$ (ppt)' )
+            
+            names.append( companion+'_depth_tr_diluted_'+inst )
+            labels.append( '$\delta_\mathrm{tr; dil; '+companion+'; '+inst+'}$ (ppt)' )
+        
+            names.append( companion+'_depth_occ_undiluted_'+inst )
+            labels.append( '$\delta_\mathrm{occ; undil; '+companion+'; '+inst+'}$ (ppm)' )
             
             names.append( companion+'_depth_occ_diluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppm)' )

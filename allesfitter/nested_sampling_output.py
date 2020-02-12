@@ -161,8 +161,9 @@ def ns_output(datadir):
             config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
             params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
                 
+
     for i,l in enumerate(labels):
-        if units[i]!='':
+        if len( units[i].strip(' ') ) > 0:
             labels[i] = str(labels[i]+' ('+units[i]+')')
         
         
