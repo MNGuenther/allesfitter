@@ -16,6 +16,7 @@ import scipy
 import os, datetime, sys
 
 import matplotlib.pyplot as plt
+from tdpy.util import summgene 
 
 import allesfitter
 import allesfitter.postprocessing.plot_viol
@@ -23,177 +24,204 @@ from allesfitter import config
 
 import astropy
 
-def plot_viol(pathdataoutp, pvalthrs=1e-3, boolonlytess=False):
+class gdatstrt(object):
+
+    def __init__(self):
+        self.boollockmodi = False
+        pass
+    
+    def __setattr__(self, attr, valu):
+        super(gdatstrt, self).__setattr__(attr, valu)
+
+
+def plot(gdat, indxstar, indxpara=None, strgtype='evol'):
+    
+    if indxstar.size == 1:
+        strg = gdat.liststrgstar[indxstar[0]] + '_'
+    else:
+        strg = ''
+    
+    print('strgtype')
+    print(strgtype)
+    
+    listticklabl = []
+    if strgtype == 'epocevol':
+        chanlist = [[[] for m in gdat.indxstar] for i in gdat.indxruns]
+        xpos = np.array(gdat.listyear)
+        for i in gdat.indxruns:
+            for m in indxstar:
+                chanlist[i][m] = [gdat.timejwst[k][i][m] for k in gdat.indxyear]
+        for k in gdat.indxyear:
+            listticklabl.append('%s' % str(gdat.listyear[k]))
+    else:
+        chanlist = []
+        numbxdat = gdat.numbruns * indxstar.size
+        xpos = 0.6 * (np.arange(numbxdat) + 1.)
+
+        for i in gdat.indxruns:
+            for m in indxstar:
+                if strgtype == 'jwstcomp':
+                    chanlist.append(gdat.timejwst[1][i][m])
+                if strgtype == 'paracomp':
+                    for k in indxpara:
+                        chanlist.append((gdat.listobjtalle[i][m].posterior_params[gdat.liststrgparaconc[k]] - \
+                            np.mean(gdat.listobjtalle[i][m].posterior_params[gdat.liststrgparaconc[k]])) * 24. * 60.)
+                    
+                if strgtype == 'paracomp' or strgtype == 'jwstcomp':
+                    ticklabl = '%s, %s' % (gdat.liststrgstar[m], gdat.liststrgruns[i])
+                    listticklabl.append(ticklabl)
+                else:
+                    ticklabl = '%s, %s' % (gdat.liststrgstar[m], gdat.liststrgruns[i])
+                    listticklabl.append(ticklabl)
+                
+        if xpos.size != len(listticklabl):
+            raise Exception('')
+        
+    print('xpos')
+    summgene(xpos)
+    print('chanlist')
+    print(chanlist)
+    figr, axis = plt.subplots(figsize=(5, 4))
+    if strgtype != 'epocevol':
+        axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
+    else:
+        for i in gdat.indxruns:
+            for m in indxstar:
+                axis.violinplot(chanlist[i][m], xpos, showmedians=True, showextrema=False)
+
+    axis.set_xticks(xpos)
+    if strgtype == 'jwstcomp':
+        axis.set_ylabel('Transit time residual in 2023 [min]')
+        strgbase = strgtype
+
+    if strgtype == 'paracomp':
+        if gdat.liststrgparaconc[indxpara] == 'b_period':
+            axis.set_ylabel('P [min]')
+        else:
+            labl = gdat.listlablparaconc[indxpara[0]]
+            axis.set_ylabel(labl)
+        strgbase = '%04d' % indxpara
+    
+    if strgtype == 'epocevol':
+        axis.set_xlabel('Year')
+        axis.set_ylabel('Transit time residual [min]')
+        strgbase = strgtype
+    
+    path = gdat.pathimag + 'viol_%s.%s' % (strgbase, gdat.strgplotextn)
+    axis.set_xticklabels(listticklabl)
+    plt.tight_layout()
+    print('Writing to %s...' % path)
+    print()
+    figr.savefig(path)
+    plt.close()
+    
+
+def plot_viol(pathbase, liststrgstar, liststrgruns, lablstrgruns, pathimag, pvalthrs=1e-3):
 
     strgtimestmp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     print('allesfitter postprocessing violin plot started at %s...' % strgtimestmp)
     
-    liststrgruns = ['woutTESS', 'alldata']
-    if boolonlytess:
-        liststrgruns.append(['TESS'])
+    # construct global object
+    gdat = gdatstrt()
     
-    numbruns = len(liststrgruns)
-    indxruns = np.arange(numbruns)
+    # copy unnamed inputs to the global object
+    #for attr, valu in locals().iter():
+    for attr, valu in locals().items():
+        if '__' not in attr and attr != 'gdat':
+            setattr(gdat, attr, valu)
+
+    # runs to be compared for each star
+    gdat.numbruns = len(liststrgruns)
+    gdat.indxruns = np.arange(gdat.numbruns)
     
-    liststrgpara = [[] for i in indxruns]
-    listlablpara = [[] for i in indxruns]
-    listobjtalle = [[] for i in indxruns]
-    for i, strgruns in enumerate(liststrgruns):
-        pathdata = pathdataoutp + 'allesfits/allesfit_%s' % strgruns
-        print('Reading from %s...' % pathdata)
-        config.init(pathdata)
-        liststrgpara[i] = np.array(config.BASEMENT.fitkeys)
-        listlablpara[i] = np.array(config.BASEMENT.fitlabels)
-        # read the chain
-        listobjtalle[i] = allesfitter.allesclass(pathdata)
-        
-    liststrgparaconc = np.concatenate(liststrgpara)
-    liststrgparaconc = np.unique(liststrgparaconc)
-    listlablparaconc = np.copy(liststrgparaconc)
-    for k, strgparaconc in enumerate(liststrgparaconc):
+    gdat.pathimag = pathimag
+    gdat.liststrgstar = liststrgstar
+
+    # stars
+    numbstar = len(liststrgstar)
+    gdat.indxstar = np.arange(numbstar)
+
+    # plotting
+    gdat.strgplotextn = 'png'
+
+    # read parameter keys, labels and posterior from allesfitter output
+    liststrgpara = [[] for i in gdat.indxruns]
+    listlablpara = [[] for i in gdat.indxruns]
+    gdat.listobjtalle = [[[] for m in gdat.indxstar] for i in gdat.indxruns]
+    for i in gdat.indxruns:
+        for m in gdat.indxstar:
+            pathalle = pathbase + '%s/allesfits/allesfit_%s/' % (gdat.liststrgstar[m], gdat.liststrgruns[i])
+            print('Reading from %s...' % pathalle)
+            config.init(pathalle)
+            liststrgpara[i] = np.array(config.BASEMENT.fitkeys)
+            listlablpara[i] = np.array(config.BASEMENT.fitlabels)
+            # read the chain
+            print('pathalle')
+            print(pathalle)
+            gdat.listobjtalle[i][m] = allesfitter.allesclass(pathalle)
+    
+    # concatenate the keys, labels from different runs
+    gdat.liststrgparaconc = np.concatenate(liststrgpara)
+    gdat.liststrgparaconc = np.unique(gdat.liststrgparaconc)
+    gdat.listlablparaconc = np.copy(gdat.liststrgparaconc)
+    for k, strgparaconc in enumerate(gdat.liststrgparaconc):
         for i, strgruns in enumerate(liststrgruns):
             if strgparaconc in liststrgpara[i]:
-                listlablparaconc[k] = listlablpara[i][np.where(liststrgpara[i] == strgparaconc)[0][0]]
+                gdat.listlablparaconc[k] = listlablpara[i][np.where(liststrgpara[i] == strgparaconc)[0][0]]
     
-    ticklabl = ['w/o TESS', 'w/ TESS']
-    if boolonlytess:
-        ticklabl.append(['only TESS'])
-
-    xpos = 0.6 * (np.arange(numbruns) + 1.)
-    for k, strgpara in enumerate(liststrgparaconc):
+    gdat.numbparaconc = len(gdat.liststrgparaconc)
+    gdat.indxparaconc = np.arange(gdat.numbparaconc)
+    for k, strgpara in enumerate(gdat.liststrgparaconc):
         booltemp = True
-        for i in indxruns:
+        for i in gdat.indxruns:
             if not strgpara in liststrgpara[i]:
                 booltemp = False
         if not booltemp:
             continue
         
-        figr, axis = plt.subplots(figsize=(5, 4))
-        chanlist = []
-        for i in indxruns:
-            chanlist.append((listobjtalle[i].posterior_params[strgpara] - np.mean(listobjtalle[i].posterior_params[strgpara])) * 24. * 60.)
-        axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
-        axis.set_xticks(xpos)
-        axis.set_xticklabels(ticklabl)
-        if strgpara == 'b_period':
-            axis.set_ylabel('P [min]')
-        else:
-            axis.set_ylabel(listlablparaconc[k])
-        plt.tight_layout()
+        ## violin plot
+        ## mid-transit time prediction
+        plot(gdat, gdat.indxstar, indxpara=np.array([k]), strgtype='paracomp')
+        ## per-star 
+        #for m in gdat.indxstar:
+        #    plot(gdat, indxstar=np.array([m]), indxpara=k, strgtype='paracomp')
         
-        path = pathdataoutp + 'viol_%04d.svg' % (k)
-        print('Writing to %s...' % path)
-        figr.savefig(path)
-        plt.close()
-    
-    listyear = [2021, 2023, 2025]
-    numbyear = len(listyear)
-    indxyear = np.arange(numbyear)
-    timejwst = [[[] for i in indxruns] for k in indxyear]
-    for k, year in enumerate(listyear):
+    # calculate the future evolution of epoch
+    gdat.listyear = [2021, 2023, 2025]
+    numbyear = len(gdat.listyear)
+    gdat.indxyear = np.arange(numbyear)
+    gdat.timejwst = [[[[] for m in gdat.indxstar] for i in gdat.indxruns] for k in gdat.indxyear]
+    for k, year in enumerate(gdat.listyear):
         epocjwst = astropy.time.Time('%d-01-01 00:00:00' % year, format='iso').jd
-        for i in indxruns:
-            epoc = listobjtalle[i].posterior_params['b_epoch']
-            peri = listobjtalle[i].posterior_params['b_period']
-            indxtran = (epocjwst - epoc) / peri
-            indxtran = np.mean(np.rint(indxtran))
-            if indxtran.size != np.unique(indxtran).size:
-                raise Exception('')
-
-            timejwst[k][i] = epoc + peri * indxtran
-
-            timejwst[k][i] -= np.mean(timejwst[k][i])
-            timejwst[k][i] *= 24. * 60.
+        for i in gdat.indxruns:
+            for m in gdat.indxstar:
+                epoc = gdat.listobjtalle[i][m].posterior_params['b_epoch']
+                peri = gdat.listobjtalle[i][m].posterior_params['b_period']
+                indxtran = (epocjwst - epoc) / peri
+                indxtran = np.mean(np.rint(indxtran))
+                if indxtran.size != np.unique(indxtran).size:
+                    raise Exception('')
+                gdat.timejwst[k][i][m] = epoc + peri * indxtran
+                gdat.timejwst[k][i][m] -= np.mean(gdat.timejwst[k][i][m])
+                gdat.timejwst[k][i][m] *= 24. * 60.
     
     listfigr = []
     listaxis = []
 
-    ## temporal evolution
-    figr, axis = plt.subplots(figsize=(5, 4))
-    listfigr.append(figr)
-    listaxis.append(axis)
-    axis.violinplot([timejwst[k][1] for k in indxyear], listyear)
-    axis.set_xlabel('Year')
-    axis.set_ylabel('Transit time residual [min]')
-    plt.tight_layout()
-    path = pathdataoutp + 'jwsttime.svg'
-    print('Writing to %s...' % path)
-    plt.savefig(path)
-    plt.close()
+    # temporal evolution of mid-transit time prediction
+    plot(gdat, gdat.indxstar, strgtype='epocevol')
+    ## per-star 
+    #for m in gdat.indxstar:
+    #    plot(gdat, indxstar=np.array([m]), strgtype='epocevol')
     
-    ## without/with/only TESS prediction comparison
-    figr, axis = plt.subplots(figsize=(5, 4))
-    listfigr.append(figr)
-    listaxis.append(axis)
-    axis.violinplot(timejwst[1], xpos, points=2000)
-    axis.set_xticks(xpos)
-    axis.set_xticklabels(ticklabl)
-    axis.set_ylabel('Transit time residual in 2023 [min]')
-    #axis.set_ylim([-300, 300])
-    plt.tight_layout()
-    path = pathdataoutp + 'jwstcomp.svg'
-    print('Writing to %s...' % path)
-    plt.savefig(path)
-    plt.close()
+    ## mid-transit time prediction
+    plot(gdat, gdat.indxstar, strgtype='jwstcomp')
+    ## per-star 
+    #for m in gdat.indxstar:
+    #    plot(gdat, indxstar=np.array([m]), strgtype='jwstcomp')
     
     return listfigr, listaxis
 
-    # all parameter summary
-    figr, axis = plt.subplots(figsize=(4, 3))
-    chanlist = []
-    axis.violinplot(chanlist, xpos, showmedians=True, showextrema=False)
-    axis.set_xticks(valutick)
-    axis.set_xticklabels(labltick)
-    axis.set_ylabel(lablparatemp)
-    plt.tight_layout()
-    path = pathdataoutp + 'para_%s.pdf'
-    print('Writing to %s...' % path)
-    figr.savefig(path)
-    plt.close()
-
-    # plot p values
-    ## threshold p value to conclude significant difference between posteriors with and without TESS
-    if pvalthrs is None:
-        pvalthrs = 1e-6
-    
-    lablparacomp = [[] for u in indxruns]
-    for u in indxruns:
-    
-        lablparacomp[u] = list(set(lablpara[indxrunsfrst[u]]).intersection(lablpara[indxrunsseco[u]]))
-    
-        # post-processing
-        ## calculate the KS test statistic between the posteriors
-        numbparacomp = len(lablparacomp[u])
-        pval = np.empty(numbparacomp)
-        for j in range(numbparacomp):
-            kosm, pval[j] = scipy.stats.ks_2samp([indxrunsfrst[u]][:, j], chan[indxrunsseco[u]][:, j])
-            kosm, pval[j] = scipy.stats.ks_2samp(chan[indxrunsfrst[u]][:, j], chan[indxrunsseco[u]][:, j])
-    
-        ## find the list of parameters whose posterior with and without TESS are unlikely to be drawn from the same distribution
-        indxparagood = np.where(pval < pvalthrs)[0]
-        if indxparagood.size > 0:
-    
-            figr, axis = plt.subplots(figsize=(12, 5))
-            indxparacomp = np.arange(numbparacomp)
-            axis.plot(indxparacomp, pval, ls='', marker='o')
-            axis.plot(indxparacomp[indxparagood], pval[indxparagood], ls='', marker='o', color='r')
-            axis.set_yscale('log')
-            axis.set_xticks(indxparacomp)
-            axis.set_xticklabels(lablparacomp[u])
-            if u == 0:
-                axis.set_title('Posteriors with TESS vs. without TESS')
-            if u == 1:
-                axis.set_title('Posteriors without TESS vs. only TESS')
-            if u == 2:
-                axis.set_title('Posteriors with TESS vs. only TESS')
-    
-            axis.axhline(pvalthrs, ls='--', color='black', alpha=0.3)
-            plt.tight_layout()
-            path = pathdataoutp + 'kosm_com%d.pdf' % u
-            print('Writing to %s...' % path)
-            figr.savefig(path)
-            plt.close()
-    
 
     
 
