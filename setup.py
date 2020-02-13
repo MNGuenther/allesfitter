@@ -23,14 +23,14 @@ from setuptools import setup, find_packages
 setup(
     name = 'allesfitter',
     packages = find_packages(),
-    version = '1.0.0',
+    version = '1.0.2',
     description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
     author_email = 'maxgue@mit.edu',
     url = 'https://github.com/MNGuenther/allesfitter',
     download_url = 'https://github.com/MNGuenther/allesfitter',
     license='MIT',
-    classifiers=['Development Status :: 4 - Beta', #3 - Alpha / 4 - Beta / 5 - Production/Stable
+    classifiers=['Development Status :: 5 - Production/Stable', #3 - Alpha / 4 - Beta / 5 - Production/Stable
                  'Intended Audience :: Science/Research',
                  'License :: OSI Approved :: MIT License',
                  'Programming Language :: Python'],
