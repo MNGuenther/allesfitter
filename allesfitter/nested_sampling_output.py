@@ -25,6 +25,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter, MaxNLocator
 import os
 #import bzip2
 import gzip
@@ -175,7 +176,8 @@ def ns_output(datadir):
     
     #::: cornerplot
     ndim = results2['samples'].shape[1]
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'})
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
+                                    label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'})
 
 
     #::: runplot
@@ -184,25 +186,57 @@ def ns_output(datadir):
 #    plt.close(rfig)
     
 
-    #::: set allesfitter titles
+    #::: set allesfitter titles (OLD)
+    # for i, key in enumerate(config.BASEMENT.fitkeys): 
+        
+    #     value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
+    #     ttitle = r'' + labels[i] + r'$=' + value + '$'
+    #     ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
+    #     if len(config.BASEMENT.fitkeys)>1:
+    #         caxes[i,i].set_title(ctitle)
+    #         taxes[i,1].set_title(ttitle)
+    #         for i in range(caxes.shape[0]):
+    #             for j in range(caxes.shape[1]):
+    #                 caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
+    #                 caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+    #     else:
+    #         caxes.set_title(ctitle)
+    #         taxes[1].set_title(ttitle)
+    #         caxes.xaxis.set_label_coords(0.5, -0.5)
+    #         caxes.yaxis.set_label_coords(-0.5, 0.5)
+    
+    
+    #::: set allesfitter titles and labels
     for i, key in enumerate(config.BASEMENT.fitkeys): 
         
         value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
-        ttitle = r'' + labels[i] + r'$=' + value + '$'
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
+        ttitle = r'' + labels[i] + r'$=' + value + '$'
         if len(config.BASEMENT.fitkeys)>1:
-            caxes[i,i].set_title(ctitle)
+            # caxes[i,i].set_title(ctitle)
+            caxes[i,i].set_title(ctitle, fontsize=32, rotation=45, horizontalalignment='left')
             taxes[i,1].set_title(ttitle)
             for i in range(caxes.shape[0]):
                 for j in range(caxes.shape[1]):
                     caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
                     caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
+        
+                    if i==(caxes.shape[0]-1): 
+                        fmt = ScalarFormatter(useOffset=False)
+                        caxes[i,j].xaxis.set_major_locator(MaxNLocator(nbins=3))
+                        caxes[i,j].xaxis.set_major_formatter(fmt)
+                    if (i>0) and (j==0):
+                        fmt = ScalarFormatter(useOffset=False)
+                        caxes[i,j].yaxis.set_major_locator(MaxNLocator(nbins=3))
+                        caxes[i,j].yaxis.set_major_formatter(fmt)
+                        
+                    for tick in caxes[i,j].xaxis.get_major_ticks(): tick.label.set_fontsize(24) 
+                    for tick in caxes[i,j].yaxis.get_major_ticks(): tick.label.set_fontsize(24)    
         else:
             caxes.set_title(ctitle)
             taxes[1].set_title(ttitle)
             caxes.xaxis.set_label_coords(0.5, -0.5)
             caxes.yaxis.set_label_coords(-0.5, 0.5)
-        
                
             
     #::: save and close the trace- and cornerplot

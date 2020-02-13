@@ -243,7 +243,7 @@ def derive(samples, mode):
                     p2['host_gdc_TESS'] = 0
                     p2['host_bfac_TESS'] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-                    plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', i)
+                    plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
                     derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
 #                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
 #                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
@@ -260,7 +260,7 @@ def derive(samples, mode):
                     p2['host_gdc_TESS'] = 0
                     p2['host_bfac_TESS'] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-                    plottle('phase_curve_sbratio.pdf', 'sbratio depth', i)
+                    plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
                     derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
                     config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
                     config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
@@ -277,7 +277,7 @@ def derive(samples, mode):
                     p2['host_gdc_TESS'] = 0
                     p2['host_bfac_TESS'] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-                    plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', i)
+                    plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
                     derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
                     config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
                     config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
@@ -294,7 +294,7 @@ def derive(samples, mode):
 #                    p2['host_gdc_TESS'] = 0
                     p2['host_bfac_TESS'] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-                    plottle('phase_curve_gdc.pdf', 'grav darkening modulation', i)
+                    plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
                     derived_samples[companion+'_ampl_gdc_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
                     config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
                     config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
@@ -523,7 +523,7 @@ def derive(samples, mode):
     ###############################################################################
     ind_good = []
     for i,name in enumerate(names):
-        if isinstance(derived_samples[name], np.ndarray) and not any(np.isnan(derived_samples[name])) and not all(np.array(derived_samples[name])==0):
+        if (name in derived_samples) and isinstance(derived_samples[name], np.ndarray) and not any(np.isnan(derived_samples[name])) and not all(np.array(derived_samples[name])==0):
             ind_good.append(i)
             
     names = [ names[i] for i in ind_good ]
