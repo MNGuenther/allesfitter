@@ -315,19 +315,17 @@ class Basement():
                 raise ValueError(string)
 
 
-            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Phase variations
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if ('phase_variations' in self.settings.keys()) and len(self.settings['phase_variations']):
             self.settings['phase_variations'] = set_bool(self.settings['phase_variations'])
             if self.settings['phase_variations']==True:                
-                print('The user set phase_variations==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
+                self.logprint('The user set phase_variations==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
                 self.settings['fast_fit'] = 'False'
                 self.settings['secondary_eclipse'] = 'True'
         else:
             self.settings['phase_variations'] = False
-            
             
             
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -341,7 +339,15 @@ class Basement():
             self.settings['fast_fit_width'] = 8./24.
                 
             
-            
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Host stellar density prior
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'use_host_density_prior' in self.settings:
+            self.settings['use_host_density_prior'] = set_bool(self.settings['use_host_density_prior'] )
+        else:
+            self.settings['use_host_density_prior'] = True
+        
+        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: TTVs
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -352,7 +358,6 @@ class Basement():
         else:
             self.settings['fit_ttvs'] = False
         
-            
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Secondary eclipse
@@ -1271,12 +1276,12 @@ class Basement():
     #::: stellar priors
     ###############################################################################
     def load_stellar_priors(self, N_samples=10000):
-        if os.path.exists(os.path.join(self.datadir,'params_star.csv')):
+        if os.path.exists(os.path.join(self.datadir,'params_star.csv')) and (self.settings['use_host_density_prior'] is True):
             buf = np.genfromtxt( os.path.join(self.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
             radius = simulate_PDF(buf['R_star'], buf['R_star_lerr'], buf['R_star_uerr'], size=N_samples, plot=False) * 6.957e10 #in cgs
             mass = simulate_PDF(buf['M_star'], buf['M_star_lerr'], buf['M_star_uerr'], size=N_samples, plot=False) * 1.9884754153381438e+33 #in cgs
-            volume = (4./3.)*np.pi*radius**3
-            density = mass / volume
+            volume = (4./3.)*np.pi*radius**3 #in cgs
+            density = mass / volume #in cgs
             self.params_star = {'R_star_median':buf['R_star'],
                                 'R_star_lerr':buf['R_star_lerr'],
                                 'R_star_uerr':buf['R_star_uerr'],

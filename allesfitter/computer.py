@@ -692,7 +692,7 @@ def calculate_external_priors(params):
     '''
     lnp = 0.        
     
-    if ('host_density' in config.BASEMENT.external_priors) and (params['host_density'] is not None):
+    if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params['host_density'] is not None):
         b = config.BASEMENT.external_priors['host_density']
         if b[0] == 'uniform':
             if not (b[1] <= params['host_density'] <= b[2]): return -np.inf
