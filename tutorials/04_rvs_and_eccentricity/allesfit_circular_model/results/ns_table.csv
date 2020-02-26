@@ -1,0 +1,7 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+b_epoch,52.13488439724193,0.034446848939154506,0.03309771865497879,$T_{0;b}$,BJD
+b_period,3.4010594073767804,0.010851207657177842,0.011569010754840736,$P_b$,d
+b_K,0.09553266415608586,0.00537821410639408,0.005300091955666622,$K_b$,km/s
+log_jitter_rv_Donatello,-4.209843327430841,0.35839883728141864,0.30342347894721655,$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$,km/s
+log_jitter_rv_Raphael,-4.066258493757148,0.2969950150578793,0.33581458110498774,$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$,km/s

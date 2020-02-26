@@ -1,0 +1,43 @@
+#name,value
+###############################################################################,
+# General settings,
+###############################################################################,
+companions_phot,b
+companions_rv,b
+inst_phot,
+inst_rv,Donatello Raphael
+###############################################################################,
+# Fit performance settings,
+###############################################################################,
+multiprocess,True
+multiprocess_cores,all
+fast_fit,True
+fast_fit_width,0.3333333333333333
+shift_epoch,True
+secondary_eclipse,False
+phase_curve,False
+###############################################################################,
+# MCMC settings,
+###############################################################################,
+mcmc_nwalkers,100
+mcmc_total_steps,3000
+mcmc_burn_steps,2000
+mcmc_thin_by,10
+###############################################################################,
+# Nested Sampling settings,
+###############################################################################,
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,rwalk
+ns_tol,0.01
+###############################################################################,
+# Baseline settings per instrument,
+###############################################################################,
+baseline_flux_Donatello,hybrid_offset
+baseline_flux_Raphael,hybrid_offset
+###############################################################################,
+# Error settings per instrument,
+###############################################################################,
+error_rv_Donatello,sample
+error_rv_Raphael,sample

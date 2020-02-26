@@ -1,0 +1,11 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$T_{0;b}$ & $52.101_{-0.034}^{+0.027}$ & BJD& fit \\ 
+$P_b$ & $3.3986\pm0.0055$ & d& fit \\ 
+$K_b$ & $0.0995_{-0.0039}^{+0.0029}$ & km/s& fit \\ 
+$\sqrt{e}\cos{\omega}_b$ & $0.123_{-0.062}^{+0.071}$ & & fit \\ 
+$\sqrt{e}\sin{\omega}_b$ & $0.421_{-0.040}^{+0.031}$ & & fit \\ 
+$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$ & $-7.0\pm1.8$ & km/s& fit \\ 
+$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$ & $-5.32_{-1.9}^{+0.70}$ & km/s& fit \\ 

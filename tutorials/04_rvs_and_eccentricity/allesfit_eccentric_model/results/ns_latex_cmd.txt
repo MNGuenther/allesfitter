@@ -1,0 +1,7 @@
+\newcommand{\bepoch}{$=52.101_{-0.034}^{+0.027}$} %none = 52.101_{-0.034}^{+0.027}
+\newcommand{\bperiod}{$=3.3986\pm0.0055$} %none = 3.3986\pm0.0055
+\newcommand{\bK}{$=0.0995_{-0.0039}^{+0.0029}$} %none = 0.0995_{-0.0039}^{+0.0029}
+\newcommand{\bfc}{$=0.123_{-0.062}^{+0.071}$} %none = 0.123_{-0.062}^{+0.071}
+\newcommand{\bfs}{$=0.421_{-0.040}^{+0.031}$} %none = 0.421_{-0.040}^{+0.031}
+\newcommand{\logjitterrvDonatello}{$=-7.0\pm1.8$} %none = -7.0\pm1.8
+\newcommand{\logjitterrvRaphael}{$=-5.32_{-1.9}^{+0.70}$} %none = -5.32_{-1.9}^{+0.70}

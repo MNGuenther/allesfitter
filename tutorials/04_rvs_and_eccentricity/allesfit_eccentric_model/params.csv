@@ -1,0 +1,10 @@
+#name,value,fit,bounds,label,unit,truth
+#planet b astrophysical params,,,,,,
+b_epoch,1.097,1,uniform 0.9 1.1,$T_{0;b}$,BJD,1.1
+b_period,3.401,1,uniform 3.3 3.5,$P_b$,d,3.4
+b_K,0.11,1,uniform 0 0.2,$K_b$,km/s,0.1
+b_f_c,0,1,uniform -1 1,$\sqrt{e}\cos{\omega}_b$,,0.1
+b_f_s,0,1,uniform -1 1,$\sqrt{e}\sin{\omega}_b$,,0.44
+#errors (overall scaling) per instrument,,,,,,
+log_jitter_rv_Donatello,-5,1,uniform -10 -1,$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$,km/s,-4.6
+log_jitter_rv_Raphael,-7,1,uniform -10 -1,$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$,km/s,-6.2
