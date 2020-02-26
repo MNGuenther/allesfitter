@@ -195,7 +195,7 @@ def update_params(theta):
                 params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
             except:
                 params[companion+'_a'] = None
-            if params[companion+'_a'] == 0:
+            if params[companion+'_a'] == 0.:
                 params[companion+'_a'] = None
                
             #::: host spots
@@ -627,7 +627,7 @@ def rv_fct(params, inst, companion, xx=None):
         t_exp = None
         n_int = None
     
-    if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
+    if (params[companion+'_K'] is not None) and (params[companion+'_K'] > 0):
         model_rv1, model_rv2 = ellc.rv(
                           t_obs =       xx, 
                           radius_1 =    params[companion+'_radius_1'], 

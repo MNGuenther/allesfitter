@@ -152,14 +152,15 @@ def ns_output(datadir):
         units.append( str(config.BASEMENT.fitunits[i]) )
         
     results2 = results.copy()                    
-    params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()     # params drawn form these posterior_samples                              #only needed for plots (subtract epoch offset)  
+    params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()     # params drawn form these posterior_samples; only needed for plots (subtract epoch offset)  
+    fittruths2 = config.BASEMENT.fittruths.copy()
     for companion in config.BASEMENT.settings['companions_all']:
         
         if companion+'_epoch' in config.BASEMENT.fitkeys:
             ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
             results2['samples'][:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
             units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d')    #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
-            config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
+            fittruths2[ind] -= int(params_median[companion+'_epoch'])
             params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
                 
 
@@ -170,13 +171,13 @@ def ns_output(datadir):
         
     #::: traceplot    
     cmap = truncate_colormap( 'Greys', minval=0.2, maxval=0.8, n=256 )
-    tfig, taxes = dyplot.traceplot(results2, labels=labels, quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
+    tfig, taxes = dyplot.traceplot(results2, labels=labels, quantiles=[0.16, 0.5, 0.84], truths=fittruths2, post_color='grey', trace_cmap=[cmap]*config.BASEMENT.ndim, trace_kwargs={'rasterized':True})
     plt.tight_layout()
     
     
     #::: cornerplot
     ndim = results2['samples'].shape[1]
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=config.BASEMENT.fittruths, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=fittruths2, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
                                     label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'})
 
 

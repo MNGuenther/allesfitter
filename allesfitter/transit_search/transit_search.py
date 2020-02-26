@@ -23,6 +23,9 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
+import os
+import numpy as np
+import matplotlib.pyplot as plt
 from transitleastsquares import transitleastsquares as tls
 from transitleastsquares import transit_mask, cleaned_array, catalog_info
 
@@ -56,8 +59,12 @@ def tls_search(time, flux, flux_err,
                known_transits=None,
                R_star=1., R_star_min=0.13, R_star_max=3.5, 
                M_star=1., M_star_min=0.1, M_star_max=1.,
-               ):
+               show_plot=False, save_plot=False, outdir=''):
     '''
+    Summary:
+    -------
+    This runs TLS on these data with the given infos
+    
     Inputs:
     -------
     time : array of flaot
@@ -66,6 +73,10 @@ def tls_search(time, flux, flux_err,
         normalized flux
     flux_err : array of flaot
         error of normalized flux
+        
+        
+    Optional Inputs:
+    ----------------
     SNR_threshold : float
         the SNR threshold at which to stop the TLS search
     known_transits : None or dict
@@ -94,10 +105,13 @@ def tls_search(time, flux, flux_err,
     M_star_max : float
         maximum mass of the star (e.g. 99th percentile)
         default 1. M_sun (from TLS)         
-    Summary:
-    -------
-    This runs TLS on these data with the given infos
-    
+    show_plot : bool
+        show a plot of each phase-folded transit candidate and TLS model in the terminal 
+    show_plot : bool
+        save a plot of each phase-folded transit candidate and TLS model into outdir
+    outdir : string
+        if None, use the current working directory
+        
     Returns:
     -------
     List of all TLS results
@@ -113,6 +127,7 @@ def tls_search(time, flux, flux_err,
             time, flux = mask(time, flux, period, duration, T0)
     
     #::: search for the rest
+    i = 0
     while (SNR >= SNR_threshold) and (FOUND_SIGNAL==False):
         model = tls(time, flux)
         results = model.power(R_star=R_star, R_star_min=R_star_min, R_star_max=R_star_max, 
@@ -123,9 +138,26 @@ def tls_search(time, flux, flux_err,
         if results.snr >= SNR_threshold:
             time, flux = mask(time, flux, results.period, 2*results.duration, results.T0)
             results_all.append(results)
+        
+            if show_plot or save_plot:
+                fig, ax = plt.subplots()
+                ax.plot(results['folded_phase'], results['folded_y'], 'b.')
+                ax.plot(results['model_folded_phase'], results['model_folded_model'], 'r-', lw=2)
+                ax.text( 1.02, 0.95, 'P = ' + np.format_float_positional(results['period'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
+                ax.text( 1.02, 0.85, 'Depth = ' + np.format_float_positional(1e3*(1.-results['depth']),4) + ' ppt', ha='left', va='center', transform=ax.transAxes )
+                ax.text( 1.02, 0.85, 'Duration = ' + np.format_float_positional(24*60*(1.-results['duration']),4) + ' ppt', ha='left', va='center', transform=ax.transAxes )
+                ax.text( 1.02, 0.75, 'T_0 = ' + np.format_float_positional(results['T0'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
+                ax.text( 1.02, 0.65, 'SNR = ' + np.format_float_positional(results['snr'],4), ha='left', va='center', transform=ax.transAxes )
+                if save_plot:
+                    fig.savefig(os.path.join(outdir,'tls_signal_'+str(i)))
+                if show_plot:
+                    plt.show(fig)
+                else:
+                    plt.close(fig)
             
         SNR = results.snr
-        
+        i+=1
+                
     return results_all
 
 
@@ -134,13 +166,24 @@ def tls_search(time, flux, flux_err,
 #::: TLS search using tessio
 ###############################################################################
 def tls_search_by_tic(tic_id,
+                      time=None, flux=None, flux_err=None,
                       SNR_threshold=5.,
-                      known_transits=None):
+                      known_transits=None,
+                      show_plot=False, save_plot=False, outdir=''):
     '''
     Inputs:
     -------
     tic_id : str
         TIC ID
+        
+    Optional Inputs:
+    ----------------
+    time : array of flaot
+        time stamps of observations (to overwrite the SPOC PDC SAP lightcurve)
+    flux : array of flaot
+        normalized flux (to overwrite the SPOC PDC SAP lightcurve)
+    flux_err : array of flaot
+        error of normalized flux (to overwrite the SPOC PDC SAP lightcurve)
     SNR_threshold : float
         the SNR threshold at which to stop the TLS search
     known_transits : None or dict
@@ -168,7 +211,9 @@ def tls_search_by_tic(tic_id,
     
     #::: load data and inject transit
     dic = tessio.get(tic_id, pipeline='spoc', PDC=True)
-    time, flux, flux_err = dic['time'], dic['flux'], dic['flux_err']
+    if time is None: time = dic['time']
+    if flux is None: flux = dic['flux']
+    if flux_err is None: flux_err = dic['flux_err']
     
     #::: load TIC info
     ab, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
@@ -180,7 +225,8 @@ def tls_search_by_tic(tic_id,
     return tls_search(time, flux, flux_err,
                       R_star=R_star, R_star_min=R_star-R_star_lerr, R_star_max=R_star+R_star_uerr, 
                       M_star=M_star, M_star_min=M_star-M_star_lerr, M_star_max=M_star+M_star_uerr,
-                      known_transits=known_transits)
+                      known_transits=known_transits,
+                      show_plot=show_plot, save_plot=save_plot, outdir=outdir)
 
 
 

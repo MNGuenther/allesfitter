@@ -124,7 +124,7 @@ def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
     ax.text(index[-1]+0.5,  4,   'strong\nevidence',      va='center')
     ax.text(index[-1]+0.5,  np.max( [(np.max(delta_logZ)+5.)/2., 6.] ),   'very strong\nevidence', va='center')
     ax.set(ylim=[0,ymax],ylabel=r'$\Delta \log{Z}$')
-
+    
     if return_dlogZ:
         return fig, ax, delta_logZ
     else:

@@ -567,6 +567,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                     xx = np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)
                     xx2 = params_median[companion+'_epoch'] + np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)*params_median[companion+'_period']
                 elif style in ['phasezoom_occ']:
+                    
                     xx = np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)
                     xx2 = params_median[companion+'_epoch'] + np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)*params_median[companion+'_period']
     

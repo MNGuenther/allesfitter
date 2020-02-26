@@ -234,70 +234,70 @@ def derive(samples, mode):
 
                     #::: amplitude of ellipsoidal modulation alone (ignoring all other effects)
                     p2 = copy.deepcopy(p)
-#                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
-#                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
-                    p2['b_sbratio_TESS'] = 0
-#                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
-#                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
-                    p2['b_geom_albedo_TESS'] = 0
-                    p2['host_gdc_TESS'] = 0
-                    p2['host_bfac_TESS'] = 0
+#                    save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+#                    save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+                    p2['b_sbratio_'+inst] = 0
+#                    config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+#                    config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+                    p2['b_geom_albedo_'+inst] = 0
+                    p2['host_gdc_'+inst] = 0
+                    p2['host_bfac_'+inst] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
                     plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
                     derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
-#                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
-#                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+#                    config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+#                    config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
                     
                     
                      #::: amplitude of sbratio modulation alone (ignoring all other effects)
                     p2 = copy.deepcopy(p)
-                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
-                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
-#                    p2['b_sbratio_TESS'] = 0
-                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
-                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
-                    p2['b_geom_albedo_TESS'] = 0
-                    p2['host_gdc_TESS'] = 0
-                    p2['host_bfac_TESS'] = 0
+                    save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+                    save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+#                    p2['b_sbratio_'+inst] = 0
+                    config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+                    config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+                    p2['b_geom_albedo_'+inst] = 0
+                    p2['host_gdc_'+inst] = 0
+                    p2['host_bfac_'+inst] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
                     plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
                     derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
-                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
-                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+                    config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
                     
                     
                      #::: amplitude of geom. albedo modulation alone (ignoring all other effects)
                     p2 = copy.deepcopy(p)
-                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
-                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
-                    p2['b_sbratio_TESS'] = 0
-                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
-                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
-#                    p2['b_geom_albedo_TESS'] = 0
-                    p2['host_gdc_TESS'] = 0
-                    p2['host_bfac_TESS'] = 0
+                    save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+                    save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+                    p2['b_sbratio_'+inst] = 0
+                    config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+                    config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+#                    p2['b_geom_albedo_'+inst] = 0
+                    p2['host_gdc_'+inst] = 0
+                    p2['host_bfac_'+inst] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
                     plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
                     derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = ( np.max(model) - 1. ) * 1e6 #in ppm
-                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
-                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+                    config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
                     
                     
                      #::: amplitude of gravity darkening modulation alone (ignoring all other effects)
                     p2 = copy.deepcopy(p)
-                    save_host_shape_TESS = copy.deepcopy(config.BASEMENT.settings['host_shape_TESS'])
-                    save_companion_shape_TESS = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_TESS'])
-                    p2['b_sbratio_TESS'] = 0
-                    config.BASEMENT.settings['host_shape_TESS'] = 'sphere'
-                    config.BASEMENT.settings['b_shape_TESS'] = 'sphere'
-                    p2['b_geom_albedo_TESS'] = 0
-#                    p2['host_gdc_TESS'] = 0
-                    p2['host_bfac_TESS'] = 0
+                    save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+                    save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+                    p2['b_sbratio_'+inst] = 0
+                    config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+                    config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+                    p2['b_geom_albedo_'+inst] = 0
+#                    p2['host_gdc_'+inst] = 0
+                    p2['host_bfac_'+inst] = 0
                     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
                     plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
                     derived_samples[companion+'_ampl_gdc_diluted_'+inst][i] = ( np.min(model) - 1. ) * 1e6 #in ppm
-                    config.BASEMENT.settings['host_shape_TESS'] = save_host_shape_TESS
-                    config.BASEMENT.settings['b_shape_TESS'] = save_companion_shape_TESS
+                    config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+                    config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
                     
                     
             #resize the arrays to match the true N_samples (by redrawing the 1000 values)

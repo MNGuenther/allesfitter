@@ -688,7 +688,7 @@ class Basement():
                     self.params[companion+'_rsuma'] = None
                     
                 if companion+'_cosi' not in self.params:
-                    self.params[companion+'_cosi'] = None
+                    self.params[companion+'_cosi'] = 0.
                     
                 if companion+'_epoch' not in self.params:
                     self.params[companion+'_epoch'] = None
@@ -1019,8 +1019,15 @@ class Basement():
             #::: calculate how much the user_epoch has to be shifted to get the mid_epoch
             N_shift = int(np.round((self.settings['mid_epoch']-user_epoch)/period))
             
-            #::: set the new initial guess
+            #::: set the new initial guess (and truth)
             self.params[companion+'_epoch'] = 1.*self.settings['mid_epoch']
+           
+            #::: also shift the truth (implies that the turth epoch is set where the initial guess is)
+            if (self.fittruths is not None) and (companion+'_epoch' in self.fitkeys):
+                ind_e = np.where(self.fitkeys==companion+'_epoch')[0][0]
+                ind_p = np.where(self.fitkeys==companion+'_period')[0][0]
+                N_truth_shift = int(np.round((self.settings['mid_epoch']-self.fittruths[ind_e])/self.fittruths[ind_p]))
+                self.fittruths[ind_e] += N_truth_shift * self.fittruths[ind_p]
                 
             #::: if a fit param, also update the bounds accordingly
             if (N_shift != 0) and (companion+'_epoch' in self.fitkeys):

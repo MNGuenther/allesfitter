@@ -142,7 +142,7 @@ def plot_MCMC_corner(sampler):
     
     params_median, params_ll, params_ul = get_params_from_samples(samples)
     params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()
-    
+    fittruths2 = config.BASEMENT.fittruths.copy()
     
     #::: make pretty titles for the corner plot  
     labels, units = [], []
@@ -153,10 +153,10 @@ def plot_MCMC_corner(sampler):
     for companion in config.BASEMENT.settings['companions_all']:
         
         if companion+'_epoch' in config.BASEMENT.fitkeys:
-            ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
+            ind = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
             samples[:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
             units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d')    #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
-            config.BASEMENT.fittruths[ind] -= int(params_median[companion+'_epoch'])
+            fittruths2[ind] -= int(params_median[companion+'_epoch'])
             params_median2[companion+'_epoch'] -= int(params_median[companion+'_epoch'])
                 
     for i,l in enumerate(labels):
@@ -172,7 +172,7 @@ def plot_MCMC_corner(sampler):
                  #title_kwargs={"fontsize": 14},
                  label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'},
                  max_n_ticks=3,
-                 truths=config.BASEMENT.fittruths)
+                 truths=fittruths2)
     caxes = np.reshape(np.array(fig.axes), (config.BASEMENT.ndim,config.BASEMENT.ndim))
 
     #::: set allesfitter titles
