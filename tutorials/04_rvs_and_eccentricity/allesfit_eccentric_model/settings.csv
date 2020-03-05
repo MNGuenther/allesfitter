@@ -20,9 +20,9 @@ phase_curve,False
 # MCMC settings,
 ###############################################################################,
 mcmc_nwalkers,200
-mcmc_total_steps,5000
-mcmc_burn_steps,2000
-mcmc_thin_by,10
+mcmc_total_steps,6000
+mcmc_burn_steps,1000
+mcmc_thin_by,20
 ###############################################################################,
 # Nested Sampling settings,
 ###############################################################################,

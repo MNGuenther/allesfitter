@@ -70,64 +70,53 @@ def update_params(theta):
     
     params = config.BASEMENT.params.copy()
     
-    #::: phased?
-#    if phased:
-#        params['phased'] = True
-#    else:
-#        params['phased'] = False
-        
     
+    #=========================================================================
     #::: first, sync over from theta
+    #=========================================================================
     for i, key in enumerate(config.BASEMENT.fitkeys):
         params[key] = theta[i]   
     
     
-    #::: deal with coupled params before updates
+    #=========================================================================
+    #::: second, deal with coupled params before updates
+    #=========================================================================
     for i, key in enumerate(config.BASEMENT.allkeys):
         if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
             params[key] = params[config.BASEMENT.coupled_with[i]]
-            
-    
-    #::: phase-folded? (it's important to have this before calculating the semi-major axis!)
-#    if phased:
-#        for companion in config.BASEMENT.settings['companions_all']:
-#            params[companion+'_epoch'] = 0.
-#            params[companion+'_period'] = 1.
     
     
-    #::: general params (used for both photometry and RV)
+    #=========================================================================
+    #::: inclination, per companion
+    #=========================================================================
     for companion in config.BASEMENT.settings['companions_all']:
-        
-        #::: incl
         try:
             params[companion+'_incl'] = np.arccos( params[companion+'_cosi'] )/np.pi*180.
         except:
             params[companion+'_incl'] = None
         
-    #::: photometric errors
-    for companion in config.BASEMENT.settings['companions_phot']:
-        for inst in config.BASEMENT.settings['inst_phot']:
-            key='flux'
-            params['err_'+key+'_'+inst] = np.exp( params['log_err_'+key+'_'+inst] )
-            
        
-    #::: radii (needed for photometry and RV)
+    #=========================================================================
+    #::: radii, per companion
+    #::: R_1/a and R_2/a --> dependent on each companion's orbit
+    #=========================================================================
     for companion in config.BASEMENT.settings['companions_all']:
-        for inst in config.BASEMENT.settings['inst_all']:
-            
-            #::: R_1/a and R_2/a --> hence dependent on each companion's orbit
-            try:
-                params[companion+'_radius_1'] = params[companion+'_rsuma'] / (1. + params[companion+'_rr'])
-                params[companion+'_radius_2'] = params[companion+'_radius_1'] * params[companion+'_rr']
-            except:
-                params[companion+'_radius_1'] = None
-                params[companion+'_radius_2'] = None
+        try:
+            params[companion+'_radius_1'] = params[companion+'_rsuma'] / (1. + params[companion+'_rr'])
+            params[companion+'_radius_2'] = params[companion+'_radius_1'] * params[companion+'_rr']
+        except:
+            params[companion+'_radius_1'] = None
+            params[companion+'_radius_2'] = None
                 
                 
-    #::: limb darkening
+    #=========================================================================
+    #::: limb darkening, per instrument
+    #=========================================================================
     for inst in config.BASEMENT.settings['inst_all']:
         
+        #---------------------------------------------------------------------
         #::: host
+        #---------------------------------------------------------------------
         if config.BASEMENT.settings['host_ld_law_'+inst] is None:
             params['host_ldc_'+inst] = None
             
@@ -147,58 +136,69 @@ def update_params(theta):
             raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
     
     
+        #---------------------------------------------------------------------
         #::: companion
-        if config.BASEMENT.settings[companion+'_ld_law_'+inst] is None:
-            params[companion+'_ldc_'+inst] = None
+        #---------------------------------------------------------------------
+        for companion in config.BASEMENT.settings['companions_all']:
             
-        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'lin':
-            params[companion+'_ldc_'+inst] = params[companion+'_ldc_q1_'+inst]
-            
-        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'quad':
-            ldc_u1 = 2.*np.sqrt(params[companion+'_ldc_q1_'+inst]) * params[companion+'_ldc_q2_'+inst]
-            ldc_u2 = np.sqrt(params[companion+'_ldc_q1_'+inst]) * (1. - 2.*params[companion+'_ldc_q2_'+inst])
-            params[companion+'_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
-            
-        elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'sing':
-            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
-            
-        else:
-            print(config.BASEMENT.settings[companion+'_ld_law_'+inst] )
-            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+            if config.BASEMENT.settings[companion+'_ld_law_'+inst] is None:
+                params[companion+'_ldc_'+inst] = None
+                
+            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'lin':
+                params[companion+'_ldc_'+inst] = params[companion+'_ldc_q1_'+inst]
+                
+            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'quad':
+                ldc_u1 = 2.*np.sqrt(params[companion+'_ldc_q1_'+inst]) * params[companion+'_ldc_q2_'+inst]
+                ldc_u2 = np.sqrt(params[companion+'_ldc_q1_'+inst]) * (1. - 2.*params[companion+'_ldc_q2_'+inst])
+                params[companion+'_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
+                
+            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'sing':
+                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+                
+            else:
+                print(config.BASEMENT.settings[companion+'_ld_law_'+inst] )
+                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
     
     
-    #::: RV
-    for companion in config.BASEMENT.settings['companions_rv']:
-        for inst in config.BASEMENT.settings['inst_rv']:
-            
-            #::: errors
-            key='rv'
-            params['jitter_'+key+'_'+inst] = np.exp( params['log_jitter_'+key+'_'+inst] )
+    #=========================================================================
+    #::: photometric errors, per instrument
+    #=========================================================================
+    for inst in config.BASEMENT.settings['inst_phot']:
+        key='flux'
+        params['err_'+key+'_'+inst] = np.exp( params['log_err_'+key+'_'+inst] )
         
-    
-    #::: stellar density (in cgs units)
-    #::: Note: this assumes M_companion << M_star
-    if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
-        params['host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
-    else:
-        params['host_density'] = None
         
-    #::: semi-major axis and spots
+    #=========================================================================
+    #::: RV jitter, per instrument
+    #=========================================================================
+    for inst in config.BASEMENT.settings['inst_rv']:
+        key='rv'
+        params['jitter_'+key+'_'+inst] = np.exp( params['log_jitter_'+key+'_'+inst] )
+        
+        
+    #=========================================================================
+    #::: semi-major axes, per companion
+    #=========================================================================
+    for companion in config.BASEMENT.settings['companions_all']:
+        ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
+        try:
+            a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
+            params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
+        except:
+            params[companion+'_a'] = None
+        if params[companion+'_a'] == 0.:
+            params[companion+'_a'] = None
+               
+                
+    #=========================================================================
+    #::: stellar spots, per companion and instrument
+    #=========================================================================
     for companion in config.BASEMENT.settings['companions_all']:
         for inst in config.BASEMENT.settings['inst_all']:
             
-            #::: semi-major axis
-            #::: needs to be done for all companions in case the user fixes K
-            ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
-            try:
-                a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
-                params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
-            except:
-                params[companion+'_a'] = None
-            if params[companion+'_a'] == 0.:
-                params[companion+'_a'] = None
-               
+            #---------------------------------------------------------------------
             #::: host spots
+            #---------------------------------------------------------------------
             if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
                 params['host_spots_'+inst] = [
                                      [params['host_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
@@ -207,7 +207,9 @@ def update_params(theta):
                                      [params['host_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ]
                                     ]
         
+            #---------------------------------------------------------------------
             #::: companion spots
+            #---------------------------------------------------------------------
             if config.BASEMENT.settings[companion+'_N_spots_'+inst] > 0:
                 params[companion+'_spots_'+inst] = [
                                      [params[companion+'_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ],
@@ -217,13 +219,28 @@ def update_params(theta):
                                     ]
         
         
-    #::: deal with coupled params after updates
+    #=========================================================================
+    #::: host stellar density, per companion
+    #::: (in cgs units)
+    #::: via Seager & Mallen-Ornelas 2003 (see also Winn 2010, Eq. 30)
+    #::: this needs rr^3 := (R_companion/R_star)^3 --> 0 
+    #::: hence we here demand rr < 0.215443469, allowing a 1% erroneous contribution by the planet density).
+    #=========================================================================
+    for companion in config.BASEMENT.settings['companions_all']:
+        if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0) and (params[companion+'_rr'] < 0.215443469):
+            params[companion+'_host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
+        else:
+            params[companion+'_host_density'] = None
+            
+        
+    #=========================================================================
+    #::: lastly, deal with coupled params again after updates
+    #=========================================================================
     for i, key in enumerate(config.BASEMENT.allkeys):
         if isinstance(config.BASEMENT.coupled_with[i], str) and (len(config.BASEMENT.coupled_with[i])>0):
             params[key] = params[config.BASEMENT.coupled_with[i]]
             
             
-        
     return params
 
 
@@ -683,7 +700,7 @@ def rv_fct(params, inst, companion, xx=None):
 
 
 ###############################################################################
-#::: calculate external priors (e.g. stellar density)
+#::: calculate external priors (e.g. stellar density and eccentricity cutoff)
 ###############################################################################  
 def calculate_external_priors(params):
     '''
@@ -692,15 +709,22 @@ def calculate_external_priors(params):
     '''
     lnp = 0.        
     
-    if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params['host_density'] is not None):
-        b = config.BASEMENT.external_priors['host_density']
-        if b[0] == 'uniform':
-            if not (b[1] <= params['host_density'] <= b[2]): return -np.inf
-        elif b[0] == 'normal':
-            lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (params['host_density'] - b[1])**2 / (2.*b[2]**2) ) )
-        else:
-            raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
+    #::: stellar density prior
+    for companion in config.BASEMENT.settings['companions_all']:
+        if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params[companion+'_host_density'] is not None):
+            b = config.BASEMENT.external_priors['host_density']
+            if b[0] == 'uniform':
+                if not (b[1] <= params[companion+'_host_density'] <= b[2]): return -np.inf
+            elif b[0] == 'normal':
+                lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (params[companion+'_host_density'] - b[1])**2 / (2.*b[2]**2) ) )
+            else:
+                raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
     
+    #::: constrain eccentricities
+    for companion in config.BASEMENT.settings['companions_all']:
+        if (np.abs(params[companion+'_f_c']) > 0.7) or (np.abs(params[companion+'_f_s']) > 0.7):
+            lnp = -np.inf
+            
     return lnp
 
 
@@ -717,6 +741,19 @@ def calculate_lnlike_total(params):
 #    print('\ncalculating lnlike total')
     
     lnlike_total = 0
+    
+    #--------------------------------------------------------------------------  
+    #::: first, check and add external priors
+    #--------------------------------------------------------------------------  
+    lnprior_external = calculate_external_priors(params)   
+    lnlike_total += lnprior_external       
+    
+            
+    #--------------------------------------------------------------------------  
+    #::: directly catch any issues
+    #--------------------------------------------------------------------------  
+    if np.isnan(lnlike_total) or np.isinf(lnlike_total):
+        return -np.inf
     
     
     #--------------------------------------------------------------------------  
@@ -879,14 +916,7 @@ def calculate_lnlike_total(params):
                     
             
     #--------------------------------------------------------------------------  
-    #::: add external priors
-    #--------------------------------------------------------------------------  
-    lnprior_external = calculate_external_priors(params)   
-    lnlike_total += lnprior_external       
-    
-    
-    #--------------------------------------------------------------------------  
-    #::: catch any issues
+    #::: again, catch any issues
     #--------------------------------------------------------------------------  
     if np.isnan(lnlike_total) or np.isinf(lnlike_total):
         return -np.inf

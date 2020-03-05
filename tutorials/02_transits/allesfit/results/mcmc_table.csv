@@ -1,18 +1,13 @@
 #name,median,lower_error,upper_error,label,unit
 #Fitted parameters,,,
-b_rr,0.1037569226324436,0.002071157326007031,0.002357109015768938,$R_b / R_\star$,
-b_rsuma,0.10795068303359076,0.002653880933389946,0.005470799734010795,$(R_\star + R_b) / a_b$,
-b_cosi,0.019067192664807248,0.012950613387873237,0.01968718132326583,$\cos{i_b}$,
-b_epoch,14.700789779948884,0.0005841103795045655,0.0005702660345896504,$T_{0;b}$,$\mathrm{BJD}$
-b_period,3.3998354583949815,0.0002355618999780873,0.00023718566484731696,$P_b$,$\mathrm{d}$
+b_rr,0.10622965650569247,0.0021784991135660875,0.002122933881663819,$R_b / R_\star$,
+b_rsuma,0.11606911543836347,0.0012842913375891718,0.0013508174825086067,$(R_\star + R_b) / a_b$,
+b_cosi,0.029847999528877865,0.009758889015980116,0.007166533447936045,$\cos{i_b}$,
+b_epoch,14.700519030596695,0.0005818246360220769,0.0006042791871561093,$T_{0;b}$,BJD
+b_period,3.3998708431282925,0.00025458905993147596,0.00025827837419889477,$P_b$,d
 b_f_c,0.0,(fixed),(fixed),$\sqrt{e_b} \cos{\omega_b}$,
 b_f_s,0.0,(fixed),(fixed),$\sqrt{e_b} \sin{\omega_b}$,
-dil_Leonardo,0.0,(fixed),(fixed),$D_\mathrm{0; Leonardo}$,
-host_ldc_q1_Leonardo,0.30523518141353856,0.1819513389927664,0.32496239491037004,$q_{1; \mathrm{Leonardo}}$,
-host_ldc_q2_Leonardo,0.26853506797238613,0.18894440061905896,0.373456609534929,$q_{2; \mathrm{Leonardo}}$,
-b_sbratio_Leonardo,0.0,(fixed),(fixed),$J_{b; \mathrm{Leonardo}}$,
-host_geom_albedo_Leonardo,0.0,(fixed),(fixed),$A_{\mathrm{geom}; host; \mathrm{Leonardo}}$,
-b_geom_albedo_Leonardo,0.0,(fixed),(fixed),$A_{\mathrm{geom}; b; \mathrm{Leonardo}}$,
-host_gdc_Leonardo,0.0,(fixed),(fixed),$Grav. dark._{b; \mathrm{Leonardo}}$,
-log_err_flux_Leonardo,-6.146175638395602,0.042689173733788444,0.046494189564777244,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$
-baseline_offset_flux_Leonardo,0.0003138779550759354,0.00015638956929115265,0.00015195600229743022,$\mathrm{offset (Leonardo)}$,
+host_ldc_q1_Leonardo,0.48278173275078606,0.27511282691243255,0.33077381555461616,$q_{1; \mathrm{Leonardo}}$,
+host_ldc_q2_Leonardo,0.2004085716303812,0.13687354342510916,0.2746517281537194,$q_{2; \mathrm{Leonardo}}$,
+log_err_flux_Leonardo,-6.148310750141739,0.043207258580330254,0.044275194276354846,$\log{\sigma_\mathrm{Leonardo}}$,rel. flux
+baseline_offset_flux_Leonardo,0.00029921816578558857,0.00015504012956564842,0.0001570922950269425,$\mathrm{offset (Leonardo)}$,

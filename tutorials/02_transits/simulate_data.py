@@ -14,46 +14,29 @@ Email: maxgue@mit.edu
 Web: www.mnguenther.com
 """
 
-#::: plotting settings
-import seaborn as sns
-sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
-sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
-sns.set_context(rc={'lines.markeredgewidth': 1})
-
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt
 import ellc
 from pprint import pprint
 
+#::: my modules
+from allesfitter.generative_models import inject_lc_model
 
+#::: plotting settings
+import seaborn as sns
+sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
+sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
+sns.set_context(rc={'lines.markeredgewidth': 1})
+
+#::: seed
 np.random.seed(42)
 
 
 
-###############################################################################
-#::: params
-###############################################################################
-params = {
-          'b_radius_1':0.1,
-          'b_radius_2':0.01,
-          'b_sbratio':0.,
-          'b_incl':89.,
-          'b_epoch':1.1,
-          'b_period':3.4,
-          'b_K':0.1,
-          'b_q':1,
-          'ld_1_Leonardo':'quad',
-          'ldc_1_Leonardo':[0.6,0.2],
-         }
-a_1 = 0.019771142 * params['b_K'] * params['b_period']
-params['b_a'] = (1.+1./params['b_q'])*a_1
-pprint(params)
-
-
 
 ###############################################################################
-#::: "truth" signals
+#::: simulate data
 ###############################################################################
 planet = 'b'
 
@@ -61,18 +44,9 @@ inst = 'Leonardo'
 time_Leonardo = np.arange(0,27,5./60./24.)[::3]
 time_Leonardo = time_Leonardo[ (time_Leonardo<2) | (time_Leonardo>4) ] #add data gaps
 time_Leonardo = time_Leonardo[ (time_Leonardo<13) | (time_Leonardo>14) ] #add data gaps
-flux_Leonardo = ellc.lc(
-                      t_obs =       time_Leonardo, 
-                      radius_1 =    params[planet+'_radius_1'], 
-                      radius_2 =    params[planet+'_radius_2'], 
-                      sbratio =     params[planet+'_sbratio'],
-                      incl =        params[planet+'_incl'],
-                      t_zero =      params[planet+'_epoch'],
-                      period =      params[planet+'_period'],
-                      ld_1 =        params['ld_1_'+inst],
-                      ldc_1 =       params['ldc_1_'+inst]
-                      )
-flux_err_Leonardo = np.zeros_like(flux_Leonardo)
+
+flux_Leonardo = np.ones_like(time_Leonardo)
+flux_err_Leonardo = np.zeros_like(time_Leonardo)
 
 ind1 = np.where((time_Leonardo<20) | (time_Leonardo>23))[0]
 flux_Leonardo[ind1] += np.random.normal(0,2e-3,size=len(ind1)) #add white noise
@@ -83,6 +57,21 @@ flux_Leonardo[ind2] += np.random.normal(0,4e-3,size=len(ind2)) #add extra white 
 flux_err_Leonardo[ind2] = 4e-3*np.ones(len(ind2)) #white nosie error bars
 
 flux_Leonardo += 3e-4*np.sin(time_Leonardo/2.7) #add red noise
+
+flux_Leonardo = inject_lc_model(time_Leonardo, flux_Leonardo, flux_err_Leonardo, 
+                               epoch = 1.1, period = 3.4, 
+                               R_companion = 1., M_companion = 1.,
+                               R_companion_unit = 'Rjup', M_companion_unit = 'Mjup',
+                               R_host = 1., M_host = 1., 
+                               sbratio = 0.,
+                               incl = 89., 
+                               ecc = 0.,
+                               omega = 0.,
+                               dil = 0.,
+                               ldc = [0.6,0.2],
+                               ld = 'quad',
+                               show_plot = True, save_plot = True, fname_plot = 'Leonardo.pdf')
+
 header = 'time,flux,flux_err'
 X = np.column_stack(( time_Leonardo, flux_Leonardo, flux_err_Leonardo ))
 np.savetxt('allesfit/Leonardo.csv', X, delimiter=',', header=header)

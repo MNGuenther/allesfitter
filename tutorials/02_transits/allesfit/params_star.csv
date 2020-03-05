@@ -1,3 +1,3 @@
 #R_star,R_star_lerr,R_star_uerr,M_star,M_star_lerr,M_star_uerr,Teff_star,Teff_star_lerr,Teff_star_uerr
 #R_sun,R_sun,R_sun,M_sun,M_sun,M_sun,K,K,K
-0.38,0.02,0.02,0.4,0.02,0.02,3386,131,137
+1,0.01,0.01,1,0.01,0.01,5700,100,100

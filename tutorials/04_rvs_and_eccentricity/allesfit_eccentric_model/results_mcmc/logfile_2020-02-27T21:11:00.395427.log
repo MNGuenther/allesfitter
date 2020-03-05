@@ -1,0 +1,28 @@
+
+Convergence check:
+--------------------------
+Total steps:         6000      
+Burn steps:          1000      
+Evaluation steps:    5000                
+Evaluation samples:  50000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 b_epoch                        96.73838372877734    51.68579220858556   
+	 b_period                       87.00673307510996    57.46681691500438   
+	 b_K                            104.86214460562898   47.68164926250803   
+	 b_f_c                          90.75201232382737    55.095197031650024  
+	 b_f_s                          91.1875322500565     54.83205737259001   
+	 log_jitter_rv_Donatello        100.86612520561745   49.57065605333216   
+	 log_jitter_rv_Raphael          153.1301509586319    32.65196284793548   
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.jpg
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_eccentric_model/results 
+

@@ -1,0 +1,6 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$e_\mathrm{b}$ & $0.196\pm0.025$ & derived \\ 
+$w_\mathrm{b}$ (deg) & $73.9_{-9.9}^{+8.1}$ & derived \\ 

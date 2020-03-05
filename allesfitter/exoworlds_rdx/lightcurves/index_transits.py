@@ -50,12 +50,13 @@ def index_transits(time, epoch, period, width):
     """
     time = np.sort(time)
     epoch = get_first_epoch(time, epoch, period, width=width)
-    N = int( 1. * ( time[-1] - epoch ) / period ) + 2
-    
-    tmid = np.array( [ epoch + i * period for i in range(N) ] )
-    
-    _, ind_tr, mask_tr = mask_ranges( time, tmid - width/2., tmid + width/2. )
-    ind_out = np.arange( len(time) )[ ~mask_tr ]
+    try:
+        N = int( 1. * ( time[-1] - epoch ) / period ) + 2
+        tmid = np.array( [ epoch + i * period for i in range(N) ] )
+        _, ind_tr, mask_tr = mask_ranges( time, tmid - width/2., tmid + width/2. )
+        ind_out = np.arange( len(time) )[ ~mask_tr ]
+    except:
+        ind_tr, ind_out = slice(0), slice(None)
 
     return ind_tr, ind_out 
     

@@ -2,19 +2,14 @@ parameter & value & unit & fit/fixed \\
 \hline 
 \multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
 \hline 
-$R_b / R_\star$ & $0.1038_{-0.0021}^{+0.0024}$ & & fit \\ 
-$(R_\star + R_b) / a_b$ & $0.1080_{-0.0027}^{+0.0055}$ & & fit \\ 
-$\cos{i_b}$ & $0.019_{-0.013}^{+0.020}$ & & fit \\ 
-$T_{0;b}$ & $14.70079\pm0.00058$ & $\mathrm{BJD}$& fit \\ 
-$P_b$ & $3.39984\pm0.00024$ & $\mathrm{d}$& fit \\ 
+$R_b / R_\star$ & $0.1062\pm0.0022$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1161_{-0.0013}^{+0.0014}$ & & fit \\ 
+$\cos{i_b}$ & $0.0298_{-0.0098}^{+0.0072}$ & & fit \\ 
+$T_{0;b}$ & $14.70052\pm0.00060$ & BJD& fit \\ 
+$P_b$ & $3.39987\pm0.00026$ & d& fit \\ 
 $\sqrt{e_b} \cos{\omega_b}$ & $0.0$ & & fixed \\ 
 $\sqrt{e_b} \sin{\omega_b}$ & $0.0$ & & fixed \\ 
-$D_\mathrm{0; Leonardo}$ & $0.0$ & & fixed \\ 
-$q_{1; \mathrm{Leonardo}}$ & $0.31_{-0.18}^{+0.32}$ & & fit \\ 
-$q_{2; \mathrm{Leonardo}}$ & $0.27_{-0.19}^{+0.37}$ & & fit \\ 
-$J_{b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
-$A_{\mathrm{geom}; host; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
-$A_{\mathrm{geom}; b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
-$Grav. dark._{b; \mathrm{Leonardo}}$ & $0.0$ & & fixed \\ 
-$\log{\sigma_\mathrm{Leonardo}}$ & $-6.146_{-0.043}^{+0.046}$ & $\log{ \mathrm{rel. flux.} }$& fit \\ 
-$\mathrm{offset (Leonardo)}$ & $0.00031\pm0.00016$ & & fit \\ 
+$q_{1; \mathrm{Leonardo}}$ & $0.48_{-0.28}^{+0.33}$ & & fit \\ 
+$q_{2; \mathrm{Leonardo}}$ & $0.20_{-0.14}^{+0.27}$ & & fit \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.148\pm0.044$ & rel. flux& fit \\ 
+$\mathrm{offset (Leonardo)}$ & $0.00030\pm0.00016$ & & fit \\ 

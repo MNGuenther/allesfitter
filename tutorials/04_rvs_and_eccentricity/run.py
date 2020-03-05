@@ -47,9 +47,9 @@ uncomment whatever you want to run
 # allesfitter.mcmc_fit('allesfit_eccentric_model')
 # allesfitter.mcmc_output('allesfit_eccentric_model')
 
-# allesfitter.show_initial_guess('allesfit_eccentric_model')
-# allesfitter.ns_fit('allesfit_eccentric_model')
-# allesfitter.ns_output('allesfit_eccentric_model')
+allesfitter.show_initial_guess('allesfit_eccentric_model')
+allesfitter.ns_fit('allesfit_eccentric_model')
+allesfitter.ns_output('allesfit_eccentric_model')
 
 
 

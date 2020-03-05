@@ -1,0 +1,17 @@
+\newcommand{\bRstarovera}{$0.1049\pm0.0012$} %$R_\star/a_\mathrm{b}$ = 0.1049\pm0.0012
+\newcommand{\bRcompanionovera}{$0.01115\pm0.00028$} %$R_\mathrm{b}/a_\mathrm{b}$ = 0.01115\pm0.00028
+\newcommand{\bRcompanionRearth}{$11.59\pm0.26$} %$R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$) = 11.59\pm0.26
+\newcommand{\bRcompanionRjup}{$1.034\pm0.023$} %$R_\mathrm{b}$ ($\mathrm{R_{jup}}$) = 1.034\pm0.023
+\newcommand{\baRsun}{$9.53\pm0.14$} %$a_\mathrm{b}$ ($\mathrm{R_{\odot}}$) = 9.53\pm0.14
+\newcommand{\baAU}{$0.04432\pm0.00066$} %$a_\mathrm{b}$ (AU) = 0.04432\pm0.00066
+\newcommand{\bi}{$88.29_{-0.41}^{+0.56}$} %$i_\mathrm{b}$ (deg) = 88.29_{-0.41}^{+0.56}
+\newcommand{\bbtra}{$0.285_{-0.093}^{+0.067}$} %$b_\mathrm{tra;b}$ = 0.285_{-0.093}^{+0.067}
+\newcommand{\bTtratot}{$2.922\pm0.043$} %$T_\mathrm{tot;b}$ (h) = 2.922\pm0.043
+\newcommand{\bTtrafull}{$2.314\pm0.066$} %$T_\mathrm{full;b}$ (h) = 2.314\pm0.066
+\newcommand{\bhostdensity}{$1.416\pm0.047$} %$rho_\mathrm{\star;b}$ (cgs) = 1.416\pm0.047
+\newcommand{\bTeq}{$1194\pm22$} %$T_\mathrm{eq;b}$ (K) = 1194\pm22
+\newcommand{\bdepthtrundilutedLeonardo}{$13.23\pm0.34$} %$\delta_\mathrm{tr; undil; b; Leonardo}$ (ppt) = 13.23\pm0.34
+\newcommand{\bdepthtrdilutedLeonardo}{$13.23\pm0.34$} %$\delta_\mathrm{tr; dil; b; Leonardo}$ (ppt) = 13.23\pm0.34
+\newcommand{\hostldcuoneLeonardo}{$0.28_{-0.18}^{+0.22}$} %Limb darkening $u_\mathrm{1; Leonardo}$ = 0.28_{-0.18}^{+0.22}
+\newcommand{\hostldcutwoLeonardo}{$0.41_{-0.39}^{+0.31}$} %Limb darkening $u_\mathrm{2; Leonardo}$ = 0.41_{-0.39}^{+0.31}
+\newcommand{\combinedhostdensity}{$1.416\pm0.047$} %$rho_\mathrm{\star; combined}$ (cgs) = 1.416\pm0.047

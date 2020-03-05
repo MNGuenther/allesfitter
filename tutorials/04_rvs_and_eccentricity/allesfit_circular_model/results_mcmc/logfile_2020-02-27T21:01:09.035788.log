@@ -1,0 +1,24 @@
+
+Convergence check:
+--------------------------
+Total steps:         3000      
+Burn steps:          1000      
+Evaluation steps:    2000                
+Evaluation samples:  20000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 b_epoch                        47.80348945782961    41.83794996313653   
+	 b_period                       45.55248329497935    43.9053999986963    
+	 b_K                            45.455327954761835   43.99924255283      
+	 log_jitter_rv_Donatello        47.80091593534368    41.840202449367986  
+	 log_jitter_rv_Raphael          45.7443316250825     43.72126401128487   
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+No values available to be derived.
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_circular_model/results 
+

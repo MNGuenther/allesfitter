@@ -319,19 +319,26 @@ class Basement():
         #::: Phase variations
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if ('phase_variations' in self.settings.keys()) and len(self.settings['phase_variations']):
-            self.settings['phase_variations'] = set_bool(self.settings['phase_variations'])
-            if self.settings['phase_variations']==True:                
-                self.logprint('The user set phase_variations==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
+            warnings.warn('\nDeprecation warning. You are using outdated keywords. Automatically renaming "phase_variations" ---> "phase_curve".\n')
+            self.settings['phase_curve'] = self.settings['phase_variations']
+            
+        if ('phase_curve' in self.settings.keys()) and len(self.settings['phase_curve']):
+            self.settings['phase_curve'] = set_bool(self.settings['phase_curve'])
+            if self.settings['phase_curve']==True:                
+                self.logprint('The user set phase_curve==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
                 self.settings['fast_fit'] = 'False'
                 self.settings['secondary_eclipse'] = 'True'
         else:
-            self.settings['phase_variations'] = False
+            self.settings['phase_curve'] = False
             
             
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Fast fit
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        self.settings['fast_fit'] = set_bool(self.settings['fast_fit'])
+        if ('fast_fit' in self.settings.keys()) and len(self.settings['fast_fit']):
+            self.settings['fast_fit'] = set_bool(self.settings['fast_fit'])
+        else:
+            self.settings['fast_fit'] = False
         
         if ('fast_fit_width' in self.settings.keys()) and len(self.settings['fast_fit_width']):
             self.settings['fast_fit_width'] = np.float(self.settings['fast_fit_width'])
@@ -387,6 +394,19 @@ class Basement():
         for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
         
+        # N_evaluation_samples = int( 1. * self.settings['mcmc_nwalkers'] * (self.settings['mcmc_total_steps']-self.settings['mcmc_burn_steps']) / self.settings['mcmc_thin_by'] )
+        # self.logprint('\nAnticipating ' + str(N_evaluation_samples) + 'MCMC evaluation samples.\n')
+        # if N_evaluation_samples>200000:
+        #     answer = input('It seems like you are asking for ' + str(N_evaluation_samples) + 'MCMC evaluation samples (calculated as mcmc_nwalkers * (mcmc_total_steps-mcmc_burn_steps) / mcmc_thin_by).'+\
+        #                    'That is an aweful lot of samples.'+\
+        #                    'What do you want to do?\n'+\
+        #                    '1 : continue at any sacrifice\n'+\
+        #                    '2 : abort and increase the mcmc_thin_by parameter in settings.csv (do not do this if you continued an old run!)\n')
+        #     if answer==1: 
+        #         pass
+        #     else:
+        #         raise ValueError('User aborted the run.')
+
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Nested Sampling settings
@@ -641,7 +661,9 @@ class Basement():
     
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,encoding='utf-8',names=True)
         
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: make backwards compatible
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for i, name in enumerate(np.atleast_1d(buf['name'])):
             if name[:7]=='light_3':
                 buf['name'][i] = 'dil_'+name[8:]
@@ -650,7 +672,9 @@ class Basement():
             if name[:3]=='ldc':
                 buf['name'][i] = 'host_'+name
                 
-        #::: proceed...                    
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: proceed...      
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::              
         self.allkeys = np.atleast_1d(buf['name']) #len(all rows in params.csv)
         self.labels = np.atleast_1d(buf['label']) #len(all rows in params.csv)
         self.units = np.atleast_1d(buf['unit'])   #len(all rows in params.csv)
@@ -670,7 +694,10 @@ class Basement():
             else:
                 self.params[key] = np.atleast_1d(buf['value'])[i]
                 
+                
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: automatically set default params if they were not given
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.params['automatically set:'] = ''                                 #just for printing
         for companion in self.settings['companions_all']:
             for inst in self.settings['inst_all']:
@@ -800,6 +827,15 @@ class Basement():
                         self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
               
                 
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: luser proof: avoid crazy eccentricities that crash ellc
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                if np.abs(self.params[companion+'_f_c']) > 0.7:
+                    raise ValueError(companion+'_f_c is '+str(self.params[companion+'_f_c'])+', but needs to lie within [-0.9,0.9]')
+                if np.abs(self.params[companion+'_f_s']) > 0.7:
+                    raise ValueError(companion+'_f_s is '+str(self.params[companion+'_f_s'])+', but needs to lie within [-0.9,0.9]')
+                    
+                    
        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: baseline_gp backwards compatability:
@@ -816,7 +852,9 @@ class Basement():
         
         
         
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: coupled params
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if 'coupled_with' in buf.dtype.names:
             self.coupled_with = buf['coupled_with']
         else:
@@ -824,7 +862,9 @@ class Basement():
             
             
             
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: deal with coupled params
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for i, key in enumerate(self.allkeys):
             if isinstance(self.coupled_with[i], str) and (len(self.coupled_with[i])>0):
                 self.params[key] = self.params[self.coupled_with[i]]           #luser proof: automatically set the values of the params coupled to another param
@@ -832,7 +872,9 @@ class Basement():
         
         
         
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: mark to be fitted params
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.ind_fit = (buf['fit']==1)                  #len(all rows in params.csv)
         
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)
@@ -859,9 +901,26 @@ class Basement():
 
     
     
-        #::: check if all initial guess lie within their bounds
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: luser proof: check if all initial guesses lie within their bounds
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for th, b, key in zip(self.theta_0, self.bounds, self.fitkeys):
             
+            #::: luser proof: avoid crazy uniform eccentricity bounds that crash ellc
+            if ('_f_c' in key) and (b[0] == 'uniform') and ((b[1] < -0.7) or (b[2] > 0.7)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+            if ('_f_s' in key) and (b[0] == 'uniform') and ((b[1] < -0.7) or (b[2] > 0.7)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+            if ('_f_c' in key) and (b[0] == 'normal'):
+                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.7, 0.7]')
+            if ('_f_s' in key) and (b[0] == 'normal'):
+                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.7, 0.7]')
+            if ('_f_c' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.7) or (b[2] > 0.7)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+            if ('_f_s' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.7) or (b[2] > 0.7)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+                                                
+            #:::: test bounds
             if (b[0] == 'uniform') and not (b[1] <= th <= b[2]): 
                 raise ValueError('The initial guess for '+key+' lies outside of its bounds.')
                 

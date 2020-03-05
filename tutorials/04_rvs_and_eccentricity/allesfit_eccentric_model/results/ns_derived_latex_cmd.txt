@@ -1,0 +1,2 @@
+\newcommand{\be}{$0.196\pm0.025$} %$e_\mathrm{b}$ = 0.196\pm0.025
+\newcommand{\bw}{$73.9_{-9.9}^{+8.1}$} %$w_\mathrm{b}$ (deg) = 73.9_{-9.9}^{+8.1}

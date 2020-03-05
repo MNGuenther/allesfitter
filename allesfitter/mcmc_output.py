@@ -218,13 +218,36 @@ def print_autocorr(sampler):
     logprint('{0: <20}'.format('Burn steps:'),         '{0: <10}'.format(config.BASEMENT.settings['mcmc_burn_steps']))
     logprint('{0: <20}'.format('Evaluation steps:'),   '{0: <20}'.format(config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']))
     
+    N_evaluation_samples = int( 1. * config.BASEMENT.settings['mcmc_nwalkers'] * (config.BASEMENT.settings['mcmc_total_steps']-config.BASEMENT.settings['mcmc_burn_steps']) / config.BASEMENT.settings['mcmc_thin_by'] )
+    logprint('{0: <20}'.format('Evaluation samples:'),   '{0: <20}'.format(N_evaluation_samples))
+     
+    # if N_evaluation_samples>200000:
+    #     answer = input('It seems like you are asking for ' + str(N_evaluation_samples) + 'MCMC evaluation samples (calculated as mcmc_nwalkers * (mcmc_total_steps-mcmc_burn_steps) / mcmc_thin_by).'+\
+    #                     'That is an aweful lot of samples.'+\
+    #                     'What do you want to do?\n'+\
+    #                     '1 : continue at any sacrifice\n'+\
+    #                     '2 : abort and increase the mcmc_thin_by parameter in settings.csv (do not do this if you continued an old run!)\n')
+    #     if answer==1: 
+    #         pass
+    #     else:
+    #         raise ValueError('User aborted the run.')
+
+
     discard=int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'])
     tau = sampler.get_autocorr_time(discard=discard, c=5, tol=10, quiet=True)*config.BASEMENT.settings['mcmc_thin_by']
     logprint('Autocorrelation times:')
     logprint('\t', '{0: <30}'.format('parameter'), '{0: <20}'.format('tau (in steps)'), '{0: <20}'.format('Chain length (in multiples of tau)'))
+    converged = True
     for i, key in enumerate(config.BASEMENT.fitkeys):
-        logprint('\t', '{0: <30}'.format(key), '{0: <20}'.format(tau[i]), '{0: <20}'.format((config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']) / tau[i]))
-        
+        chain_length = ((config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']) / tau[i])
+        logprint('\t', '{0: <30}'.format(key), '{0: <20}'.format(tau[i]), '{0: <20}'.format(chain_length))
+        if chain_length < 30:
+            converged = False
+            
+    if converged:
+        logprint('\nSuccesfully converged! All chains are at least 30x the autocorrelation length.\n', typ='success')
+    else:
+        logprint('\nNot yet converged! Some chains are less than 30x the autocorrelation length. Please continue to run with longer chains, or start again with more walkers.\n', typ='failure')
         
 
 ###############################################################################
@@ -248,7 +271,7 @@ def mcmc_output(datadir):
     
     
     #::: security check
-    if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_fit.pdf')):
+    if os.path.exists(os.path.join(config.BASEMENT.outdir,'mcmc_table.csv')):
         try:
             overwrite = str(input('MCMC output files already exists in '+config.BASEMENT.outdir+'.\n'+\
                                   'What do you want to do?\n'+\
@@ -315,26 +338,22 @@ def mcmc_output(datadir):
     save_table(posterior_samples, 'mcmc')
     save_latex_table(posterior_samples, 'mcmc')
     
-    
     #::: derive values (using stellar parameters from params_star.csv)
-    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-        deriver.derive(posterior_samples, 'mcmc')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+    # if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    deriver.derive(posterior_samples, 'mcmc')
+    # else:
+    #     print('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
-    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    try:
         params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
         params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
-        try:
-            fig, ax = plot_top_down_view(params_median, params_star)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
-            plt.close(fig)        
-        except:
-            warnings.warn('Orbital plots could not be produced.')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+        fig, ax = plot_top_down_view(params_median, params_star)
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+        plt.close(fig)        
+    except:
+        logprint('\nOrbital plots could not be produced.')
         
         
     #::: plot TTV results (if wished for)
@@ -345,7 +364,7 @@ def mcmc_output(datadir):
     #::: clean up and delete the tmp file
     os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
     
-    logprint('Done. For all outputs, see', config.BASEMENT.outdir)
+    logprint('\nDone. For all outputs, see', config.BASEMENT.outdir, '\n', typ='success')
     
     
     #::: return a nerdy quote

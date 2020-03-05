@@ -2,8 +2,8 @@ parameter & value & unit & fit/fixed \\
 \hline 
 \multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
 \hline 
-$T_{0;b}$ & $52.135\pm0.034$ & BJD& fit \\ 
-$P_b$ & $3.401_{-0.011}^{+0.012}$ & d& fit \\ 
-$K_b$ & $0.0955\pm0.0054$ & km/s& fit \\ 
-$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$ & $-4.21_{-0.36}^{+0.30}$ & km/s& fit \\ 
-$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$ & $-4.07_{-0.30}^{+0.34}$ & km/s& fit \\ 
+$T_{0;b}$ & $52.134\pm0.034$ & BJD& fit \\ 
+$P_b$ & $3.401\pm0.012$ & d& fit \\ 
+$K_b$ & $0.0954\pm0.0054$ & km/s& fit \\ 
+$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Donatello})$ & $-4.21_{-0.34}^{+0.31}$ & km/s& fit \\ 
+$\ln{\sigma_\mathrm{jitter}} (RV_\mathrm{Raphael})$ & $-4.06_{-0.29}^{+0.34}$ & km/s& fit \\ 

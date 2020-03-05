@@ -1,0 +1,21 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$R_\star/a_\mathrm{b}$ & $0.1049\pm0.0012$ & derived \\ 
+$R_\mathrm{b}/a_\mathrm{b}$ & $0.01115\pm0.00028$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$) & $11.59\pm0.26$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{jup}}$) & $1.034\pm0.023$ & derived \\ 
+$a_\mathrm{b}$ ($\mathrm{R_{\odot}}$) & $9.53\pm0.14$ & derived \\ 
+$a_\mathrm{b}$ (AU) & $0.04432\pm0.00066$ & derived \\ 
+$i_\mathrm{b}$ (deg) & $88.29_{-0.41}^{+0.56}$ & derived \\ 
+$b_\mathrm{tra;b}$ & $0.285_{-0.093}^{+0.067}$ & derived \\ 
+$T_\mathrm{tot;b}$ (h) & $2.922\pm0.043$ & derived \\ 
+$T_\mathrm{full;b}$ (h) & $2.314\pm0.066$ & derived \\ 
+$rho_\mathrm{\star;b}$ (cgs) & $1.416\pm0.047$ & derived \\ 
+$T_\mathrm{eq;b}$ (K) & $1194\pm22$ & derived \\ 
+$\delta_\mathrm{tr; undil; b; Leonardo}$ (ppt) & $13.23\pm0.34$ & derived \\ 
+$\delta_\mathrm{tr; dil; b; Leonardo}$ (ppt) & $13.23\pm0.34$ & derived \\ 
+Limb darkening $u_\mathrm{1; Leonardo}$ & $0.28_{-0.18}^{+0.22}$ & derived \\ 
+Limb darkening $u_\mathrm{2; Leonardo}$ & $0.41_{-0.39}^{+0.31}$ & derived \\ 
+$rho_\mathrm{\star; combined}$ (cgs) & $1.416\pm0.047$ & derived \\ 

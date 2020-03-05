@@ -43,14 +43,35 @@ from .computer import update_params,\
 from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
 from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
                     
-                     
+                    
+ 
                      
 ###############################################################################
 #::: print function that prints into console and logfile at the same time
 ############################################################################### 
-def logprint(*text):
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    
+def logprint(*text, typ='default'):
     if config.BASEMENT.settings['print_progress']:
-        print(*text)
+        if typ=='default':
+            print(*text)
+        elif typ=='success':
+            fulltext = ' '.join([str(t) for t in text])
+            print(bcolors.OKGREEN + fulltext + bcolors.ENDC)
+        elif typ=='warning':
+            fulltext = ' '.join([str(t) for t in text])
+            print(bcolors.WARNING + fulltext + bcolors.ENDC)
+        elif typ=='failure':
+            fulltext = ' '.join([str(t) for t in text])
+            print(bcolors.FAIL + fulltext + bcolors.ENDC)
     original = sys.stdout
     try:
         with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:
@@ -261,9 +282,9 @@ def afplot(samples, companion):
     if 'do_not_phase_fold' in config.BASEMENT.settings and config.BASEMENT.settings['do_not_phase_fold']:
         fig, axes = plt.subplots(N_inst,1,figsize=(6*1,4*N_inst))
         styles = ['full']
-    elif config.BASEMENT.settings['phase_variations']:
+    elif config.BASEMENT.settings['phase_curve']:
         fig, axes = plt.subplots(N_inst,5,figsize=(6*5,4*N_inst))
-        styles = ['full','phase','phase_variation','phasezoom','phasezoom_occ']
+        styles = ['full','phase','phase_curve','phasezoom','phasezoom_occ']
     elif config.BASEMENT.settings['secondary_eclipse']:
         fig, axes = plt.subplots(N_inst,4,figsize=(6*4,4*N_inst))
         styles = ['full','phase','phasezoom','phasezoom_occ']
@@ -314,8 +335,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         None or 'b'/'c'/etc.
         
     style:
-        'full' / 'per_transit' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_variation'
-        'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_variation_residuals'
+        'full' / 'per_transit' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_curve'
+        'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_curve_residuals'
         
     timelabel:
         'Time' / 'Time_since'
@@ -339,18 +360,18 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         baseline_plus = 1.
         if style in ['full']:
             ylabel='Relative Flux'
-        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
             ylabel='Relative Flux - Baseline'
-        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
             ylabel='Residuals'
     elif inst in base.settings['inst_rv']:
         key='rv'
         baseline_plus = 0.
         if style in ['full']:
             ylabel='RV (km/s)'
-        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
             ylabel='RV (km/s) - Baseline'
-        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
             ylabel='Residuals'
         
     else:
@@ -453,8 +474,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
     # plot each phase-folded model (without baseline)
     # Note: this is not ideal, as we overplot models with different epochs/periods/baselines onto a phase-folded plot
     #==========================================================================
-    elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations',
-                   'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+    elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve',
+                   'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
         
         #::: data - baseline_median
         x = 1.*base.data[inst]['time']
@@ -486,7 +507,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             
             
             #::: calculate residuals (if wished)
-            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
                 model = rv_fct(params_median, inst, companion)[0]
                 y -= model
                 
@@ -502,7 +523,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
     
     
             #::: plot model, phased (if wished)
-            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
                 xx = np.linspace( -0.25, 0.75, 1000)
                 xx2 = params_median[companion+'_epoch']+np.linspace( -0.25, 0.75, 1000)*params_median[companion+'_period']
                 for i in range(samples.shape[0]):
@@ -526,7 +547,7 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                     
                     
             #::: calculate residuals (if wished)
-            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_variations_residuals']:
+            if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
                 model = flux_fct(params_median, inst, companion)
                 y -= model
                     
@@ -535,8 +556,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             if style in ['phase', 
                          'phase_residuals']:
                 dt = 0.002
-            elif style in ['phase_variations', 
-                           'phase_variations_residuals']:
+            elif style in ['phase_curve', 
+                           'phase_curve_residuals']:
                 dt = 0.01            
             elif style in ['phasezoom', 'phasezoom_occ', 
                            'phasezoom_residuals', 'phasezoom_occ_residuals']: 
@@ -544,8 +565,8 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                if style in ['phase_variations', 
-                             'phase_variations_residuals']:
+                if style in ['phase_curve', 
+                             'phase_curve_residuals']:
                     ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=color, rasterized=rasterized, zorder=11 )                    
                 else: 
                     ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
@@ -558,18 +579,20 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
     
     
             #::: plot model, phased (if wished)
-            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_variations']:
+            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
                 
-                if style in ['phase', 'phase_variations']:
-                    xx = np.linspace( -0.25, 0.75, 1000)
-                    xx2 = params_median[companion+'_epoch'] + np.linspace( -0.25, 0.75, 1000)*params_median[companion+'_period']
+                if style in ['phase', 'phase_curve']:
+                    xx = np.linspace(-0.25, 0.75, 1000)
+                    xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
                 elif style in ['phasezoom']:
                     xx = np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)
-                    xx2 = params_median[companion+'_epoch'] + np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)*params_median[companion+'_period']
+                    xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
                 elif style in ['phasezoom_occ']:
-                    
-                    xx = np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)
-                    xx2 = params_median[companion+'_epoch'] + np.linspace( (-10.+zoomfactor/2.)/zoomfactor, (10.+zoomfactor/2.)/zoomfactor, 1000)*params_median[companion+'_period']
+                    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
+                    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
+                    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
+                    xx = np.linspace( -10./zoomfactor + phase_shift, 10./zoomfactor + phase_shift, 1000 )
+                    xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
     
                 for i in range(samples.shape[0]):
                     s = samples[i,:]
@@ -579,21 +602,23 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                     ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         
-        #::: x-zoom?        
+        #::: x-zoom?
         if style in ['phasezoom',
                      'phasezoom_residuals']:
                 ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         elif style in ['phasezoom_occ',
                        'phasezoom_occ_residuals']:
-                ax.set( xlim=[-4+zoomfactor/2.,4+zoomfactor/2.], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+                xlower = -4 + phase_shift*params_median[companion+'_period']*24.
+                xupper = 4 + phase_shift*params_median[companion+'_period']*24.
+                ax.set( xlim=[xlower, xupper], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         
         
         #::: y-zoom onto phase variations
         elif style in ['phasezoom_occ']:
                 ax.set( ylim=[0.999,1.0005] )
        
-        if style in ['phase_variation', 
-                     'phase_variation_residuals']:
+        if style in ['phase_curve', 
+                     'phase_curve_residuals']:
                 ax.set( ylim=[0.9999,1.0001] )
 
 

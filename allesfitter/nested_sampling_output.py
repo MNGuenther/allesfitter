@@ -113,7 +113,7 @@ def ns_output(datadir):
     results = pickle.load(f)
     f.close()
            
-        
+    '''    
     #::: plot the fit        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
     for companion in config.BASEMENT.settings['companions_all']:
@@ -129,7 +129,7 @@ def ns_output(datadir):
             fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
             fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
-            
+    '''        
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
@@ -144,7 +144,7 @@ def ns_output(datadir):
     logprint('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
     logprint('Nr. of posterior samples: {}'.format(len(posterior_samples)))
     
-    
+    '''
     #::: make pretty titles for the plots  
     labels, units = [], []
     for i,l in enumerate(config.BASEMENT.fitlabels):
@@ -250,26 +250,20 @@ def ns_output(datadir):
     #::: save the tables
     save_table(posterior_samples, 'ns')
     save_latex_table(posterior_samples, 'ns')
-    
+    '''
 
     #::: derive values (using stellar parameters from params_star.csv)
-    if os.path.exists(os.path.join(config.BASEMENT.datadir,'params_star.csv')):
-        deriver.derive(posterior_samples, 'ns')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+    deriver.derive(posterior_samples, 'ns')
    
     
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
-    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    try:
         params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
-        try:
-            fig, ax = plot_top_down_view(params_median, params_star)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
-            plt.close(fig)        
-        except:
-            warnings.warn('Orbital plots could not be produced.')
-    else:
-        print('File "params_star.csv" not found. Cannot derive final parameters.')
+        fig, ax = plot_top_down_view(params_median, params_star)
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )
+        plt.close(fig)        
+    except:
+        logprint('\nOrbital plots could not be produced.')
     
     
     #::: plot TTV results (if wished for)
@@ -278,7 +272,7 @@ def ns_output(datadir):
     
     
     #::: clean up
-    logprint('Done. For all outputs, see', config.BASEMENT.outdir)
+    logprint('\nDone. For all outputs, see', config.BASEMENT.outdir)
     
     
     #::: return a nerdy quote
