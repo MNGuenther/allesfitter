@@ -226,7 +226,7 @@ def update_params(theta):
     #::: this needs rr^3 := (R_companion/R_star)^3 --> 0 
     #::: hence we here demand rr < 0.215443469, allowing a 1% erroneous contribution by the planet density).
     #=========================================================================
-    for companion in config.BASEMENT.settings['companions_all']:
+    for companion in config.BASEMENT.settings['companions_phot']:
         if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0) and (params[companion+'_rr'] < 0.215443469):
             params[companion+'_host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
         else:
@@ -710,7 +710,7 @@ def calculate_external_priors(params):
     lnp = 0.        
     
     #::: stellar density prior
-    for companion in config.BASEMENT.settings['companions_all']:
+    for companion in config.BASEMENT.settings['companions_phot']:
         if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params[companion+'_host_density'] is not None):
             b = config.BASEMENT.external_priors['host_density']
             if b[0] == 'uniform':
@@ -722,7 +722,7 @@ def calculate_external_priors(params):
     
     #::: constrain eccentricities
     for companion in config.BASEMENT.settings['companions_all']:
-        if (np.abs(params[companion+'_f_c']) > 0.7) or (np.abs(params[companion+'_f_s']) > 0.7):
+        if (np.abs(params[companion+'_f_c']) > 0.9) or (np.abs(params[companion+'_f_s']) > 0.9):
             lnp = -np.inf
             
     return lnp

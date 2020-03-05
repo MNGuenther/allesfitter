@@ -143,15 +143,14 @@ def plot_MCMC_corner(sampler):
     params_median, params_ll, params_ul = get_params_from_samples(samples)
     params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()
     fittruths2 = config.BASEMENT.fittruths.copy()
-    
+
     #::: make pretty titles for the corner plot  
     labels, units = [], []
     for i,l in enumerate(config.BASEMENT.fitlabels):
         labels.append( str(config.BASEMENT.fitlabels[i]) )
         units.append( str(config.BASEMENT.fitunits[i]) )
-        
+    
     for companion in config.BASEMENT.settings['companions_all']:
-        
         if companion+'_epoch' in config.BASEMENT.fitkeys:
             ind = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
             samples[:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
@@ -164,13 +163,14 @@ def plot_MCMC_corner(sampler):
             labels[i] = str(labels[i]+' ('+units[i]+')')
         
     #::: corner plot
+    fontsize = np.min(( 24. + 0.5*config.BASEMENT.ndim, 40 ))
     fig = corner(samples, 
                  labels = labels,
                  range = [0.999]*config.BASEMENT.ndim,
                  quantiles=[0.15865, 0.5, 0.84135],
                  show_titles=False, 
                  #title_kwargs={"fontsize": 14},
-                 label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'},
+                 label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'},
                  max_n_ticks=3,
                  truths=fittruths2)
     caxes = np.reshape(np.array(fig.axes), (config.BASEMENT.ndim,config.BASEMENT.ndim))
@@ -182,7 +182,7 @@ def plot_MCMC_corner(sampler):
         ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
         if len(config.BASEMENT.fitkeys)>1:
             # caxes[i,i].set_title(ctitle)
-            caxes[i,i].set_title(ctitle, fontsize=32, rotation=45, horizontalalignment='left')
+            caxes[i,i].set_title(ctitle, fontsize=fontsize, rotation=45, horizontalalignment='left')
             for i in range(caxes.shape[0]):
                 for j in range(caxes.shape[1]):
                     caxes[i,j].xaxis.set_label_coords(0.5, -0.5)

@@ -1,0 +1,30 @@
+
+Convergence check:
+--------------------------
+Total steps:         6000      
+Burn steps:          1000      
+Evaluation steps:    5000                
+Evaluation samples:  50000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 b_rr                           135.62194038188042   36.86719114857922   
+	 b_rsuma                        107.94617521859388   46.31938083841199   
+	 b_cosi                         141.76676675619402   35.2691968252252    
+	 b_epoch                        112.51817418646823   44.43726567864372   
+	 b_period                       108.14058486708844   46.23611020918108   
+	 host_ldc_q1_Leonardo           151.3529162420261    33.035372717923565  
+	 host_ldc_q2_Leonardo           148.5807843422509    33.65172705295906   
+	 log_err_flux_Leonardo          111.3826564283641    44.89029226211494   
+	 baseline_offset_flux_Leonardo  109.80516526398632   45.53519853077339   
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+Leonardo b: deriving eclipse depths and more from model curves...
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.jpg
+
+Done. For all outputs, see allesfit/results 
+

@@ -113,7 +113,7 @@ def ns_output(datadir):
     results = pickle.load(f)
     f.close()
            
-    '''    
+    
     #::: plot the fit        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
     for companion in config.BASEMENT.settings['companions_all']:
@@ -129,7 +129,7 @@ def ns_output(datadir):
             fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
             fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
-    '''        
+          
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
@@ -144,7 +144,7 @@ def ns_output(datadir):
     logprint('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
     logprint('Nr. of posterior samples: {}'.format(len(posterior_samples)))
     
-    '''
+    
     #::: make pretty titles for the plots  
     labels, units = [], []
     for i,l in enumerate(config.BASEMENT.fitlabels):
@@ -176,35 +176,16 @@ def ns_output(datadir):
     
     
     #::: cornerplot
-    ndim = results2['samples'].shape[1]
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(ndim)], quantiles=[0.16, 0.5, 0.84], truths=fittruths2, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
-                                    label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'})
+    # ndim = results2['samples'].shape[1]
+    fontsize = np.min(( 24. + 0.5*config.BASEMENT.ndim, 40 ))
+    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(config.BASEMENT.ndim)], quantiles=[0.16, 0.5, 0.84], truths=fittruths2, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
+                                    label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'})
 
 
     #::: runplot
 #    rfig, raxes = dyplot.runplot(results)
 #    rfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_run.jpg'), dpi=100, bbox_inches='tight' )
 #    plt.close(rfig)
-    
-
-    #::: set allesfitter titles (OLD)
-    # for i, key in enumerate(config.BASEMENT.fitkeys): 
-        
-    #     value = round_tex(params_median2[key], params_ll2[key], params_ul2[key])
-    #     ttitle = r'' + labels[i] + r'$=' + value + '$'
-    #     ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
-    #     if len(config.BASEMENT.fitkeys)>1:
-    #         caxes[i,i].set_title(ctitle)
-    #         taxes[i,1].set_title(ttitle)
-    #         for i in range(caxes.shape[0]):
-    #             for j in range(caxes.shape[1]):
-    #                 caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
-    #                 caxes[i,j].yaxis.set_label_coords(-0.5, 0.5)
-    #     else:
-    #         caxes.set_title(ctitle)
-    #         taxes[1].set_title(ttitle)
-    #         caxes.xaxis.set_label_coords(0.5, -0.5)
-    #         caxes.yaxis.set_label_coords(-0.5, 0.5)
     
     
     #::: set allesfitter titles and labels
@@ -215,7 +196,7 @@ def ns_output(datadir):
         ttitle = r'' + labels[i] + r'$=' + value + '$'
         if len(config.BASEMENT.fitkeys)>1:
             # caxes[i,i].set_title(ctitle)
-            caxes[i,i].set_title(ctitle, fontsize=32, rotation=45, horizontalalignment='left')
+            caxes[i,i].set_title(ctitle, fontsize=fontsize, rotation=45, horizontalalignment='left')
             taxes[i,1].set_title(ttitle)
             for i in range(caxes.shape[0]):
                 for j in range(caxes.shape[1]):
@@ -250,7 +231,7 @@ def ns_output(datadir):
     #::: save the tables
     save_table(posterior_samples, 'ns')
     save_latex_table(posterior_samples, 'ns')
-    '''
+    
 
     #::: derive values (using stellar parameters from params_star.csv)
     deriver.derive(posterior_samples, 'ns')

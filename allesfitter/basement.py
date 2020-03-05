@@ -907,18 +907,18 @@ class Basement():
         for th, b, key in zip(self.theta_0, self.bounds, self.fitkeys):
             
             #::: luser proof: avoid crazy uniform eccentricity bounds that crash ellc
-            if ('_f_c' in key) and (b[0] == 'uniform') and ((b[1] < -0.7) or (b[2] > 0.7)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
-            if ('_f_s' in key) and (b[0] == 'uniform') and ((b[1] < -0.7) or (b[2] > 0.7)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+            if ('_f_c' in key) and (b[0] == 'uniform') and ((b[1] < -0.9) or (b[2] > 0.9)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
+            if ('_f_s' in key) and (b[0] == 'uniform') and ((b[1] < -0.9) or (b[2] > 0.9)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
             if ('_f_c' in key) and (b[0] == 'normal'):
-                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.7, 0.7]')
+                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.9, 0.9]')
             if ('_f_s' in key) and (b[0] == 'normal'):
-                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.7, 0.7]')
-            if ('_f_c' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.7) or (b[2] > 0.7)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
-            if ('_f_s' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.7) or (b[2] > 0.7)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.7, 0.7]')
+                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.9, 0.9]')
+            if ('_f_c' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.9) or (b[2] > 0.9)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
+            if ('_f_s' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.9) or (b[2] > 0.9)):
+                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
                                                 
             #:::: test bounds
             if (b[0] == 'uniform') and not (b[1] <= th <= b[2]): 

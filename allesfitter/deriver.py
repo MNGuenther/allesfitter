@@ -323,8 +323,6 @@ def derive(samples, mode):
             derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a_(R_sun)'] / a_1 ) - 1.)
             derived_samples[companion+'_M_companion_(M_earth)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_earth.value #in M_earth
             derived_samples[companion+'_M_companion_(M_jup)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_jup.value #in M_jup
-        else:
-            derived_samples[companion+'_M_companion'] = None
             
             
         #----------------------------------------------------------------------
@@ -332,8 +330,6 @@ def derive(samples, mode):
         #---------------------------------------------------------------------- 
         if config.BASEMENT.settings['secondary_eclipse'] is True:
             derived_samples[companion+'_epoch_occ'] = get_params(companion+'_epoch') + get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation from Winn2010
-        else:
-            derived_samples[companion+'_epoch_occ'] = None
         
         
         #----------------------------------------------------------------------
@@ -347,8 +343,6 @@ def derive(samples, mode):
         #----------------------------------------------------------------------
         if config.BASEMENT.settings['secondary_eclipse'] is True:
             derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.-derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
-        else:
-            derived_samples[companion+'_b_occ'] = None
         
         
         #----------------------------------------------------------------------
@@ -461,16 +455,23 @@ def derive(samples, mode):
         #----------------------------------------------------------------------
         #::: stellar density
         #----------------------------------------------------------------------
-        derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
+        if companion in config.BASEMENT.settings['companions_phot']:
+            derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
   
     
+        #----------------------------------------------------------------------
+        #::: companion densities
+        #----------------------------------------------------------------------
+        derived_samples[companion+'_density'] = ( (derived_samples[companion+'_M_companion_(M_earth)'] * M_earth) / (4./3. * np.pi * (derived_samples[companion+'_R_companion_(R_earth)'] * R_earth)**3 ) ).cgs.value #in cgs
+        
+        
         #----------------------------------------------------------------------
         #::: the companion's surface gravity (individual posterior distribution for each companion; via Southworth+ 2007)
         #----------------------------------------------------------------------
         try:
             derived_samples[companion+'_surface_gravity'] = 2. * np.pi / (get_params(companion+'_period')*86400.) * np.sqrt((1.-derived_samples[companion+'_e']**2)) * (get_params(companion+'_K')*1e5) / (derived_samples[companion+'_R_companion/a'])**2 / sin_d(derived_samples[companion+'_i'])
         except:
-            derived_samples[companion+'_surface_gravity'] = 0.
+            pass
         
         
         #----------------------------------------------------------------------
@@ -512,7 +513,7 @@ def derive(samples, mode):
     #::: median stellar density
     #==========================================================================
     derived_samples['combined_host_density'] = []
-    for companion in companions:
+    for companion in config.BASEMENT.settings['companions_phot']:
         derived_samples['combined_host_density'] = np.append(derived_samples['combined_host_density'], derived_samples[companion+'_host_density'])
     
     
@@ -561,18 +562,24 @@ def derive(samples, mode):
         names.append( companion+'_b_tra' )
         labels.append( '$b_\mathrm{tra;'+companion+'}$' )
         
-        names.append( companion+'_b_occ'  )
-        labels.append( '$b_\mathrm{occ;'+companion+'}$' )
-        
         names.append( companion+'_T_tra_tot'  )
         labels.append( '$T_\mathrm{tot;'+companion+'}$ (h)' )
         
         names.append( companion+'_T_tra_full' )
         labels.append( '$T_\mathrm{full;'+companion+'}$ (h)' )
         
+        names.append( companion+'_b_occ'  )
+        labels.append( '$b_\mathrm{occ;'+companion+'}$' )
+        
+        names.append( companion+'_epoch_occ'  )
+        labels.append( '$T_\mathrm{0;occ;'+companion+'}$' )
+        
         names.append( companion+'_host_density' )
         labels.append( '$rho_\mathrm{\star;'+companion+'}$ (cgs)' )
     
+        names.append( companion+'_density' )
+        labels.append( '$rho_\mathrm{'+companion+'}$ (cgs)' )
+        
         names.append( companion+'_surface_gravity')
         labels.append( '$g_\mathrm{\star;'+companion+'}$ (cgs)' )
         
@@ -712,12 +719,14 @@ def derive(samples, mode):
         #=====================================================================
         if 'combined_host_density' in names: names.remove('combined_host_density') #has (N_companions x N_dims) dimensions, thus does not match the rest
         x = np.column_stack([ derived_samples[name] for name in names ])
+        fontsize = np.min(( 24. + 0.5*(len(names)), 40 ))
+            
         fig = corner(x,
                      range = [0.999]*len(names),
                      labels = names,
                      quantiles=[0.15865, 0.5, 0.84135],
                      show_titles=True, 
-                     label_kwargs={"fontsize":32, "rotation":45, "horizontalalignment":'right'},
+                     label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'},
                      max_n_ticks=3)
         caxes = np.reshape(np.array(fig.axes), (len(names),len(names)))
         
@@ -729,7 +738,7 @@ def derive(samples, mode):
             ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
             if len(names)>1:
                 # caxes[i,i].set_title(ctitle)
-                caxes[i,i].set_title(ctitle, fontsize=32, rotation=45, horizontalalignment='left')
+                caxes[i,i].set_title(ctitle, fontsize=fontsize, rotation=45, horizontalalignment='left')
                 for i in range(caxes.shape[0]):
                     for j in range(caxes.shape[1]):
                         caxes[i,j].xaxis.set_label_coords(0.5, -0.5)
@@ -748,15 +757,16 @@ def derive(samples, mode):
                 caxes.set_title(ctitle)
                 caxes.xaxis.set_label_coords(0.5, -0.5)
                 caxes.yaxis.set_label_coords(-0.5, 0.5)
-                
-        fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=100, bbox_inches='tight' )
+        
+        dpi = np.max(( 100. - len(names), 50 ))
+        fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=dpi, bbox_inches='tight' )
         plt.close(fig)
         
         
         #=====================================================================
         #::: finish
         #=====================================================================
-        logprint('\nSaved '+mode+'_derived_corner.jpg')
+        logprint('\nSaved '+mode+'_derived_corner.pdf')
         
         
     else:

@@ -20,6 +20,6 @@ import allesfitter
 
 
 
-allesfitter.show_initial_guess('allesfit')
-allesfitter.mcmc_fit('allesfit')
+# allesfitter.show_initial_guess('allesfit')
+# allesfitter.mcmc_fit('allesfit')
 allesfitter.mcmc_output('allesfit')
