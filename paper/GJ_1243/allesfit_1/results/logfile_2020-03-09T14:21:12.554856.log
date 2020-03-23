@@ -1,0 +1,118 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['b']          
+companions_rv                  []             
+inst_phot                      ['TESS']       
+inst_rv                        []             
+multiprocess                   True           
+multiprocess_cores             19             
+fast_fit                       False          
+shift_epoch                    False          
+mcmc_nwalkers                  100            
+mcmc_total_steps               2000           
+mcmc_burn_steps                1000           
+mcmc_thin_by                   1              
+ns_modus                       dynamic        
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      rwalk          
+ns_tol                         0.01           
+host_ld_law_TESS               quad           
+baseline_flux_TESS             sample_offset  
+error_flux_TESS                sample         
+host_N_spots_TESS              2              
+N_flares                       3              
+host_grid_TESS                 very_sparse    
+
+automatically set:            
+companions_all                 ['b']          
+inst_all                       ['TESS']       
+print_progress                 True           
+inst_for_b_epoch               ['TESS']       
+phase_curve                    False          
+fast_fit_width                 0.3333333333333333
+use_host_density_prior         True           
+fit_ttvs                       False          
+secondary_eclipse              False          
+mcmc_pre_run_loops             0              
+mcmc_pre_run_steps             0              
+b_grid_TESS                    default        
+b_ld_law_TESS                  None           
+host_shape_TESS                sphere         
+b_shape_TESS                   sphere         
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+t_exp_TESS                     None           
+t_exp_n_int_TESS               None           
+b_N_spots_TESS                 0              
+
+Parameters:
+--------------------------
+
+user-given:                   
+b_rr                           1e-05           set  
+b_rsuma                        1e-05           set  
+b_cosi                         0.59            set  
+b_epoch                        2456518.75      set  
+b_period                       0.592596        free  ['uniform', 0.55, 0.65]       
+host_ldc_q1_TESS               0.5             free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_TESS               0.5             free  ['uniform', 0.0, 1.0]         
+host_spot_1_long_TESS          0.0             free  ['uniform', 0.0, 360.0]       
+host_spot_1_lat_TESS           0.0             free  ['uniform', -90.0, 90.0]      
+host_spot_1_size_TESS          0.0             free  ['uniform', 0.0, 30.0]        
+host_spot_1_brightness_TESS    0.0             free  ['uniform', 0.0, 1.0]         
+host_spot_2_long_TESS          0.0             free  ['uniform', 0.0, 360.0]       
+host_spot_2_lat_TESS           0.0             free  ['uniform', -90.0, 90.0]      
+host_spot_2_size_TESS          0.0             free  ['uniform', 0.0, 30.0]        
+host_spot_2_brightness_TESS    0.0             free  ['uniform', 0.0, 1.0]         
+flare_tpeak_1                  2456519.029     free  ['uniform', 2456519.02, 2456519.03]
+flare_ampl_1                   0.07            free  ['uniform', 0.05, 0.15]       
+flare_fwhm_1                   0.003           free  ['uniform', 0.001, 0.01]      
+flare_tpeak_2                  2456519.031     free  ['uniform', 2456519.03, 2456519.04]
+flare_ampl_2                   0.05            free  ['uniform', 0.03, 0.08]       
+flare_fwhm_2                   0.003           free  ['uniform', 0.001, 0.01]      
+flare_tpeak_3                  2456519.816     free  ['uniform', 2456519.81, 2456519.82]
+flare_ampl_3                   0.02            free  ['uniform', 0.0, 0.05]        
+flare_fwhm_3                   0.003           free  ['uniform', 0.001, 0.01]      
+log_err_flux_TESS              -6.0            free  ['uniform', -7.0, -5.5]       
+baseline_offset_flux_TESS      0.01            free  ['uniform', 0.0, 0.025]       
+
+automatically set:            
+dil_TESS                       0.0             set  
+b_sbratio_TESS                 0.0             set  
+b_a                            None            set  
+b_q                            1.0             set  
+b_K                            0.0             set  
+b_f_c                          0.0             set  
+b_f_s                          0.0             set  
+host_ldc_TESS                  None            set  
+b_ldc_TESS                     None            set  
+host_gdc_TESS                  None            set  
+b_gdc_TESS                     None            set  
+didt_TESS                      None            set  
+domdt_TESS                     None            set  
+host_rotfac_TESS               1.0             set  
+b_rotfac_TESS                  1.0             set  
+host_hf_TESS                   1.5             set  
+b_hf_TESS                      1.5             set  
+host_bfac_TESS                 None            set  
+b_bfac_TESS                    None            set  
+host_geom_albedo_TESS          None            set  
+b_geom_albedo_TESS             None            set  
+host_lambda_TESS               None            set  
+b_lambda_TESS                  None            set  
+host_vsini                     None            set  
+b_vsini                        None            set  
+host_spots_TESS                None            set  
+b_spots_TESS                   None            set  
+
+External priors:
+--------------------------
+No external priors defined.
+
+ndim: 22

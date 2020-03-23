@@ -69,9 +69,7 @@ def translate(params=None, quiet=False, **params_kwargs):
             params['R_companion_unit'] = 'Rearth'
             if not quiet: print('Assuming R_companion_unit = R_earth.')
     except:
-        R_companion_with_unit = params['R_companion']*u.Rearth
-        params['R_companion_unit'] = 'Rearth'
-        if not quiet: print('Assuming R_companion_unit = R_earth.')
+        pass
         
         
     #==========================================================================
@@ -89,9 +87,7 @@ def translate(params=None, quiet=False, **params_kwargs):
             params['M_companion_unit'] = 'Mearth'
             if not quiet: print('Assuming M_companion_unit = M_earth.')
     except:
-        M_companion_with_unit = params['R_companion']*u.Mearth
-        params['M_companion_unit'] = 'Mearth'
-        if not quiet: print('Assuming M_companion_unit = M_earth.')
+        pass
         
         
     #==========================================================================
@@ -127,8 +123,8 @@ def translate(params=None, quiet=False, **params_kwargs):
                     'f_c',
                     'f_s',
                     'ld',
-                    'ldc',
-                    'ldc_transformed',
+                    'ldc', #in u-space (e.g. Claret 2017)
+                    'ldc_transformed', #in Kipping q-space (eg Kipping 2013)
                     'R_host/a',
                     'R_companion/a',
                     'R_companion/R_host',

@@ -1,0 +1,63 @@
+#name,value
+###############################################################################,
+# General settings,
+###############################################################################,
+companions_phot,b
+companions_rv,
+inst_phot,TESS
+inst_rv,
+###############################################################################,
+# Fit performance settings,
+###############################################################################,
+multiprocess,True
+multiprocess_cores,all
+fast_fit,False
+shift_epoch,False
+###############################################################################,
+# MCMC settings,
+###############################################################################,
+mcmc_nwalkers,100
+mcmc_total_steps,2000
+mcmc_burn_steps,1000
+mcmc_thin_by,1
+###############################################################################,
+# Nested Sampling settings,
+###############################################################################,
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,rwalk
+ns_tol,0.01
+###############################################################################,
+# Limb darkening law per object and instrument,
+# if 'lin' one corresponding parameter called 'ldc_q1_inst' has to be given in params.csv,
+# if 'quad' two corresponding parameter called 'ldc_q1_inst' and 'ldc_q2_inst' have to be given in params.csv,
+# if 'sing' three corresponding parameter called 'ldc_q1_inst'; 'ldc_q2_inst' and 'ldc_q3_inst' have to be given in params.csv,
+###############################################################################,
+host_ld_law_TESS,quad
+###############################################################################,
+# Baseline settings per instrument,
+# baseline params per instrument: sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_spline / hybrid_GP,
+# if 'sample_offset' one corresponding parameter called 'baseline_offset_key_inst' has to be given in params.csv,
+# if 'sample_linear' two corresponding parameters called 'baseline_a_key_inst' and 'baseline_b_key_inst' have to be given in params.csv,
+# if 'sample_GP' two corresponding parameters called 'baseline_gp1_key_inst' and 'baseline_gp2_key_inst' have to be given in params.csv,
+###############################################################################,
+baseline_flux_TESS,sample_offset
+###############################################################################,
+# Error settings per instrument,
+# errors (overall scaling) per instrument: sample / hybrid,
+# if 'sample' one corresponding parameter called 'log_err_key_inst' (photometry) or 'log_jitter_key_inst' (RV) has to be given in params.csv,
+###############################################################################,
+error_flux_TESS,sample
+###############################################################################,
+# Number of spots per object and instrument,
+###############################################################################,
+host_N_spots_TESS,2
+###############################################################################,
+# Number of flares (in total),
+###############################################################################,
+N_flares,2
+###############################################################################,
+# Stellar grid per object and instrument,
+###############################################################################,
+host_grid_TESS,very_sparse

@@ -319,7 +319,11 @@ def afplot(samples, companion):
 ###############################################################################
 #::: plot_1 (helper function)
 ###############################################################################
-def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
+def plot_1(ax, samples, inst, companion, style, 
+           base=None, dt=None,
+           kwargs_data=None,
+           kwargs_model=None,
+           kwargs_ax=None):
     '''
     Inputs:
     -------
@@ -338,23 +342,67 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         'full' / 'per_transit' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_curve'
         'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_curve_residuals'
         
-    timelabel:
-        'Time' / 'Time_since'
+    base: a BASEMENT class object
+        (for internal use only)
         
-            
+    dt : float
+        time steps on which the model should be evaluated for plots
+        in days
+        default for style='full': 2 min for <1 day of data; 30 min for >1 day of data.
+        
     Notes:
     ------
     yerr / epoch / period: 
-        come from the initial_guess value or the MCMC median (not from individual samples)
+        come either from
+        a) the initial_guess value or 
+        b) the MCMC median,
+        depending on what is plotted (i.e. not from individual samples)
 
     '''
-#    global config.BASEMENT
-    
+
+    #==========================================================================
+    #::: interpret input
+    #==========================================================================
     if base==None:
         base = config.BASEMENT
     
-    params_median, params_ll, params_ul = get_params_from_samples(samples)
+    if samples is not None:
+        params_median, params_ll, params_ul = get_params_from_samples(samples)
     
+    if kwargs_data is None: kwargs_data = {}
+    if 'marker' not in kwargs_data: kwargs_data['marker'] = '.'
+    if 'markersize' not in kwargs_data: kwargs_data['markersize'] = 8.
+    if 'linestyle' not in kwargs_data: kwargs_data['linestyle'] = 'none'
+    if 'color' not in kwargs_data: kwargs_data['color'] = 'b'
+    if 'alpha' not in kwargs_data: kwargs_data['alpha'] = 1.
+    if 'rasterized' not in kwargs_data: kwargs_data['rasterized'] = True
+    
+    if kwargs_model is None: kwargs_model = {}
+    if 'marker' not in kwargs_model: kwargs_model['marker'] = 'none'
+    if 'markersize' not in kwargs_model: kwargs_model['markersize'] = 0.
+    if 'linestyle' not in kwargs_model: kwargs_model['linestyle'] = '-'
+    if 'color' not in kwargs_model: kwargs_model['color'] = 'r'
+    if 'alpha' not in kwargs_model: kwargs_model['alpha'] = 1.
+    
+    if kwargs_ax is None: kwargs_ax = {}
+    if 'title' not in kwargs_ax: kwargs_ax['title'] = None
+    if 'xlabel' not in kwargs_ax: kwargs_ax['xlabel'] = None
+    if 'ylabel' not in kwargs_ax: kwargs_ax['ylabel'] = None
+    
+    timelabel = 'Time' #removed feature
+    
+    
+    #==========================================================================
+    #::: helper fct
+    #==========================================================================
+    def set_title(title1):
+        if kwargs_ax['title'] is None: return title1
+        else: return kwargs_ax['title']
+    
+    
+    #==========================================================================
+    #::: do stuff
+    #==========================================================================
     if inst in base.settings['inst_phot']:
         key='flux'
         baseline_plus = 1.
@@ -378,10 +426,11 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
         raise ValueError('inst should be listed in inst_phot or inst_rv...')
     
     
-    if samples.shape[0]==1:
-        alpha = 1.
-    else:
-        alpha = 0.1
+    if samples is not None:
+        if samples.shape[0]==1:
+            alpha = 1.
+        else:
+            alpha = 0.1
         
     
     #==========================================================================
@@ -414,25 +463,26 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             
         #::: plot data, not phase        
 #        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
-        ax.errorbar(x, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize, capsize=0, rasterized=rasterized )  
+        ax.errorbar(x, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'] )  
         if base.settings['color_plot']:
-            ax.scatter(x, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 ) 
+            ax.scatter(x, y, c=x, marker='o', rasterized=kwargs_data['rasterized'], cmap='inferno', zorder=11 ) 
             
         if timelabel=='Time_since':
-            ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=inst)
+            ax.set(xlabel='Time since %s [days]' % objttime[0].isot[:10], ylabel=ylabel, title=set_title(inst))
         elif timelabel=='Time':
-            ax.set(xlabel='Time (BJD)', ylabel=ylabel, title=inst)
+            ax.set(xlabel='Time (BJD)', ylabel=ylabel, title=set_title(inst))
             
             
         #::: plot model + baseline, not phased
-        if style in ['full']:
+        if (style in ['full']) and (samples is not None):
             
             #if <1 day of photometric data: plot with 2 min resolution
-            if ((x[-1] - x[0]) < 1): 
-                dt = 2./24./60. 
-            #else: plot with 30 min resolution
-            else: 
-                dt = 30./24./60. 
+            if dt is None:
+                if ((x[-1] - x[0]) < 1): 
+                    dt = 2./24./60. 
+                #else: plot with 30 min resolution
+                else: 
+                    dt = 30./24./60. 
                     
             if key == 'flux':
                 xx_full = np.arange( x[0], x[-1]+dt, dt)
@@ -515,15 +565,15 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if len(x) > 500:
-                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=rasterized )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )
+                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=kwargs_data['rasterized'] )
+                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err,  marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )            
-            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion+' only')
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w,  marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )            
+            ax.set(xlabel='Phase', ylabel=ylabel, title=set_title(inst+', companion '+companion+' only'))
     
     
             #::: plot model, phased (if wished)
-            if style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
+            if (style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']) and (samples is not None):
                 xx = np.linspace( -0.25, 0.75, 1000)
                 xx2 = params_median[companion+'_epoch']+np.linspace( -0.25, 0.75, 1000)*params_median[companion+'_period']
                 for i in range(samples.shape[0]):
@@ -567,15 +617,15 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
             if len(x) > 500:
                 if style in ['phase_curve', 
                              'phase_curve_residuals']:
-                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=color, rasterized=rasterized, zorder=11 )                    
+                    ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=kwargs_data['color'], rasterized=kwargs_data['rasterized'], zorder=11 )                    
                 else: 
-                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=rasterized )
-                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )
+                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=kwargs_data['rasterized'], )
+                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized, zorder=11 )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )  
                 if base.settings['color_plot']:
-                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=rasterized, cmap='inferno', zorder=11 )          
-            ax.set(xlabel='Phase', ylabel=ylabel, title=inst+', companion '+companion)
+                    ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=kwargs_data['rasterized'], cmap='inferno', zorder=11 )          
+            ax.set(xlabel='Phase', ylabel=ylabel, title=set_title(inst+', companion '+companion))
     
     
             #::: plot model, phased (if wished)
@@ -594,12 +644,13 @@ def plot_1(ax, samples, inst, companion, style, timelabel='Time', base=None, ras
                     xx = np.linspace( -10./zoomfactor + phase_shift, 10./zoomfactor + phase_shift, 1000 )
                     xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
     
-                for i in range(samples.shape[0]):
-                    s = samples[i,:]
-                    p = update_params(s)
-#                    p = update_params(s, phased=True)
-                    model = flux_fct(p, inst, companion, xx=xx2) #evaluated on xx (!)
-                    ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
+                if samples is not None:
+                    for i in range(samples.shape[0]):
+                        s = samples[i,:]
+                        p = update_params(s)
+    #                    p = update_params(s, phased=True)
+                        model = flux_fct(p, inst, companion, xx=xx2) #evaluated on xx (!)
+                        ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         
         #::: x-zoom?
@@ -668,7 +719,7 @@ def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, mar
             ind = np.where((x >= (t - width/2.)) & (x <= (t + width/2.)))[0]
             
             #::: plot model
-            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize,  capsize=0, rasterized=rasterized )  
+            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize, alpha=alpha,  capsize=0, rasterized=rasterized )  
             ax.set(xlabel='Time (BJD)', ylabel=ylabel)
             
             #::: plot model + baseline, not phased

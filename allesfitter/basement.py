@@ -76,6 +76,8 @@ class Basement():
         self.now = datetime.now().isoformat()
         
         self.datadir = datadir
+        self.outdir = os.path.join(datadir,'results') 
+        if not os.path.exists( self.outdir ): os.makedirs( self.outdir )
         
         self.load_settings()
         self.load_params()
@@ -105,11 +107,6 @@ class Basement():
                                 "exp",#    :  7,
                                 "power-2",#:  8,
                                 "mugrid"]# : -1
-        
-        
-        #::: set up the outdir
-        self.outdir = os.path.join(datadir,'results') 
-        if not os.path.exists( self.outdir ): os.makedirs( self.outdir )
 
         #::: check if the input is consistent
         for inst in self.settings['inst_phot']:
@@ -778,11 +775,11 @@ class Basement():
                 if companion+'_bfac_'+inst not in self.params:
                     self.params[companion+'_bfac_'+inst] = None
                     
-                if 'host_geom_albedo_'+inst not in self.params:
-                    self.params['host_geom_albedo_'+inst] = None
+                if 'host_heat_'+inst not in self.params:
+                    self.params['host_heat_'+inst] = None
                     
-                if companion+'_geom_albedo_'+inst not in self.params:
-                    self.params[companion+'_geom_albedo_'+inst] = None
+                if companion+'_heat_'+inst not in self.params:
+                    self.params[companion+'_heat_'+inst] = None
                     
                 if 'host_lambda_'+inst not in self.params:
                     self.params['host_lambda_'+inst] = None
@@ -820,37 +817,47 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if self.params[companion+'_geom_albedo_'+inst] is not None:
-                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_geom_albedo_'+inst] > 0):
+                if self.params[companion+'_heat_'+inst] is not None:
+                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_heat_'+inst] > 0):
                         self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
-                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_geom_albedo_'+inst] == 0):
-                        self.params[companion+'_geom_albedo_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_heat_'+inst] == 0):
+                        self.params[companion+'_heat_'+inst] = 1e-15           #this is to avoid a bug in ellc
               
                 
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: luser proof: avoid crazy eccentricities that crash ellc
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if np.abs(self.params[companion+'_f_c']) > 0.7:
-                    raise ValueError(companion+'_f_c is '+str(self.params[companion+'_f_c'])+', but needs to lie within [-0.9,0.9]')
-                if np.abs(self.params[companion+'_f_s']) > 0.7:
-                    raise ValueError(companion+'_f_s is '+str(self.params[companion+'_f_s'])+', but needs to lie within [-0.9,0.9]')
+                if np.abs(self.params[companion+'_f_c']) > 0.8:
+                    raise ValueError(companion+'_f_c is '+str(self.params[companion+'_f_c'])+', but needs to lie within [-0.8,0.8]')
+                if np.abs(self.params[companion+'_f_s']) > 0.8:
+                    raise ValueError(companion+'_f_s is '+str(self.params[companion+'_f_s'])+', but needs to lie within [-0.8,0.8]')
                     
                     
        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: baseline_gp backwards compatability:
+        #::: luser proof: backwards compatability
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for inst in self.settings['inst_all']: 
             if inst in self.settings['inst_phot']: kkey='flux'
             elif inst in self.settings['inst_rv']: kkey='rv'
+            
             if 'baseline_gp1_'+kkey+'_'+inst in self.params:
                 self.params['baseline_gp_matern32_lnsigma_'+kkey+'_'+inst] = 1.*self.params['baseline_gp1_'+kkey+'_'+inst]
                 warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp1_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnsigma_'+kkey+'_'+inst)
+
             if 'baseline_gp2_'+kkey+'_'+inst in self.params:
                 self.params['baseline_gp_matern32_lnrho_'+kkey+'_'+inst]   = 1.*self.params['baseline_gp2_'+kkey+'_'+inst]
                 warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst)
-        
-        
+
+            if 'host_geom_albedo_'+inst in self.params:
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_heat_'+inst)
+                self.params['host_heat_'+inst] = self.params['host_geom_albedo_'+inst]
+                
+            if companion+'_geom_albedo_'+inst in self.params:
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_heat_'+inst)
+                self.params[companion+'_heat_'+inst] = self.params[companion+'_geom_albedo_'+inst]
+                    
+                
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: coupled params

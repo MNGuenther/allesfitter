@@ -265,6 +265,12 @@ def ns_output(datadir):
     
     
 
+def ns_derive(datadir): #emergency function if matplotlib and Mac OSX crash
+    posterior_samples = get_ns_posterior_samples(datadir, as_type='2d_array')
+    deriver.derive(posterior_samples, 'ns')
+    
+    
+    
 ###############################################################################
 #::: get NS samples (for top-level user)
 ###############################################################################

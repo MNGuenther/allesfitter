@@ -1,0 +1,8 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$rho_\mathrm{\star;b}$ (cgs) & $53630000000000_{-280000000000}^{+310000000000}$ & derived \\ 
+Limb darkening $u_\mathrm{1; TESS}$ & $0.24_{-0.14}^{+0.22}$ & derived \\ 
+Limb darkening $u_\mathrm{2; TESS}$ & $-0.03\pm0.13$ & derived \\ 
+$rho_\mathrm{\star; combined}$ (cgs) & $53630000000000_{-280000000000}^{+310000000000}$ & derived \\ 

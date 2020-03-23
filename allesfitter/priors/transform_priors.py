@@ -34,7 +34,7 @@ from .simulate_PDF import simulate_PDF as spdf
     
 def get_cosi_from_i(i, Nsamples=10000):
     '''
-    i: float or list of form [median, lower_err, upper_err]
+    i : float or list of form [median, lower_err, upper_err] in degree
     '''
     i = spdf(i[0], i[1], i[2], size=Nsamples, plot=False)
     ind_good = np.where( (i>=0) & (i<=90) )[0]

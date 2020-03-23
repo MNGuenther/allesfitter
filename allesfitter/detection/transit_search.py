@@ -57,9 +57,12 @@ def mask(time, flux, period, duration, T0):
 def tls_search(time, flux, flux_err, 
                SNR_threshold=5.,
                known_transits=None,
+               mask_multiplier=1.5,
                R_star=1., R_star_min=0.13, R_star_max=3.5, 
                M_star=1., M_star_min=0.1, M_star_max=1.,
-               show_plot=False, save_plot=False, outdir=''):
+               u=[0.4804, 0.1867],
+               show_plot=False, save_plot=False, outdir='',
+               **kwargs):
     '''
     Summary:
     -------
@@ -104,13 +107,18 @@ def tls_search(time, flux, flux_err,
         default 0.1 M_sun (from TLS)
     M_star_max : float
         maximum mass of the star (e.g. 99th percentile)
-        default 1. M_sun (from TLS)         
+        default 1. M_sun (from TLS)    
+    u : list
+        quadratic limb darkening parameters
+        default [0.4804, 0.1867]
     show_plot : bool
         show a plot of each phase-folded transit candidate and TLS model in the terminal 
     show_plot : bool
         save a plot of each phase-folded transit candidate and TLS model into outdir
     outdir : string
         if None, use the current working directory
+    **kwargs : keyword arguments
+        any other TLS keyword arguments, e.g. period_min=0.4
         
     Returns:
     -------
@@ -130,14 +138,15 @@ def tls_search(time, flux, flux_err,
     #::: search for the rest
     i = 0
     while (SNR >= SNR_threshold) and (FOUND_SIGNAL==False):
-        model = tls(time, flux)
+        model = tls(time, flux, flux_err)
         results = model.power(R_star=R_star, R_star_min=R_star_min, R_star_max=R_star_max, 
                               M_star=M_star, M_star_min=M_star_min, M_star_max=M_star_max,
-#                              period_min=period_min, period_max=period_max,
-                              n_transits_min=1, quiet=True, show_progress_bar=False)
+                              u=u,
+                              n_transits_min=1, quiet=True, show_progress_bar=False,
+                              **kwargs)
         
         if results.snr >= SNR_threshold:
-            time, flux = mask(time, flux, results.period, 2*results.duration, results.T0)
+            time, flux = mask(time, flux, results.period, mask_multiplier*results.duration, results.T0)
             results_all.append(results)
         
             if show_plot or save_plot:
@@ -170,7 +179,9 @@ def tls_search_by_tic(tic_id,
                       time=None, flux=None, flux_err=None,
                       SNR_threshold=5.,
                       known_transits=None,
-                      show_plot=False, save_plot=False, outdir=''):
+                      sigma_multiplier=3, mask_multiplier=1.5,
+                      show_plot=False, save_plot=False, outdir='',
+                      **kwargs):
     '''
     Inputs:
     -------
@@ -187,6 +198,8 @@ def tls_search_by_tic(tic_id,
         error of normalized flux (to overwrite the SPOC PDC SAP lightcurve)
     SNR_threshold : float
         the SNR threshold at which to stop the TLS search
+    sigma_multiplier : float
+        to convert normal priors into TLS uniform input, e.g. R_star_min=R_star-sigma_multiplier*R_star_lerr
     known_transits : None or dict
         if dict and one transit is already known: 
             known_transits = {'period':[1.3], 'duration':[2.1], 'epoch':[245800.0]}
@@ -195,6 +208,8 @@ def tls_search_by_tic(tic_id,
         'period' is the period of the transit
         'duration' must be the total duration, i.e. from first ingress point to last egrees point, in days
         'epoch' is the epoch of the transit
+    **kwargs : keyword arguments
+        any other TLS keyword arguments, e.g. period_min=0.4
         
     Summary:
     -------
@@ -217,17 +232,21 @@ def tls_search_by_tic(tic_id,
     if flux_err is None: flux_err = dic['flux_err']
     
     #::: load TIC info
-    ab, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
-    print('TICv8 info:')
-    print('Quadratic limb darkening a, b', ab[0], ab[1])
+    u, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
+    print('\nTICv8 info:')
+    print('Quadratic limb darkening u_0, u_1', u[0], u[1])
     print('Stellar radius', R_star, '+', R_star_lerr, '-', R_star_uerr)
     print('Stellar mass', M_star, '+', M_star_lerr, '-', M_star_uerr)
     
     return tls_search(time, flux, flux_err,
-                      R_star=R_star, R_star_min=R_star-R_star_lerr, R_star_max=R_star+R_star_uerr, 
-                      M_star=M_star, M_star_min=M_star-M_star_lerr, M_star_max=M_star+M_star_uerr,
+                      SNR_threshold=SNR_threshold,
                       known_transits=known_transits,
-                      show_plot=show_plot, save_plot=save_plot, outdir=outdir)
+                      mask_multiplier=mask_multiplier,
+                      R_star=R_star, R_star_min=R_star-sigma_multiplier*R_star_lerr, R_star_max=R_star+sigma_multiplier*R_star_uerr, 
+                      M_star=M_star, M_star_min=M_star-sigma_multiplier*M_star_lerr, M_star_max=M_star+sigma_multiplier*M_star_uerr,
+                      u=u,
+                      show_plot=show_plot, save_plot=save_plot, outdir=outdir,
+                      **kwargs)
 
 
 

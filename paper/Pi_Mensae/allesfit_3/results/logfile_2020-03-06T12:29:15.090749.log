@@ -1,0 +1,276 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['c']          
+companions_rv                  ['b', 'c']     
+inst_phot                      ['TESS']       
+inst_rv                        ['AAT', 'HARPS1', 'HARPS2']
+fast_fit                       True           
+multiprocess                   True           
+inst_for_b_epoch               ['AAT', 'HARPS1', 'HARPS2']
+inst_for_c_epoch               ['TESS']       
+use_stellar_density_prior      True           
+mcmc_nwalkers                  100            
+mcmc_total_steps               20000          
+mcmc_burn_steps                10000          
+mcmc_thin_by                   100            
+ns_modus                       static         
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      auto           
+ns_tol                         0.1            
+host_ld_law_TESS               quad           
+baseline_flux_TESS             sample_offset  
+baseline_rv_AAT                sample_offset  
+baseline_rv_HARPS1             sample_offset  
+baseline_rv_HARPS2             sample_offset  
+error_flux_TESS                sample         
+error_rv_AAT                   sample         
+error_rv_HARPS1                sample         
+error_rv_HARPS2                sample         
+
+automatically set:            
+companions_all                 ['b', 'c']     
+inst_all                       ['TESS', 'AAT', 'HARPS1', 'HARPS2']
+print_progress                 True           
+shift_epoch                    False          
+multiprocess_cores             15             
+phase_curve                    False          
+fast_fit_width                 0.3333333333333333
+use_host_density_prior         True           
+fit_ttvs                       False          
+secondary_eclipse              False          
+mcmc_pre_run_loops             0              
+mcmc_pre_run_steps             0              
+host_grid_TESS                 default        
+b_grid_TESS                    default        
+b_ld_law_TESS                  None           
+host_shape_TESS                sphere         
+b_shape_TESS                   sphere         
+host_grid_AAT                  default        
+b_grid_AAT                     default        
+host_ld_law_AAT                None           
+b_ld_law_AAT                   None           
+host_shape_AAT                 sphere         
+b_shape_AAT                    sphere         
+host_grid_HARPS1               default        
+b_grid_HARPS1                  default        
+host_ld_law_HARPS1             None           
+b_ld_law_HARPS1                None           
+host_shape_HARPS1              sphere         
+b_shape_HARPS1                 sphere         
+host_grid_HARPS2               default        
+b_grid_HARPS2                  default        
+host_ld_law_HARPS2             None           
+b_ld_law_HARPS2                None           
+host_shape_HARPS2              sphere         
+b_shape_HARPS2                 sphere         
+c_grid_TESS                    default        
+c_ld_law_TESS                  None           
+c_shape_TESS                   sphere         
+c_grid_AAT                     default        
+c_ld_law_AAT                   None           
+c_shape_AAT                    sphere         
+c_grid_HARPS1                  default        
+c_ld_law_HARPS1                None           
+c_shape_HARPS1                 sphere         
+c_grid_HARPS2                  default        
+c_ld_law_HARPS2                None           
+c_shape_HARPS2                 sphere         
+b_flux_weighted_AAT            False          
+b_flux_weighted_HARPS1         False          
+b_flux_weighted_HARPS2         False          
+c_flux_weighted_AAT            False          
+c_flux_weighted_HARPS1         False          
+c_flux_weighted_HARPS2         False          
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+c_color                        (0.8666666666666667, 0.5176470588235295, 0.3215686274509804)
+t_exp_TESS                     None           
+t_exp_n_int_TESS               None           
+t_exp_AAT                      None           
+t_exp_n_int_AAT                None           
+t_exp_HARPS1                   None           
+t_exp_n_int_HARPS1             None           
+t_exp_HARPS2                   None           
+t_exp_n_int_HARPS2             None           
+host_N_spots_TESS              0              
+b_N_spots_TESS                 0              
+c_N_spots_TESS                 0              
+host_N_spots_AAT               0              
+b_N_spots_AAT                  0              
+c_N_spots_AAT                  0              
+host_N_spots_HARPS1            0              
+b_N_spots_HARPS1               0              
+c_N_spots_HARPS1               0              
+host_N_spots_HARPS2            0              
+b_N_spots_HARPS2               0              
+c_N_spots_HARPS2               0              
+N_flares                       0              
+
+Parameters:
+--------------------------
+
+user-given:                   
+host_ldc_q1_TESS               0.359602184     free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_TESS               0.216340439     free  ['uniform', 0.0, 1.0]         
+b_epoch                        2446087.0       free  ['uniform', 2446045.0, 2446129.0]
+b_period                       2093.07         free  ['uniform', 2084.42, 2101.72] 
+b_K                            0.1926          free  ['uniform', 0.0, 0.5]         
+b_f_c                          0.6957          free  ['uniform', -0.9, 0.9]        
+b_f_s                          -0.392          free  ['uniform', -0.9, 0.9]        
+c_rsuma                        0.067336977     free  ['uniform', 0.0, 0.1]         
+c_rr                           0.017032492     free  ['uniform', 0.0, 0.1]         
+c_cosi                         0.025812647     free  ['uniform', 0.0, 0.1]         
+c_epoch                        2458325.504     free  ['uniform', 2458325.5005, 2458325.51]
+c_period                       6.2679          free  ['uniform', 6.2656, 6.2702]   
+c_K                            0.001601349     free  ['uniform', 0.0, 0.1]         
+c_f_c                          0.0             set  
+c_f_s                          0.0             set  
+baseline_offset_flux_TESS      0.0             free  ['uniform', -0.01, 0.01]      
+baseline_offset_rv_AAT         0.032027855     free  ['uniform', -0.1, 0.1]        
+baseline_offset_rv_HARPS1      10.70848087     free  ['uniform', 10.6, 10.8]       
+baseline_offset_rv_HARPS2      10.7307168      free  ['uniform', 10.6, 10.8]       
+log_err_flux_TESS              -8.8            free  ['uniform', -10.0, -1.0]      
+log_jitter_rv_AAT              -5.1            free  ['uniform', -10.0, -1.0]      
+log_jitter_rv_HARPS1           -5.8            free  ['uniform', -10.0, -1.0]      
+log_jitter_rv_HARPS2           -6.1            free  ['uniform', -10.0, -1.0]      
+
+automatically set:            
+dil_TESS                       0.0             set  
+b_rr                           None            set  
+b_rsuma                        None            set  
+b_cosi                         0.0             set  
+b_sbratio_TESS                 0.0             set  
+b_a                            None            set  
+b_q                            1.0             set  
+host_ldc_TESS                  None            set  
+b_ldc_TESS                     None            set  
+host_gdc_TESS                  None            set  
+b_gdc_TESS                     None            set  
+didt_TESS                      None            set  
+domdt_TESS                     None            set  
+host_rotfac_TESS               1.0             set  
+b_rotfac_TESS                  1.0             set  
+host_hf_TESS                   1.5             set  
+b_hf_TESS                      1.5             set  
+host_bfac_TESS                 None            set  
+b_bfac_TESS                    None            set  
+host_geom_albedo_TESS          None            set  
+b_geom_albedo_TESS             None            set  
+host_lambda_TESS               None            set  
+b_lambda_TESS                  None            set  
+host_vsini                     None            set  
+b_vsini                        None            set  
+host_spots_TESS                None            set  
+b_spots_TESS                   None            set  
+dil_AAT                        0.0             set  
+b_sbratio_AAT                  0.0             set  
+host_ldc_AAT                   None            set  
+b_ldc_AAT                      None            set  
+host_gdc_AAT                   None            set  
+b_gdc_AAT                      None            set  
+didt_AAT                       None            set  
+domdt_AAT                      None            set  
+host_rotfac_AAT                1.0             set  
+b_rotfac_AAT                   1.0             set  
+host_hf_AAT                    1.5             set  
+b_hf_AAT                       1.5             set  
+host_bfac_AAT                  None            set  
+b_bfac_AAT                     None            set  
+host_geom_albedo_AAT           None            set  
+b_geom_albedo_AAT              None            set  
+host_lambda_AAT                None            set  
+b_lambda_AAT                   None            set  
+host_spots_AAT                 None            set  
+b_spots_AAT                    None            set  
+dil_HARPS1                     0.0             set  
+b_sbratio_HARPS1               0.0             set  
+host_ldc_HARPS1                None            set  
+b_ldc_HARPS1                   None            set  
+host_gdc_HARPS1                None            set  
+b_gdc_HARPS1                   None            set  
+didt_HARPS1                    None            set  
+domdt_HARPS1                   None            set  
+host_rotfac_HARPS1             1.0             set  
+b_rotfac_HARPS1                1.0             set  
+host_hf_HARPS1                 1.5             set  
+b_hf_HARPS1                    1.5             set  
+host_bfac_HARPS1               None            set  
+b_bfac_HARPS1                  None            set  
+host_geom_albedo_HARPS1        None            set  
+b_geom_albedo_HARPS1           None            set  
+host_lambda_HARPS1             None            set  
+b_lambda_HARPS1                None            set  
+host_spots_HARPS1              None            set  
+b_spots_HARPS1                 None            set  
+dil_HARPS2                     0.0             set  
+b_sbratio_HARPS2               0.0             set  
+host_ldc_HARPS2                None            set  
+b_ldc_HARPS2                   None            set  
+host_gdc_HARPS2                None            set  
+b_gdc_HARPS2                   None            set  
+didt_HARPS2                    None            set  
+domdt_HARPS2                   None            set  
+host_rotfac_HARPS2             1.0             set  
+b_rotfac_HARPS2                1.0             set  
+host_hf_HARPS2                 1.5             set  
+b_hf_HARPS2                    1.5             set  
+host_bfac_HARPS2               None            set  
+b_bfac_HARPS2                  None            set  
+host_geom_albedo_HARPS2        None            set  
+b_geom_albedo_HARPS2           None            set  
+host_lambda_HARPS2             None            set  
+b_lambda_HARPS2                None            set  
+host_spots_HARPS2              None            set  
+b_spots_HARPS2                 None            set  
+c_sbratio_TESS                 0.0             set  
+c_a                            None            set  
+c_q                            1.0             set  
+c_ldc_TESS                     None            set  
+c_gdc_TESS                     None            set  
+c_rotfac_TESS                  1.0             set  
+c_hf_TESS                      1.5             set  
+c_bfac_TESS                    None            set  
+c_geom_albedo_TESS             None            set  
+c_lambda_TESS                  None            set  
+c_vsini                        None            set  
+c_spots_TESS                   None            set  
+c_sbratio_AAT                  0.0             set  
+c_ldc_AAT                      None            set  
+c_gdc_AAT                      None            set  
+c_rotfac_AAT                   1.0             set  
+c_hf_AAT                       1.5             set  
+c_bfac_AAT                     None            set  
+c_geom_albedo_AAT              None            set  
+c_lambda_AAT                   None            set  
+c_spots_AAT                    None            set  
+c_sbratio_HARPS1               0.0             set  
+c_ldc_HARPS1                   None            set  
+c_gdc_HARPS1                   None            set  
+c_rotfac_HARPS1                1.0             set  
+c_hf_HARPS1                    1.5             set  
+c_bfac_HARPS1                  None            set  
+c_geom_albedo_HARPS1           None            set  
+c_lambda_HARPS1                None            set  
+c_spots_HARPS1                 None            set  
+c_sbratio_HARPS2               0.0             set  
+c_ldc_HARPS2                   None            set  
+c_gdc_HARPS2                   None            set  
+c_rotfac_HARPS2                1.0             set  
+c_hf_HARPS2                    1.5             set  
+c_bfac_HARPS2                  None            set  
+c_geom_albedo_HARPS2           None            set  
+c_lambda_HARPS2                None            set  
+c_spots_HARPS2                 None            set  
+
+External priors:
+--------------------------
+
+Stellar density prior (automatically set): ['normal', 1.158408599294137, 0.08791193080304227] (g cm^-3)
+
+ndim: 21

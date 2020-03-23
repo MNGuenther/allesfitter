@@ -1,0 +1,27 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$R_b / R_\star$ & $1e-05$ & & fixed \\ 
+$(R_\star + R_b) / a_b$ & $1e-05$ & & fixed \\ 
+$\cos{i_b}$ & $0.59$ & & fixed \\ 
+$T_{0;b}$ & $2456518.75$ & $\mathrm{BJD}$& fixed \\ 
+$P_b$ & $0.5939_{-0.0017}^{+0.0015}$ & $\mathrm{d}$& fit \\ 
+$q_{1; \mathrm{TESS}}$ & $0.058_{-0.042}^{+0.071}$ & & fit \\ 
+$q_{2; \mathrm{TESS}}$ & $0.57_{-0.28}^{+0.25}$ & & fit \\ 
+$\mathrm{host: spot 1 long. TESS}$ & $326.7_{-2.3}^{+2.5}$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 1 lat. TESS}$ & $79.1_{-1.9}^{+2.0}$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 1 size TESS}$ & $12.9_{-1.1}^{+1.1}$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 1 brightness TESS}$ & $0.496_{-0.12}^{+0.092}$ & & fit \\ 
+$\mathrm{host: spot 2 long. TESS}$ & $211.2\pm1.8$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 2 lat. TESS}$ & $-36.5_{-8.1}^{+14}$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 2 size TESS}$ & $25.7_{-8.1}^{+3.4}$ & \mathrm{deg}& fit \\ 
+$\mathrm{host: spot 2 brightness TESS}$ & $0.862_{-0.034}^{+0.018}$ & & fit \\ 
+$t_\mathrm{peak; flare 1}$ & $2456519.029048_{-0.000041}^{+0.000035}$ & $\mathrm{BJD}$& fit \\ 
+$A_\mathrm{flare 1}$ & $0.0768_{-0.0015}^{+0.0017}$ & $\mathrm{rel. flux.}$& fit \\ 
+$FWHM_\mathrm{flare 1}$ & $0.00483\pm0.00020$ & $\mathrm{BJD}$& fit \\ 
+$t_\mathrm{peak; flare 2}$ & $2456519.81618_{-0.00010}^{+0.00011}$ & $\mathrm{BJD}$& fit \\ 
+$A_\mathrm{flare 2}$ & $0.0269_{-0.0031}^{+0.0038}$ & $\mathrm{rel. flux.}$& fit \\ 
+$FWHM_\mathrm{flare 2}$ & $0.00204\pm0.00040$ & $\mathrm{BJD}$& fit \\ 
+$\log{\sigma_\mathrm{TESS}}$ & $-6.334\pm0.018$ & $\log{ \mathrm{rel. flux.} }$& fit \\ 
+offset (TESS) & $0.0164_{-0.0021}^{+0.0026}$ & & fit \\ 

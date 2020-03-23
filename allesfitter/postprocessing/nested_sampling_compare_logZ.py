@@ -38,11 +38,11 @@ from tqdm import tqdm
     
     
 
-def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
+def ns_plot_bayes_factors(datadirs, labels=None, return_dlogZ=False, ax=None, explanation=False):
     '''
     Inputs:
     -------
-    run_names : list of str (see Example 1) OR tuple of lists of str (see Example 2)
+    datadirs : list of str (see Example 1) OR tuple of lists of str (see Example 2)
         all the directories from which 
         the first run_name must be the "null hypothesis"
         
@@ -60,38 +60,41 @@ def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
     Example 1:
     ---------
     #::: just do a single model comparison
-    run_names = ['circular_model', 'eccentric_model']
+    datadirs = ['circular_model', 'eccentric_model']
     labels = ['circular', 'eccentric']
-    fig, ax = ns_compare_logZ(run_names, labels)
+    fig, ax = ns_compare_logZ(datadirs, labels)
     
     
     Example 2:
     ----------
     #::: do multiple model comparisons in one plot
-    run_names_1 = ['circular_model', 'eccentric_model']
+    datadirs_1 = ['circular_model', 'eccentric_model']
     labels_1 = ['circular', 'eccentric']
     
-    run_names_2 = ['no_occultation_model', 'occultation_model']
+    datadirs_2 = ['no_occultation_model', 'occultation_model']
     labels_2 = ['without occultation', 'with occulation']
     
-    collection_of_run_names = ( run_names_1, run_names_2 )
+    collection_of_datadirs = ( datadirs_1, datadirs_2 )
     collection_of_labels = ( labels_1, labels_2 )
     
-    fig, ax = ns_compare_logZ(run_names, labels)
+    fig, ax = ns_compare_logZ(datadirs, labels)
     '''
     if labels is None:
-        labels = run_names
+        labels = datadirs
         
-    if isinstance(run_names,list):
-        delta_logZ, delta_logZ_err, delta_labels = get_delta_logZ_and_delta_labels(run_names, labels)
-    elif isinstance(run_names,tuple):
-        delta_logZ, delta_logZ_err, delta_labels = get_collective_delta_logZ_and_delta_labels(run_names, labels)
+    if isinstance(datadirs,list):
+        delta_logZ, delta_logZ_err, delta_labels = get_delta_logZ_and_delta_labels(datadirs, labels)
+    elif isinstance(datadirs,tuple):
+        delta_logZ, delta_logZ_err, delta_labels = get_collective_delta_logZ_and_delta_labels(datadirs, labels)
     else:
-        raise ValueError('run_names must be tuple or list.')
+        raise ValueError('datadirs must be tuple or list.')
         
     #::: plot
     index = np.arange(len(delta_logZ))
-    fig, ax = plt.subplots(figsize=(3*len(run_names),4))
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(3*len(datadirs),4))
+    else:
+        fig = plt.gcf()
     ax.bar(index, delta_logZ, edgecolor='b')
     ax.errorbar(index, delta_logZ, yerr=delta_logZ_err, color='k', linestyle='none', markersize=0, capsize=2, elinewidth=5, zorder=10)
     ax.set_xticks(index)
@@ -120,10 +123,11 @@ def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
     ymax = np.nanmax(list(1.1*delta_logZ)+[7])
     ax.axhspan(3,5,color='g',zorder=-1,alpha=0.33)
     ax.axhspan(5,ymax,color='g',zorder=-1,alpha=0.66)
-    ax.text(index[-1]+0.5,  1.5, 'no strong\nevidence',   va='center')
-    ax.text(index[-1]+0.5,  4,   'strong\nevidence',      va='center')
-    ax.text(index[-1]+0.5,  np.max( [(np.max(delta_logZ)+5.)/2., 6.] ),   'very strong\nevidence', va='center')
-    ax.set(ylim=[0,ymax],ylabel=r'$\Delta \log{Z}$')
+    if explanation:
+        ax.text(index[-1]+1,  1.5, 'no strong\nevidence',   va='center')
+        ax.text(index[-1]+1,  4,   'strong\nevidence',      va='center')
+        ax.text(index[-1]+1,  np.max( [(np.max(delta_logZ)+5.)/2., 6.] ),   'very strong\nevidence', va='center')
+    ax.set(ylim=[0,ymax],ylabel=r'$\Delta \ln{Z}$')
     
     if return_dlogZ:
         return fig, ax, delta_logZ
@@ -133,9 +137,9 @@ def ns_plot_bayes_factors(run_names, labels=None, return_dlogZ=False):
     
 
     
-def get_delta_logZ_and_delta_labels(run_names, labels):
+def get_delta_logZ_and_delta_labels(datadirs, labels):
         
-    logZ, logZ_err = get_logZ(run_names)    
+    logZ, logZ_err = get_logZ(datadirs)    
     
     #::: calculate delta_logZ
     delta_logZ     = np.array(logZ) - logZ[0]
@@ -150,12 +154,12 @@ def get_delta_logZ_and_delta_labels(run_names, labels):
 
 
 
-def get_logZ(run_names, quiet=False):
+def get_logZ(datadirs, quiet=False):
     
     logZ = []
     logZ_err = []
     
-    for rname in np.atleast_1d(run_names):
+    for rname in np.atleast_1d(datadirs):
         
         try: #new version
             fname = os.path.join( rname, 'results', 'save_ns.pickle.gz' )
@@ -178,13 +182,13 @@ def get_logZ(run_names, quiet=False):
         
         
         #::: get the results
-        logZdynesty = results.logz[-1]        # value of logZ
-        logZerrdynesty = results.logzerr[-1]  # estimate of the statistcal uncertainty on logZ
+        logZdynesty = results.logz[-1]        # value of ln(Z) - the NATURAL logarithm of Z, see https://dynesty.readthedocs.io/en/latest/api.html
+        logZerrdynesty = results.logzerr[-1]  # estimate of the statistcal uncertainty on ln(Z)
        
         #::: recalculate logZ error if it was NaN (bug in dynesty 0.9.2b)
         if np.isnan(logZerrdynesty) or np.isinf(logZerrdynesty) or (logZerrdynesty/logZdynesty > 1):
             if not quiet:
-                print('recalculating logZ error...')
+                print('recalculating ln(Z) error...')
             sys.stdout.flush()
             lnzs = np.zeros((10, len(results.logvol)))
             for i in tqdm(range(10), disable=quiet):
@@ -194,7 +198,7 @@ def get_logZ(run_names, quiet=False):
             logZerrdynesty = lnzerr[-1]
             
         if not quiet:
-            print('log(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
+            print('ln(Z) = {} +- {}'.format(logZdynesty, logZerrdynesty))
         
         logZ.append(logZdynesty)
         logZ_err.append(logZerrdynesty)
@@ -203,25 +207,25 @@ def get_logZ(run_names, quiet=False):
     
     
 
-def get_collective_delta_logZ_and_delta_labels(collection_of_run_names, collection_of_labels):
+def get_collective_delta_logZ_and_delta_labels(collection_of_datadirs, collection_of_labels):
     '''
     Example:
     --------
-    run_names_1 = ['circular_model', 'eccentric_model']
+    datadirs_1 = ['circular_model', 'eccentric_model']
     labels_1 = ['circular', 'eccentric']
     
-    run_names_2 = ['no_occultation_model', 'occultation_model']
+    datadirs_2 = ['no_occultation_model', 'occultation_model']
     labels_2 = ['without occultation', 'with occulation']
     
-    collection_of_run_names = ( run_names_1, run_names_2 )
+    collection_of_datadirs = ( datadirs_1, datadirs_2 )
     collection_of_labels = ( labels_1, labels_2 )
     
     delta_logZ, delta_logZ_err, delta_labels = \
-        get_collective_delta_logZ_and_delta_labels(collection_of_run_names, collection_of_labels)
+        get_collective_delta_logZ_and_delta_labels(collection_of_datadirs, collection_of_labels)
     '''    
     delta_logZ, delta_logZ_err, delta_labels = [], [], []
-    for run_names, labels in zip(collection_of_run_names, collection_of_labels):
-        a, b, c = get_delta_logZ_and_delta_labels(run_names, labels)
+    for datadirs, labels in zip(collection_of_datadirs, collection_of_labels):
+        a, b, c = get_delta_logZ_and_delta_labels(datadirs, labels)
         delta_logZ += list(a)
         delta_logZ_err += list(b)
         delta_labels += list(c)

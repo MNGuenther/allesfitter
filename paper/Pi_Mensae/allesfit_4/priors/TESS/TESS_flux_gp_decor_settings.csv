@@ -1,0 +1,2 @@
+# period,epoch,width,secondary_eclipse,nwalkers,thin_by,burn_steps,total_steps
+None,None,None,False,50,50,2500,5000

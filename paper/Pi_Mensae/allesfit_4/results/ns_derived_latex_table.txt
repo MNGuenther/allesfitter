@@ -1,0 +1,29 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$e_\mathrm{b}$ & $0.6375\pm0.0024$ & derived \\ 
+$w_\mathrm{b}$ (deg) & $330.60\pm0.54$ & derived \\ 
+$P_\mathrm{b} / P_\mathrm{c}$ & $333.91\pm0.29$ & derived \\ 
+$R_\star/a_\mathrm{c}$ & $0.0747_{-0.0017}^{+0.0019}$ & derived \\ 
+$R_\mathrm{c}/a_\mathrm{c}$ & $0.001292\pm0.000042$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{\oplus}}$) & $2.074\pm0.057$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{jup}}$) & $0.1850\pm0.0050$ & derived \\ 
+$a_\mathrm{c}$ ($\mathrm{R_{\odot}}$) & $14.71\pm0.47$ & derived \\ 
+$a_\mathrm{c}$ (AU) & $0.0684\pm0.0022$ & derived \\ 
+$i_\mathrm{c}$ (deg) & $87.48\pm0.19$ & derived \\ 
+$M_\mathrm{c}$ ($\mathrm{M_{\oplus}}$) & $4.82_{-0.84}^{+0.89}$ & derived \\ 
+$M_\mathrm{c}$ ($\mathrm{M_{jup}}$) & $0.0152_{-0.0026}^{+0.0028}$ & derived \\ 
+$b_\mathrm{tra;c}$ & $0.589_{-0.033}^{+0.031}$ & derived \\ 
+$T_\mathrm{tot;c}$ (h) & $2.972_{-0.049}^{+0.043}$ & derived \\ 
+$T_\mathrm{full;c}$ (h) & $2.818_{-0.052}^{+0.046}$ & derived \\ 
+$rho_\mathrm{\star;c}$ (cgs) & $1.155\pm0.082$ & derived \\ 
+$rho_\mathrm{c}$ (cgs) & $2.96_{-0.56}^{+0.64}$ & derived \\ 
+$g_\mathrm{\star;c}$ (cgs) & $1090_{-190}^{+210}$ & derived \\ 
+$T_\mathrm{eq;c}$ (K) & $1067\pm15$ & derived \\ 
+$\delta_\mathrm{tr; undil; c; TESS}$ (ppt) & $0.324\pm0.012$ & derived \\ 
+$\delta_\mathrm{tr; dil; c; TESS}$ (ppt) & $0.324\pm0.012$ & derived \\ 
+$P_\mathrm{c} / P_\mathrm{b}$ & $0.0029948\pm0.0000026$ & derived \\ 
+Limb darkening $u_\mathrm{1; TESS}$ & $0.28_{-0.19}^{+0.29}$ & derived \\ 
+Limb darkening $u_\mathrm{2; TESS}$ & $0.24_{-0.34}^{+0.30}$ & derived \\ 
+$rho_\mathrm{\star; combined}$ (cgs) & $1.155\pm0.082$ & derived \\ 

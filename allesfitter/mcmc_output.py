@@ -172,7 +172,7 @@ def plot_MCMC_corner(sampler):
                  #title_kwargs={"fontsize": 14},
                  label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'},
                  max_n_ticks=3,
-                 truths=fittruths2)
+                 truths=fittruths2, truth_color="r")
     caxes = np.reshape(np.array(fig.axes), (config.BASEMENT.ndim,config.BASEMENT.ndim))
 
     #::: set allesfitter titles

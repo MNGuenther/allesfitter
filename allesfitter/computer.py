@@ -253,41 +253,49 @@ def update_params(theta):
 #==============================================================================
 #::: flux fct: main
 #==============================================================================
-def flux_fct(params, inst, companion, xx=None):
+def flux_fct(params, inst, companion, xx=None, settings=None):
     '''
     ! params must be updated via update_params() before calling this function !
     
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
+    
+    if settings is None:
+        settings = config.BASEMENT.settings
+        
 #    if params['phased']==True:
 #        return flux_fct_full(params, inst, companion, xx=xx)
     
-    if config.BASEMENT.settings['fit_ttvs']==False:
-        return flux_fct_full(params, inst, companion, xx=xx)
+    if settings['fit_ttvs']==False:
+        return flux_fct_full(params, inst, companion, xx=xx, settings=settings)
     
     else:
-        return flux_fct_piecewise(params, inst, companion, xx=xx)
+        return flux_fct_piecewise(params, inst, companion, xx=xx, settings=settings)
 
 
 
 #==============================================================================
 #::: flux fct: full curve (no TTVs)
 #==============================================================================
-def flux_fct_full(params, inst, companion, xx=None):
+def flux_fct_full(params, inst, companion, xx=None, settings=None):
     '''
     ! params must be updated via update_params() before calling this function !
     
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
+    
+    if settings is None:
+        settings = config.BASEMENT.settings
+        
     if xx is None:
         xx    = config.BASEMENT.data[inst]['time']
-        t_exp = config.BASEMENT.settings['t_exp_'+inst]
-        n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
+        t_exp = settings['t_exp_'+inst]
+        n_int = settings['t_exp_n_int_'+inst]
     else:
         t_exp = None
         n_int = None
-        
-        
+    
+    
     #::: planet and EB transit lightcurve model
     if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
         model_flux = ellc.lc(
@@ -315,20 +323,20 @@ def flux_fct_full(params, inst, companion, xx=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
-                          heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
+                          heat_1 =      divide(params['host_heat_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_heat_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst], 
                           lambda_2 =    params[companion+'_lambda_'+inst], 
                           vsini_1 =     params['host_vsini'],
                           vsini_2 =     params[companion+'_vsini'], 
                           t_exp =       t_exp,
                           n_int =       n_int,
-                          grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
-                          grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
-                          ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
-                          ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
-                          shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
-                          shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                          grid_1 =      settings['host_grid_'+inst],
+                          grid_2 =      settings[companion+'_grid_'+inst],
+                          ld_1 =        settings['host_ld_law_'+inst],
+                          ld_2 =        settings[companion+'_ld_law_'+inst],
+                          shape_1 =     settings['host_shape_'+inst],
+                          shape_2 =     settings[companion+'_shape_'+inst],
                           spots_1 =     params['host_spots_'+inst], 
                           spots_2 =     params[companion+'_spots_'+inst], 
                           verbose =     False
@@ -343,8 +351,8 @@ def flux_fct_full(params, inst, companion, xx=None):
     
     
     #::: flare lightcurve model
-    if config.BASEMENT.settings['N_flares'] > 0:
-        for i in range(1,config.BASEMENT.settings['N_flares']+1):
+    if settings['N_flares'] > 0:
+        for i in range(1,settings['N_flares']+1):
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
     
     
@@ -361,7 +369,7 @@ def flux_fct_full(params, inst, companion, xx=None):
 #==============================================================================
 #::: flux fct: piecewise (for TTVs)
 #==============================================================================
-def flux_fct_piecewise(params, inst, companion, xx=None):
+def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
     '''
     Go through the time series transit by transit to fit for TTVs
     
@@ -370,6 +378,9 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
     if phased, pass e.g. xx=np.linspace(-0.25,0.75,1000) amd t_exp_scalefactor=1./params[companion+'_period']
     '''
     
+    if settings is None:
+        settings = config.BASEMENT.settings
+        
     if xx is None:
         model_flux = np.ones_like(config.BASEMENT.data[inst]['time']) #* np.nan               
     else:
@@ -381,11 +392,11 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
         if xx is None:
             ind   = config.BASEMENT.data[inst][companion+'_ind_time_transit_'+str(n_transit+1)]
             xx_piecewise = config.BASEMENT.data[inst][companion+'_time_transit_'+str(n_transit+1)]
-            t_exp = config.BASEMENT.settings['t_exp_'+inst]
-            n_int = config.BASEMENT.settings['t_exp_n_int_'+inst]
+            t_exp = settings['t_exp_'+inst]
+            n_int = settings['t_exp_n_int_'+inst]
         else:
             tmid = config.BASEMENT.data[companion+'_tmid_observed_transits'][n_transit]
-            width = config.BASEMENT.settings['fast_fit_width']
+            width = settings['fast_fit_width']
             ind = np.where( (xx>=(tmid-width/2.)) \
                           & (xx<=(tmid+width/2.)) )[0]
             xx_piecewise = xx[ind]
@@ -420,20 +431,20 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
                                   hf_2 =        params[companion+'_hf_'+inst], #1.5,
                                   bfac_1 =      params['host_bfac_'+inst],
                                   bfac_2 =      params[companion+'_bfac_'+inst], 
-                                  heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
-                                  heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
+                                  heat_1 =      divide(params['host_heat_'+inst],2.),
+                                  heat_2 =      divide(params[companion+'_heat_'+inst],2.),
                                   lambda_1 =    params['host_lambda_'+inst], 
                                   lambda_2 =    params[companion+'_lambda_'+inst], 
                                   vsini_1 =     params['host_vsini'],
                                   vsini_2 =     params[companion+'_vsini'], 
                                   t_exp =       t_exp,
                                   n_int =       n_int,
-                                  grid_1 =      config.BASEMENT.settings['host_grid_'+inst],
-                                  grid_2 =      config.BASEMENT.settings[companion+'_grid_'+inst],
-                                  ld_1 =        config.BASEMENT.settings['host_ld_law_'+inst],
-                                  ld_2 =        config.BASEMENT.settings[companion+'_ld_law_'+inst],
-                                  shape_1 =     config.BASEMENT.settings['host_shape_'+inst],
-                                  shape_2 =     config.BASEMENT.settings[companion+'_shape_'+inst],
+                                  grid_1 =      settings['host_grid_'+inst],
+                                  grid_2 =      settings[companion+'_grid_'+inst],
+                                  ld_1 =        settings['host_ld_law_'+inst],
+                                  ld_2 =        settings[companion+'_ld_law_'+inst],
+                                  shape_1 =     settings['host_shape_'+inst],
+                                  shape_2 =     settings[companion+'_shape_'+inst],
                                   spots_1 =     params['host_spots_'+inst], 
                                   spots_2 =     params[companion+'_spots_'+inst], 
                                   verbose =     False
@@ -450,8 +461,8 @@ def flux_fct_piecewise(params, inst, companion, xx=None):
     
     
     #::: flare lightcurve model
-    if config.BASEMENT.settings['N_flares'] > 0:
-        for i in range(1,config.BASEMENT.settings['N_flares']+1):
+    if settings['N_flares'] > 0:
+        for i in range(1,settings['N_flares']+1):
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
     
     
@@ -669,8 +680,8 @@ def rv_fct(params, inst, companion, xx=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      divide(params['host_geom_albedo_'+inst],2.),
-                          heat_2 =      divide(params[companion+'_geom_albedo_'+inst],2.),
+                          heat_1 =      divide(params['host_heat_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_heat_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst],
                           lambda_2 =    params[companion+'_lambda_'+inst], 
                           vsini_1 =     params['host_vsini'],
@@ -722,7 +733,7 @@ def calculate_external_priors(params):
     
     #::: constrain eccentricities
     for companion in config.BASEMENT.settings['companions_all']:
-        if (np.abs(params[companion+'_f_c']) > 0.9) or (np.abs(params[companion+'_f_s']) > 0.9):
+        if (np.abs(params[companion+'_f_c']) > 0.8) or (np.abs(params[companion+'_f_s']) > 0.8):
             lnp = -np.inf
             
     return lnp
@@ -1022,19 +1033,22 @@ def calculate_residuals(params, inst, key):
 ###############################################################################
 #::: calculate model
 ###############################################################################      
-def calculate_model(params, inst, key, xx=None):
-        
+def calculate_model(params, inst, key, xx=None, settings=None):
+            
+    if settings is None:
+        settings = config.BASEMENT.settings
+    
     if key=='flux':
         depth = 0.
-        for companion in config.BASEMENT.settings['companions_phot']:
-            depth += ( 1. - flux_fct(params, inst, companion, xx=xx) )
+        for companion in settings['companions_phot']:
+            depth += ( 1. - flux_fct(params, inst, companion, xx=xx, settings=settings) )
         model_flux = 1. - depth
         return model_flux
     
     elif key=='rv':
         model_rv = 0.
-        for companion in config.BASEMENT.settings['companions_rv']:
-            model_rv += rv_fct(params, inst, companion, xx=xx)[0]
+        for companion in settings['companions_rv']:
+            model_rv += rv_fct(params, inst, companion, xx=xx, settings=settings)[0]
         return model_rv
     
     elif (key=='centdx') | (key=='centdy'):

@@ -1,0 +1,30 @@
+#name,value,fit,bounds,label,unit
+#companion b astrophysical params,,,,,
+b_rr,0.00001,0,,$R_b / R_\star$,
+b_rsuma,0.00001,0,,$(R_\star + R_b) / a_b$,
+b_cosi,0.59,0,,$\cos{i_b}$,
+b_epoch,2456518.75,0,,$T_{0;b}$,$\mathrm{BJD}$
+b_period,0.592596,1,uniform 0.55 0.65,$P_b$,$\mathrm{d}$
+#limb darkening coefficients per instrument,,,,,
+host_ldc_q1_TESS,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{TESS}}$,
+host_ldc_q2_TESS,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{TESS}}$,
+#spots per instrument and companion,,,,,
+host_spot_1_long_TESS,0,1,uniform 0 360,$\mathrm{host: spot 1 long. TESS}$,\mathrm{deg}
+host_spot_1_lat_TESS,0,1,uniform -90 90,$\mathrm{host: spot 1 lat. TESS}$,\mathrm{deg}
+host_spot_1_size_TESS,0,1,uniform 0 30,$\mathrm{host: spot 1 size TESS}$,\mathrm{deg}
+host_spot_1_brightness_TESS,0,1,uniform 0 1,$\mathrm{host: spot 1 brightness TESS}$,
+host_spot_2_long_TESS,0,1,uniform 0 360,$\mathrm{host: spot 2 long. TESS}$,\mathrm{deg}
+host_spot_2_lat_TESS,0,1,uniform -90 90,$\mathrm{host: spot 2 lat. TESS}$,\mathrm{deg}
+host_spot_2_size_TESS,0,1,uniform 0 30,$\mathrm{host: spot 2 size TESS}$,\mathrm{deg}
+host_spot_2_brightness_TESS,0,1,uniform 0 1,$\mathrm{host: spot 2 brightness TESS}$,
+#flares,,,,,
+flare_tpeak_1,2456519.029,1,uniform 2456519.02 2456519.04,$t_\mathrm{peak; flare 1}$,$\mathrm{BJD}$
+flare_ampl_1,0.07,1,uniform 0.05 0.15,$A_\mathrm{flare 1}$,$\mathrm{rel. flux.}$
+flare_fwhm_1,0.003,1,uniform 0.001 0.01,$FWHM_\mathrm{flare 1}$,$\mathrm{BJD}$
+flare_tpeak_2,2456519.816,1,uniform 2456519.81 2456519.82,$t_\mathrm{peak; flare 2}$,$\mathrm{BJD}$
+flare_ampl_2,0.02,1,uniform 0. 0.05,$A_\mathrm{flare 2}$,$\mathrm{rel. flux.}$
+flare_fwhm_2,0.003,1,uniform 0.001 0.01,$FWHM_\mathrm{flare 2}$,$\mathrm{BJD}$
+#errors per instrument,,,,,
+log_err_flux_TESS,-6,1,uniform -7 -5.5,$\log{\sigma_\mathrm{TESS}}$,$\log{ \mathrm{rel. flux.} }$
+#baseline per instrument,,,,,
+baseline_offset_flux_TESS,0.01,1,uniform 0 0.025,offset (TESS),

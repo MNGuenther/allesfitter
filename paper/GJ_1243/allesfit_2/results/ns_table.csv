@@ -1,0 +1,25 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+b_rr,1e-05,(fixed),(fixed),$R_b / R_\star$,
+b_rsuma,1e-05,(fixed),(fixed),$(R_\star + R_b) / a_b$,
+b_cosi,0.59,(fixed),(fixed),$\cos{i_b}$,
+b_epoch,2456518.75,(fixed),(fixed),$T_{0;b}$,$\mathrm{BJD}$
+b_period,0.5939306844074801,0.0016920538013208697,0.0015441837359725374,$P_b$,$\mathrm{d}$
+host_ldc_q1_TESS,0.05842527627001132,0.04212198260596921,0.07061347866842413,$q_{1; \mathrm{TESS}}$,
+host_ldc_q2_TESS,0.571240120850631,0.2827871172975893,0.2497439595429619,$q_{2; \mathrm{TESS}}$,
+host_spot_1_long_TESS,326.65106912500397,2.250319035719542,2.4674208356483973,$\mathrm{host: spot 1 long. TESS}$,\mathrm{deg}
+host_spot_1_lat_TESS,79.11681689242789,1.8915236381007503,1.9949121428862782,$\mathrm{host: spot 1 lat. TESS}$,\mathrm{deg}
+host_spot_1_size_TESS,12.89583031484722,1.055823677215546,1.1467179386034854,$\mathrm{host: spot 1 size TESS}$,\mathrm{deg}
+host_spot_1_brightness_TESS,0.4957095828411672,0.12462215609038407,0.0923349422705334,$\mathrm{host: spot 1 brightness TESS}$,
+host_spot_2_long_TESS,211.24009122323076,1.7270427048730426,1.7626389301783547,$\mathrm{host: spot 2 long. TESS}$,\mathrm{deg}
+host_spot_2_lat_TESS,-36.47073808233849,8.111071911573298,13.900174071487335,$\mathrm{host: spot 2 lat. TESS}$,\mathrm{deg}
+host_spot_2_size_TESS,25.704831521763943,8.119806142714218,3.3639622301610714,$\mathrm{host: spot 2 size TESS}$,\mathrm{deg}
+host_spot_2_brightness_TESS,0.8622593082394148,0.03380875916911097,0.017905203650592894,$\mathrm{host: spot 2 brightness TESS}$,
+flare_tpeak_1,2456519.029048275,4.0570273995399475e-05,3.470759838819504e-05,$t_\mathrm{peak; flare 1}$,$\mathrm{BJD}$
+flare_ampl_1,0.07675006639575278,0.0015312290797293293,0.0016781499170166053,$A_\mathrm{flare 1}$,$\mathrm{rel. flux.}$
+flare_fwhm_1,0.004834620026406769,0.00020138522922910716,0.00019258103345219223,$FWHM_\mathrm{flare 1}$,$\mathrm{BJD}$
+flare_tpeak_2,2456519.816181098,0.00010352814570069313,0.00011467095464468002,$t_\mathrm{peak; flare 2}$,$\mathrm{BJD}$
+flare_ampl_2,0.026901121074700968,0.00312676601688152,0.0038383602647385218,$A_\mathrm{flare 2}$,$\mathrm{rel. flux.}$
+flare_fwhm_2,0.00203580423288885,0.0003896364331285548,0.0003985119021354122,$FWHM_\mathrm{flare 2}$,$\mathrm{BJD}$
+log_err_flux_TESS,-6.3335512986435605,0.01695614589264771,0.017562504319688976,$\log{\sigma_\mathrm{TESS}}$,$\log{ \mathrm{rel. flux.} }$
+baseline_offset_flux_TESS,0.01637188099794136,0.002107660244030904,0.0026464028611203234,offset (TESS),

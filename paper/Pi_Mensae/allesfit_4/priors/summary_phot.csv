@@ -1,0 +1,2 @@
+#name,gp_log_sigma_median,gp_log_sigma_ll,gp_log_sigma_ul,gp_log_rho_median,gp_log_rho_ll,gp_log_rho_ul,log_yerr_median,log_yerr_ll,log_yerr_ul
+TESS_flux_gp_decor,-10.232269368121338,0.08194639255960645,0.07383009160670184,-5.293925014871954,0.17856643502883784,0.1971734524037645,-8.89182497103086,0.007288482488213788,0.007797765660287226

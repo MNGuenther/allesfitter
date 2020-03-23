@@ -49,7 +49,7 @@ from . import general_output
 from . import nested_sampling_output
 
 from .general_output import show_initial_guess, draw_initial_guess_samples, get_labels, get_data, get_settings
-from .nested_sampling_output import get_ns_posterior_samples, get_ns_params, ns_output
+from .nested_sampling_output import get_ns_posterior_samples, get_ns_params, ns_output, ns_derive
 from .mcmc_output import get_mcmc_posterior_samples, mcmc_output, draw_mcmc_posterior_samples, draw_mcmc_posterior_samples_at_maximum_likelihood
 
 from .computer import calculate_model, calculate_baseline, calculate_stellar_var, calculate_yerr_w, update_params
@@ -118,7 +118,9 @@ class allesclass():
     
     #::: plot
     
-    def plot(self, inst, companion, style, fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, timelabel='Time', rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
+    def plot(self, inst, companion, style, 
+             fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, dt=None, 
+             kwargs_data=None, kwargs_model=None, kwargs_ax=None):
         '''
         Required input:
         ---------------
@@ -151,22 +153,22 @@ class allesclass():
             'Time' / 'Time_since'
         '''
         if ax is None: fig, ax = plt.subplots(1,1)
-        if samples is None:
+        if (samples is None) and (Nsamples>0) and (mode != 'data'):
             if mode=='posterior':
                 samples = self.posterior_samples[np.random.randint(len(self.posterior_samples), size=Nsamples)]
             elif mode=='initial_guess':
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, timelabel='Time', rasterized=rasterized, marker=marker, linestyle=linestyle, color=color, markersize=markersize, base=self)
+        general_output.plot_1(ax, samples, inst, companion, style, base=self, dt=dt, kwargs_data=kwargs_data, kwargs_ax=kwargs_ax)
         return fig, ax
         
         
     #::: posterior median
     
-    def get_posterior_median_model(self, inst, key, xx=None, phased=False):
+    def get_posterior_median_model(self, inst, key, xx=None, phased=False, settings=None):
         if phased==False:
-            return calculate_model(self.posterior_params_median, inst, key, xx=xx)
+            return calculate_model(self.posterior_params_median, inst, key, xx=xx, settings=settings)
         elif phased==True:
             p = update_params(self.posterior_params_median, phased=True)
             return calculate_model(p, inst, key, xx=xx)

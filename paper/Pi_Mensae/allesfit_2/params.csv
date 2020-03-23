@@ -1,0 +1,28 @@
+#name,value,fit,bounds,label,unit,truth
+#limb darkening coefficients per instrument,,,,,,
+ldc_q1_TESS,0.5,1,uniform 0 1,$q_{1;\mathrm{TESS}}$,,
+#companion b astrophysical params,,,,,,
+b_epoch,2446087,1,uniform 2446045.0 2446129.0,$T_{0;b}$,$\mathrm{BJD_{TDB}}$,2446087
+b_period,2093.07,1,uniform 2084.42 2101.72,$P_b$,d,2093.07
+b_K,0.1926,1,uniform 0.1856 0.1996,$K_b$,km/s,0.1926
+b_f_c,0.6957,1,uniform 0.6737 0.7177,$\sqrt{e_b} \cos{\omega_b}$,,0.6957
+b_f_s,-0.392,1,uniform -0.422 -0.362,$\sqrt{e_b} \sin{\omega_b}$,,-0.392
+#companion c,,,,,,
+c_rsuma,0.076,1,uniform 0.069 0.084,$(R_\star + R_c) / a_c$,,0.076
+c_rr,0.017,1,uniform 0.016 0.018,$R_c / R_\star$,,0.017
+c_cosi,0.0443,1,uniform 0.037 0.051,$i_c$,$\deg$,0.0443
+c_epoch,2458325.504,1,uniform 2458325.5005 2458325.5100,$T_{0;c}$,$\mathrm{BJD_{TDB}}$,2458325.504
+c_period,6.2679,1,uniform 6.2656 6.2702,$P_c$,d,6.2679
+c_K,0.00158,1,uniform 0.00018 0.00289,$K_c$,km/s,0.00158
+c_f_c,0,0,,$\sqrt{e_c} \cos{\omega_c}$,,
+c_f_s,0,0,,$\sqrt{e_c} \sin{\omega_c}$,,
+#baseline per instrument,,,,,,
+baseline_offset_flux_TESS,0,1,uniform -0.01 0.01,$\Delta F_\mathrm{TESS}$,rel. flux,
+baseline_offset_rv_AAT,0.032027855,1,uniform -0.1 0.1,$\Delta RV_\mathrm{AAT}$,km/s,
+baseline_offset_rv_HARPS1,10.70848087,1,uniform 10.6 10.8,$\Delta RV_\mathrm{HARPS_1}$,km/s,
+baseline_offset_rv_HARPS2,10.7307168,1,uniform 10.6 10.8,$\Delta RV_\mathrm{HARPS_2}$,km/s,
+#errors (overall scaling) per instrument,,,,,,
+log_err_flux_TESS,-8.95,1,uniform -8.95 -8.74,$\ln \sigma_\mathrm{TESS}$,rel. flux,
+log_jitter_rv_AAT,-5,1,uniform -5.46 -4.53,$\ln \sigma_\mathrm{AAT}$,km/s,
+log_jitter_rv_HARPS1,-6.07,1,uniform -6.44 -5.68,$\ln \sigma_\mathrm{HARPS_1}$,km/s,
+log_jitter_rv_HARPS2,-6.42,1,uniform -7.34 -5.41,$\ln \sigma_\mathrm{HARPS_2}$,km/s,

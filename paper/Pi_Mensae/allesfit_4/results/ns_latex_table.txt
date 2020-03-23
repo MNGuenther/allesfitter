@@ -1,0 +1,28 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$q_{1;\mathrm{TESS}}$ & $0.29_{-0.14}^{+0.23}$ & & fit \\ 
+$q_{2;\mathrm{TESS}}$ & $0.27_{-0.19}^{+0.36}$ & & fit \\ 
+$T_{0;b}$ & $2446087.0\pm8.6$ & $\mathrm{BJD_{TDB}}$& fit \\ 
+$P_b$ & $2093.1\pm1.8$ & d& fit \\ 
+$K_b$ & $0.1926\pm0.0014$ & km/s& fit \\ 
+$\sqrt{e_b} \cos{\omega_b}$ & $0.6956\pm0.0045$ & & fit \\ 
+$\sqrt{e_b} \sin{\omega_b}$ & $-0.3920\pm0.0063$ & & fit \\ 
+$(R_\star + R_c) / a_c$ & $0.0760_{-0.0017}^{+0.0019}$ & & fit \\ 
+$R_c / R_\star$ & $0.01729\pm0.00031$ & & fit \\ 
+$i_c$ & $0.0440\pm0.0033$ & $\deg$& fit \\ 
+$T_{0;c}$ & $2458325.50325_{-0.00084}^{+0.00078}$ & $\mathrm{BJD_{TDB}}$& fit \\ 
+$P_c$ & $6.26830\pm0.00028$ & d& fit \\ 
+$K_c$ & $0.00157\pm0.00027$ & km/s& fit \\ 
+$\sqrt{e_c} \cos{\omega_c}$ & $0.0$ & & fixed \\ 
+$\sqrt{e_c} \sin{\omega_c}$ & $0.0$ & & fixed \\ 
+gp: $\ln \sigma_\mathrm{TESS}$ & $-10.165\pm0.075$ & rel. flux& fit \\ 
+gp: $\ln \rho_\mathrm{TESS}$ & $-5.07\pm0.19$ & rel. flux& fit \\ 
+$\Delta RV_\mathrm{AAT}$ & $0.03204_{-0.00089}^{+0.00083}$ & km/s& fit \\ 
+$\Delta RV_\mathrm{HARPS_1}$ & $10.70851\pm0.00038$ & km/s& fit \\ 
+$\Delta RV_\mathrm{HARPS_2}$ & $10.73061\pm0.00068$ & km/s& fit \\ 
+$\ln \sigma_\mathrm{TESS}$ & $-8.8928\pm0.0072$ & rel. flux& fit \\ 
+$\ln \sigma_\mathrm{AAT}$ & $-5.003_{-0.088}^{+0.093}$ & km/s& fit \\ 
+$\ln \sigma_\mathrm{HARPS_1}$ & $-6.063\pm0.077$ & km/s& fit \\ 
+$\ln \sigma_\mathrm{HARPS_2}$ & $-6.41_{-0.19}^{+0.20}$ & km/s& fit \\ 

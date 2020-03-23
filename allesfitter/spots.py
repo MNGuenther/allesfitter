@@ -31,10 +31,95 @@ from tqdm import tqdm
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from itertools import product
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 
 #::: my modules
 import allesfitter
 from allesfitter import config
+
+
+
+
+
+###############################################################################
+#::: new spot map plots until I find something that makes me happy
+###############################################################################
+def convert_one_point_to_an_area(lon, lat, size, brightness):
+    '''
+    convert float values to arrays with length 1000, sampling an area
+    '''
+    
+    N = 100
+    length = np.sqrt(size * np.random.uniform(0, 1, size=N))
+    angle = np.pi * np.random.uniform(0, 2, size=N)
+    lon += length * np.cos(angle)
+    lat += length * np.sin(angle)
+    brightness = np.ones(N)*brightness
+    return lon, lat, brightness
+
+
+
+def convert_many_points_to_an_area(lons, lats, sizes, brightnesses):
+    '''
+    convert float values to arrays with length 1000, sampling an area
+    '''
+    
+    lon_list = []
+    lat_list = []
+    brightness_list = []
+    for lon,lat,size,brightness in zip(lons,lats,sizes,brightnesses):
+        a, b, c = convert_one_point_to_an_area(lon, lat, size, brightness)
+        lon_list += list(a)
+        lat_list += list(b)
+        brightness_list += list(c)
+        
+    return lon_list, lat_list, brightness_list
+
+
+
+def plot_spots_new(datadir):
+    
+    alles = allesfitter.allesclass(datadir)
+    
+    for inst in alles.BASEMENT.settings['inst_phot']:
+        fig = plt.figure()
+        plt.subplot(111, projection="aitoff")
+        plt.grid(True)
+        for i in [1,2]:
+            lons = alles.posterior_params['host_spot_'+str(i)+'_long_'+inst][0:20]
+            lats = alles.posterior_params['host_spot_'+str(i)+'_lat_'+inst][0:20]
+            sizes = alles.posterior_params['host_spot_'+str(i)+'_size_'+inst][0:20]
+            brightnesses = alles.posterior_params['host_spot_'+str(i)+'_brightness_'+inst][0:20]
+            lon_list, lat_list, brightness_list = convert_many_points_to_an_area(lons, lats, sizes, brightnesses)
+            c = SkyCoord(ra=lon_list* u.deg, dec=lat_list* u.deg)
+            lon_list_aitoff = c.ra.wrap_at(180 * u.deg).radian
+            lat_list_aitoff= c.dec.radian
+            plt.scatter( lon_list_aitoff, lat_list_aitoff, c=brightness_list, vmin=0, vmax=1 ) 
+        plt.colorbar(label='Relative spot brightness')
+        plt.xlabel('Longitude (deg)')
+        plt.ylabel('Latitude (deg)')
+        plt.tight_layout()
+        plt.xticks(ticks=np.deg2rad([-150,-120,-90,-60,-30,0,30,60,90,120,150,180]), labels=['','',r'$270^\circ$','','',r'$0^\circ$','','',r'$90^\circ$','','',r'$180^\circ$'])
+        plt.yticks(ticks=np.deg2rad([-90,-60,-30,0,30,60,90]), labels=['',r'$-60^\circ$',r'$-30^\circ$','0',r'$30^\circ$',r'$60^\circ$',''])
+        fig.savefig( os.path.join(alles.BASEMENT.outdir,'spots_aitoff_'+inst+'.pdf'), bbox_inches='tight' )
+        
+        
+        fig = plt.figure()
+        plt.xlim([0,360])
+        plt.ylim([-90,90])
+        for i in [1,2]:
+            lons = alles.posterior_params['host_spot_'+str(i)+'_long_'+inst][0:20]
+            lats = alles.posterior_params['host_spot_'+str(i)+'_lat_'+inst][0:20]
+            sizes = alles.posterior_params['host_spot_'+str(i)+'_size_'+inst][0:20]
+            brightnesses = alles.posterior_params['host_spot_'+str(i)+'_brightness_'+inst][0:20]
+            lon_list, lat_list, brightness_list = convert_many_points_to_an_area(lons, lats, sizes, brightnesses)
+            plt.scatter( lon_list, lat_list, c=brightness_list, vmin=0, vmax=1 ) 
+        plt.colorbar(label='Relative spot brightness')
+        plt.xlabel('Longitude (deg)')
+        plt.ylabel('Latitude (deg)')
+        plt.tight_layout()
+        fig.savefig( os.path.join(alles.BASEMENT.outdir,'spots_cartesian_'+inst+'.pdf'), bbox_inches='tight' )
 
 
 
@@ -229,7 +314,7 @@ def axplot_spots_2d(ax, spots):
 #::: 3D-spot-map and 2D-spot-map, individually for 10 samples
 ###############################################################################                      
 
-def plot_spots_from_posteriors(datadir, Nsamples=10, command='return'):
+def plot_spots_from_posteriors(datadir, Nsamples=10, command='save'):
     
     if command=='show':
         Nsamples = 1 #overwrite user input and only show 1 sample if command=='show'
@@ -249,13 +334,13 @@ def plot_spots_from_posteriors(datadir, Nsamples=10, command='return'):
             
             if config.BASEMENT.settings['host_N_spots_'+inst] > 0:
                 spots = [
-                                     [params['host_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
-                                     [params['host_spot_'+str(i)+'_lat_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
-                                     [params['host_spot_'+str(i)+'_size_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
-                                     [params['host_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ]
-                                    ]
+                         [params['host_spot_'+str(i)+'_long_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                         [params['host_spot_'+str(i)+'_lat_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                         [params['host_spot_'+str(i)+'_size_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ],
+                         [params['host_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings['host_N_spots_'+inst]+1) ]
+                        ]
         
-                if command=='return':
+                if command=='save':
                     fig, ax, ax2 = plot_spots(spots, command='return')
                     plt.suptitle('sample '+str(sample))
                     spotsdir = os.path.join(config.BASEMENT.outdir, 'spotmaps')
@@ -276,7 +361,7 @@ def plot_spots_from_posteriors(datadir, Nsamples=10, command='return'):
                                          [params[companion+'_spot_'+str(i)+'_brightness_'+inst] for i in range(1,config.BASEMENT.settings[companion+'_N_spots_'+inst]+1) ]
                                         ]
                     
-                    if command=='return':
+                    if command=='save':
                         fig, ax, ax2 = plot_spots(spots, command='return')
                         plt.suptitle('sample '+str(sample))
                         spotsdir = os.path.join(config.BASEMENT.outdir, 'spotmaps')

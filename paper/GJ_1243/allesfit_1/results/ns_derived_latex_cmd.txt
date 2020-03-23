@@ -1,0 +1,4 @@
+\newcommand{\bhostdensity}{$53860000000000\pm230000000000$} %$rho_\mathrm{\star;b}$ (cgs) = 53860000000000\pm230000000000
+\newcommand{\hostldcuoneTESS}{$0.98_{-0.14}^{+0.15}$} %Limb darkening $u_\mathrm{1; TESS}$ = 0.98_{-0.14}^{+0.15}
+\newcommand{\hostldcutwoTESS}{$-0.33_{-0.11}^{+0.12}$} %Limb darkening $u_\mathrm{2; TESS}$ = -0.33_{-0.11}^{+0.12}
+\newcommand{\combinedhostdensity}{$53860000000000\pm230000000000$} %$rho_\mathrm{\star; combined}$ (cgs) = 53860000000000\pm230000000000

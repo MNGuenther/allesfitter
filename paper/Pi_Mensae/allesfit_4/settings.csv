@@ -1,0 +1,65 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+companions_phot,c
+companions_rv,b c
+inst_phot,TESS
+inst_rv,AAT HARPS1 HARPS2
+fast_fit,TRUE
+fast_fit_width,0.3333333333333333
+multiprocess,True
+multiprocess_cores,all
+inst_for_b_epoch,AAT HARPS1 HARPS2
+inst_for_c_epoch,TESS
+use_stellar_density_prior,True
+#####################################,
+# MCMC settings,
+#####################################,
+mcmc_nwalkers,200
+mcmc_total_steps,10000
+mcmc_burn_steps,1000
+mcmc_thin_by,50
+mcmc_pre_run_loops,2
+mcmc_pre_run_steps,1000
+#####################################,
+# Nested Sampling settings,
+#####################################,
+ns_modus,static
+ns_nlive,500
+ns_bound,single
+ns_sample,auto
+ns_tol,0.1
+#####################################,
+# Limb darkening settings,
+#####################################,
+ld_law_TESS,quad
+#####################################,
+# Grid settings,
+#####################################,
+host_grid_TESS,very_sparse
+b_grid_TESS,very_sparse
+c_grid_TESS,very_sparse
+host_grid_AAT,very_sparse
+b_grid_AAT,very_sparse
+c_grid_AAT,very_sparse
+host_grid_HARPS1,very_sparse
+b_grid_HARPS1,very_sparse
+c_grid_HARPS1,very_sparse
+host_grid_HARPS2,very_sparse
+b_grid_HARPS2,very_sparse
+c_grid_HARPS2,very_sparse
+#####################################,
+# Baseline settings,
+#####################################,
+baseline_flux_TESS,sample_GP_Matern32
+baseline_rv_AAT,sample_offset
+baseline_rv_HARPS1,sample_offset
+baseline_rv_HARPS2,sample_offset
+#####################################,
+# Error settings,
+#####################################,
+error_flux_TESS,sample
+error_rv_AAT,sample
+error_rv_HARPS1,sample
+error_rv_HARPS2,sample
