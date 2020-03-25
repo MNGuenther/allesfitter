@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import os, sys
 
 #::: my modules
-from translator import translate
+from .translator import translate
 
 #::: plotting settings
 import seaborn as sns

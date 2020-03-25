@@ -44,6 +44,18 @@ from .flares.aflare import aflare1
 from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
+'''
+README
+
+for dilution:
+    our definition of dilution is D_0 = 1 - F_source / (F_source + F_blend)
+    ellc's original definition of third light is light_3 = F_blend / F_source
+    therefore we can relate them as light_3 = D_0 / (1 - D_0)
+    
+    on another note, the TESS SPOC lightcurve parameter CROWDSAP = F_source / (F_source + F_blend) d
+    hence D_0 = 1 - CROWDSAP
+'''
+
 
 
 
@@ -304,7 +316,7 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
                           radius_2 =    params[companion+'_radius_2'], 
                           sbratio =     params[companion+'_sbratio_'+inst], 
                           incl =        params[companion+'_incl'], 
-                          light_3 =     params['dil_'+inst],
+                          light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
                           t_zero =      params[companion+'_epoch'],
                           period =      params[companion+'_period'],
                           a =           params[companion+'_a'],
@@ -412,7 +424,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
                                   radius_2 =    params[companion+'_radius_2'], 
                                   sbratio =     params[companion+'_sbratio_'+inst], 
                                   incl =        params[companion+'_incl'], 
-                                  light_3 =     params['dil_'+inst],
+                                  light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
                                   t_zero =      params[companion+'_epoch'] + params[companion+'_ttv_transit_'+str(n_transit+1)],
                                   period =      params[companion+'_period'],
                                   a =           params[companion+'_a'],
@@ -486,9 +498,9 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       t_obs =       xx, 
                       radius_1 =    params[companion+'_radius_1'], 
                       radius_2 =    params[companion+'_radius_2'], 
-                      sbratio =     1e12, 
+                      sbratio =     1e12, #a hack to get the flux drop to 0 during occulation
                       incl =        params[companion+'_incl'], 
-                      light_3 =     params['dil_'+inst],
+                      light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
                       t_zero =      params[companion+'_epoch'],
                       period =      params[companion+'_period'],
                       a =           params[companion+'_a'],
@@ -533,7 +545,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       radius_2 =    params[companion+'_radius_2'], 
                       sbratio =     0, 
                       incl =        params[companion+'_incl'], 
-                      light_3 =     params['dil_'+inst],
+                      light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
                       t_zero =      params[companion+'_epoch'],
                       period =      params[companion+'_period'],
                       a =           params[companion+'_a'],
@@ -578,7 +590,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       radius_2 =    params[companion+'_radius_2'], 
                       sbratio =     0,
                       incl =        params[companion+'_incl'], 
-                      light_3 =     params['dil_'+inst],
+                      light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
                       t_zero =      params[companion+'_epoch'],
                       period =      params[companion+'_period'],
                       a =           params[companion+'_a'],
@@ -627,7 +639,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
     #::: now scale the thermal curve
     thermal_curve[ thermal_curve<1. ] = 1.
     thermal_curve -= 1.
-    thermal_curve *= occultation
+    thermal_curve *= occultation #a hack, he occultation time series is constant 0 in the occultation and constant 1 everywhere else
     thermal_curve /= np.max(thermal_curve_fine-1) #scaled from 0 to 1
     thermal_curve *= params[companion+'_thermal_emission_amplitude_'+inst]
     
@@ -731,9 +743,14 @@ def calculate_external_priors(params):
             else:
                 raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
     
-    #::: constrain eccentricities
+    #::: constrain eccentricities to avoid ellc crashes
     for companion in config.BASEMENT.settings['companions_all']:
         if (np.abs(params[companion+'_f_c']) > 0.8) or (np.abs(params[companion+'_f_s']) > 0.8):
+            lnp = -np.inf
+            
+    #::: constrain dilution to avoid ellc crashes
+    for inst in config.BASEMENT.settings['inst_all']:
+        if (params['dil_'+inst] > 0.999):
             lnp = -np.inf
             
     return lnp
@@ -1280,9 +1297,10 @@ def baseline_get_gp(params, inst, key):
     #::: GP and mean (simple offset)  
     if 'baseline_gp_offset_'+key+'_'+inst in params:
         gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst], fit_mean=True)
-    else:
-        gp = celerite.GP(kernel, mean=0.)
-        
+    elif key=='flux':
+        gp = celerite.GP(kernel, mean=1.)
+    elif key=='rv':
+        gp = celerite.GP(kernel, mean=0.)        
         
     return gp
 
