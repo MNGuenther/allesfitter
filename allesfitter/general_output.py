@@ -59,7 +59,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     
-def logprint(*text, typ='default'):
+def logprint(typ='default', *text):
     if config.BASEMENT.settings['print_progress']:
         if typ=='default':
             print(*text)
