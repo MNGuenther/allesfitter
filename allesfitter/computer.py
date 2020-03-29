@@ -1301,10 +1301,8 @@ def baseline_get_gp(params, inst, key):
     #::: GP and mean (simple offset)  
     if 'baseline_gp_offset_'+key+'_'+inst in params:
         gp = celerite.GP(kernel, mean=params['baseline_gp_offset_'+key+'_'+inst], fit_mean=True)
-    elif key=='flux':
-        gp = celerite.GP(kernel, mean=1.)
-    elif key=='rv':
-        gp = celerite.GP(kernel, mean=0.)        
+    else:
+        gp = celerite.GP(kernel, mean=0.) #mean=0. because it is the mean of the residuals, as the GP is applied to the residuals
         
     return gp
 
@@ -1458,7 +1456,7 @@ def stellar_var_get_gp(params, key):
     if 'stellar_var_gp_offset_'+key in params:
         gp = celerite.GP(kernel, mean=params['stellar_var_gp_offset_'+key], fit_mean=True)
     else:
-        gp = celerite.GP(kernel, mean=0.)
+        gp = celerite.GP(kernel, mean=0.) #mean=0. because it is the mean of the residuals, as the GP is applied to the residuals
         
         
     return gp
