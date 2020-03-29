@@ -335,8 +335,8 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      divide(params['host_heat_'+inst],2.),
-                          heat_2 =      divide(params[companion+'_heat_'+inst],2.),
+                          heat_1 =      divide(params['host_atmo_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst], 
                           lambda_2 =    params[companion+'_lambda_'+inst], 
                           vsini_1 =     params['host_vsini'],
@@ -351,6 +351,7 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
                           shape_2 =     settings[companion+'_shape_'+inst],
                           spots_1 =     params['host_spots_'+inst], 
                           spots_2 =     params[companion+'_spots_'+inst], 
+                          exact_grav =  config.BASEMENT.settings['exact_grav'],
                           verbose =     False
                           )
         
@@ -443,8 +444,8 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
                                   hf_2 =        params[companion+'_hf_'+inst], #1.5,
                                   bfac_1 =      params['host_bfac_'+inst],
                                   bfac_2 =      params[companion+'_bfac_'+inst], 
-                                  heat_1 =      divide(params['host_heat_'+inst],2.),
-                                  heat_2 =      divide(params[companion+'_heat_'+inst],2.),
+                                  heat_1 =      divide(params['host_atmo_'+inst],2.),
+                                  heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
                                   lambda_1 =    params['host_lambda_'+inst], 
                                   lambda_2 =    params[companion+'_lambda_'+inst], 
                                   vsini_1 =     params['host_vsini'],
@@ -459,6 +460,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
                                   shape_2 =     settings[companion+'_shape_'+inst],
                                   spots_1 =     params['host_spots_'+inst], 
                                   spots_2 =     params[companion+'_spots_'+inst], 
+                                  exact_grav =  config.BASEMENT.settings['exact_grav'],
                                   verbose =     False
                                   )
                 
@@ -535,6 +537,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       shape_2 =     'sphere',
                       spots_1 =     None, 
                       spots_2 =     None, 
+                      exact_grav =  config.BASEMENT.settings['exact_grav'],
                       verbose =     False
                       )
     
@@ -580,6 +583,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       shape_2 =     'sphere',
                       spots_1 =     None, 
                       spots_2 =     None, 
+                      exact_grav =  config.BASEMENT.ssettings['exact_grav'],
                       verbose =     False
                       )
     
@@ -625,6 +629,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
                       shape_2 =     'sphere',
                       spots_1 =     None, 
                       spots_2 =     None, 
+                      exact_grav =  config.BASEMENT.settings['exact_grav'],
                       verbose =     False
                       )
     
@@ -692,8 +697,8 @@ def rv_fct(params, inst, companion, xx=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      divide(params['host_heat_'+inst],2.),
-                          heat_2 =      divide(params[companion+'_heat_'+inst],2.),
+                          heat_1 =      divide(params['host_atmo_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst],
                           lambda_2 =    params[companion+'_lambda_'+inst], 
                           vsini_1 =     params['host_vsini'],
@@ -709,7 +714,6 @@ def rv_fct(params, inst, companion, xx=None):
                           spots_1 =     params['host_spots_'+inst], 
                           spots_2 =     params[companion+'_spots_'+inst], 
                           flux_weighted = config.BASEMENT.settings[companion+'_flux_weighted_'+inst],
-#                          flux_weighted =   False,
                           verbose =     False
                           )
         

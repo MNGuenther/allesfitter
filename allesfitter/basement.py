@@ -322,7 +322,7 @@ class Basement():
         if ('phase_curve' in self.settings.keys()) and len(self.settings['phase_curve']):
             self.settings['phase_curve'] = set_bool(self.settings['phase_curve'])
             if self.settings['phase_curve']==True:                
-                self.logprint('The user set phase_curve==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
+                # self.logprint('The user set phase_curve==True. Automatically set fast_fit=False and secondary_eclispe=True, and overwrite other settings.')
                 self.settings['fast_fit'] = 'False'
                 self.settings['secondary_eclipse'] = 'True'
         else:
@@ -435,7 +435,7 @@ class Basement():
         
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: host & companion grids, limb darkening laws, shapes
+        #::: host & companion grids, limb darkening laws, shapes, etc.
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for companion in self.settings['companions_all']:
             for inst in self.settings['inst_all']:
@@ -465,6 +465,12 @@ class Basement():
                     self.settings[companion+'_flux_weighted_'+inst] = set_bool(self.settings[companion+'_flux_weighted_'+inst])
                 else:
                     self.settings[companion+'_flux_weighted_'+inst] = False
+        
+    
+        if 'exact_grav' in self.settings: 
+            self.settings['exact_grav'] = set_bool(self.settings['exact_grav'])
+        else:
+            self.settings['exact_grav'] = False
         
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -775,11 +781,11 @@ class Basement():
                 if companion+'_bfac_'+inst not in self.params:
                     self.params[companion+'_bfac_'+inst] = None
                     
-                if 'host_heat_'+inst not in self.params:
-                    self.params['host_heat_'+inst] = None
+                if 'host_atmo_'+inst not in self.params:
+                    self.params['host_atmo_'+inst] = None
                     
-                if companion+'_heat_'+inst not in self.params:
-                    self.params[companion+'_heat_'+inst] = None
+                if companion+'_atmo_'+inst not in self.params:
+                    self.params[companion+'_atmo_'+inst] = None
                     
                 if 'host_lambda_'+inst not in self.params:
                     self.params['host_lambda_'+inst] = None
@@ -815,13 +821,13 @@ class Basement():
                     
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                #::: to avoid a bug in ellc, if either property is >0, set the other to 1-15 (not 0):
+                #::: to avoid a bug/feature in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if self.params[companion+'_heat_'+inst] is not None:
-                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_heat_'+inst] > 0):
-                        self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug in ellc
-                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_heat_'+inst] == 0):
-                        self.params[companion+'_heat_'+inst] = 1e-15           #this is to avoid a bug in ellc
+                if self.params[companion+'_atmo_'+inst] is not None:
+                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_atmo_'+inst] > 0):
+                        self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug/feature in ellc
+                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_atmo_'+inst] == 0):
+                        self.params[companion+'_atmo_'+inst] = 1e-15           #this is to avoid a bug/feature in ellc
               
                 
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -850,12 +856,20 @@ class Basement():
                 warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst)
 
             if 'host_geom_albedo_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_heat_'+inst)
-                self.params['host_heat_'+inst] = self.params['host_geom_albedo_'+inst]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_atmo_'+inst)
+                self.params['host_atmo_'+inst] = self.params['host_geom_albedo_'+inst]
                 
             if companion+'_geom_albedo_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_heat_'+inst)
-                self.params[companion+'_heat_'+inst] = self.params[companion+'_geom_albedo_'+inst]
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_atmo_'+inst)
+                self.params[companion+'_atmo_'+inst] = self.params[companion+'_geom_albedo_'+inst]
+                    
+            if 'host_heat_'+inst in self.params:
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_heat_'+inst+' ---> '+'host_atmo_'+inst)
+                self.params['host_atmo_'+inst] = self.params['host_heat_'+inst]
+                
+            if companion+'_heat_'+inst in self.params:
+                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_heat_'+inst+' ---> '+companion+'_atmo_'+inst)
+                self.params[companion+'_atmo_'+inst] = self.params[companion+'_heat_'+inst]
                     
                 
         

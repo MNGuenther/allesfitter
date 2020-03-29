@@ -145,7 +145,7 @@ def calculate_values_from_model_curves(arg):
         p2['host_gdc_'+inst] = 0
         p2['host_bfac_'+inst] = 0
         model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
+        # plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
         _ampl_ellipsoidal_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
         
         
@@ -161,7 +161,7 @@ def calculate_values_from_model_curves(arg):
         p2['host_gdc_'+inst] = 0
         p2['host_bfac_'+inst] = 0
         model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
+        # plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
         _ampl_sbratio_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
         config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
         config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
@@ -179,7 +179,7 @@ def calculate_values_from_model_curves(arg):
         p2['host_gdc_'+inst] = 0
         p2['host_bfac_'+inst] = 0
         model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
+        # plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
         _ampl_geom_albedo_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
         config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
         config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
@@ -197,7 +197,7 @@ def calculate_values_from_model_curves(arg):
         p2['b_geom_albedo_'+inst] = 0
         p2['host_bfac_'+inst] = 0
         model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
+        # plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
         _ampl_gdc_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
         config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
         config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
@@ -331,31 +331,40 @@ def derive(samples, mode):
         if config.BASEMENT.settings['secondary_eclipse'] is True:
             derived_samples[companion+'_epoch_occ'] = get_params(companion+'_epoch') + get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation from Winn2010
         
+                    
+        #----------------------------------------------------------------------
+        #::: eccentricity corrections (from Winn 2010) 
+        #---------------------------------------------------------------------- 
+        eccentricity_correction_tra = ( np.sqrt(1. - derived_samples[companion+'_e']**2) / ( 1. + derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+        eccentricity_correction_occ = ( np.sqrt(1. - derived_samples[companion+'_e']**2) / ( 1. - derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+        
         
         #----------------------------------------------------------------------
         #::: impact params of primary eclipse
         #----------------------------------------------------------------------
-        derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.+derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
-
-
+        derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_tra
+        
+        
         #----------------------------------------------------------------------
         #::: impact params of secondary eclipse
         #----------------------------------------------------------------------
         if config.BASEMENT.settings['secondary_eclipse'] is True:
-            derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * ( (1.-derived_samples[companion+'_e']**2) / ( 1.-derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+            derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_occ
         
         
         #----------------------------------------------------------------------
-        #::: transit duration 
+        #::: transit duration (in hours)
         #----------------------------------------------------------------------
         derived_samples[companion+'_T_tra_tot'] = get_params(companion+'_period')/np.pi *24.  \
-                                  * np.arcsin( derived_samples[companion+'_R_star/a'] \
-                                             * np.sqrt( (1.+get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 )\
-                                             / sin_d(derived_samples[companion+'_i']) ) #in h
+                                                  * np.arcsin( derived_samples[companion+'_R_star/a'] \
+                                                               * np.sqrt( (1. + get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 ) \
+                                                               / sin_d(derived_samples[companion+'_i']) ) \
+                                                  * eccentricity_correction_tra    #in h
         derived_samples[companion+'_T_tra_full'] = get_params(companion+'_period')/np.pi *24.  \
-                                  * np.arcsin( derived_samples[companion+'_R_star/a'] \
-                                             * np.sqrt( (1.-get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 )\
-                                             / sin_d(derived_samples[companion+'_i']) ) #in h
+                                                   * np.arcsin( derived_samples[companion+'_R_star/a'] \
+                                                                * np.sqrt( (1. - get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2  )\
+                                                                / sin_d(derived_samples[companion+'_i']) ) \
+                                                   * eccentricity_correction_tra    #in h
                                   
 
         #----------------------------------------------------------------------
