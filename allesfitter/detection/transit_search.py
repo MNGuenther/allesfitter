@@ -155,7 +155,7 @@ def tls_search(time, flux, flux_err,
                 ax.plot(results['model_folded_phase'], results['model_folded_model'], 'r-', lw=2)
                 ax.text( 1.02, 0.95, 'P = ' + np.format_float_positional(results['period'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
                 ax.text( 1.02, 0.85, 'Depth = ' + np.format_float_positional(1e3*(1.-results['depth']),4) + ' ppt', ha='left', va='center', transform=ax.transAxes )
-                ax.text( 1.02, 0.75, 'Duration = ' + np.format_float_positional(24*60*(1.-results['duration']),4) + ' ppt', ha='left', va='center', transform=ax.transAxes )
+                ax.text( 1.02, 0.75, 'Duration = ' + np.format_float_positional(24*(1.-results['duration']),4) + ' h', ha='left', va='center', transform=ax.transAxes )
                 ax.text( 1.02, 0.65, 'T_0 = ' + np.format_float_positional(results['T0'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
                 ax.text( 1.02, 0.55, 'SNR = ' + np.format_float_positional(results['snr'],4), ha='left', va='center', transform=ax.transAxes )
                 if save_plot:

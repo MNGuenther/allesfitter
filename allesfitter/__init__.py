@@ -120,6 +120,7 @@ class allesclass():
     
     def plot(self, inst, companion, style, 
              fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, dt=None, 
+             zoomwindow=8.,
              kwargs_data=None, kwargs_model=None, kwargs_ax=None):
         '''
         Required input:
@@ -160,7 +161,7 @@ class allesclass():
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, base=self, dt=dt, kwargs_data=kwargs_data, kwargs_ax=kwargs_ax)
+        general_output.plot_1(ax, samples, inst, companion, style, base=self, dt=dt, zoomwindow=zoomwindow, kwargs_data=kwargs_data, kwargs_ax=kwargs_ax)
         return fig, ax
         
         
@@ -271,4 +272,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.0.10'
+__version__ = '1.1.0'

@@ -1,0 +1,4 @@
+\newcommand{\baselinegpsholnS0fluxKepler}{$=-11.69_{-0.21}^{+0.28}$} %none = -11.69_{-0.21}^{+0.28}
+\newcommand{\baselinegpsholnQfluxKepler}{$=2.75_{-0.73}^{+1.2}$} %none = 2.75_{-0.73}^{+1.2}
+\newcommand{\baselinegpsholnomega0fluxKepler}{$=0.377\pm0.038$} %none = 0.377\pm0.038
+\newcommand{\logerrfluxKepler}{$=-6.664\pm0.024$} %none = -6.664\pm0.024

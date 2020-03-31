@@ -84,7 +84,10 @@ class Basement():
         self.load_data()
         
         if self.settings['shift_epoch']:
-            self.change_epoch()
+            try:
+                self.change_epoch()
+            except:
+                warnings.warn('\nCould not shift epoch (ignore if no period was given)\n')
         
         if self.settings['fit_ttvs']:  
             self.prepare_ttv_fit()
@@ -725,7 +728,8 @@ class Basement():
                     
                 if companion+'_period' not in self.params:
                     self.params[companion+'_period'] = None
-                    raise ValueError('It seems like you forgot to include the params for companion '+companion+' in the params.csv file...')
+                    self.settings['do_not_phase_fold'] = True
+                    # raise ValueError('It seems like you forgot to include the params for companion '+companion+' in the params.csv file...')
                     
                 if companion+'_sbratio_'+inst not in self.params:
                     self.params[companion+'_sbratio_'+inst] = 0.               
@@ -804,6 +808,16 @@ class Basement():
                     
                 if companion+'_spots_'+inst not in self.params:
                     self.params[companion+'_spots_'+inst] = None
+                    
+                if companion+'_phase_curve_beaming_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_beaming_'+inst] = None
+                    
+                if companion+'_phase_curve_atmospheric_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_atmospheric_'+inst] = None
+                    
+                if companion+'_phase_curve_ellipsoidal_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_ellipsoidal_'+inst] = None
+                    
                     
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

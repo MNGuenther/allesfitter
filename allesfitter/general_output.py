@@ -321,6 +321,7 @@ def afplot(samples, companion):
 ###############################################################################
 def plot_1(ax, samples, inst, companion, style, 
            base=None, dt=None,
+           zoomwindow=8.,
            kwargs_data=None,
            kwargs_model=None,
            kwargs_ax=None):
@@ -338,10 +339,14 @@ def plot_1(ax, samples, inst, companion, style,
     companion : None or str
         None or 'b'/'c'/etc.
         
-    style:
+    style: str
         'full' / 'per_transit' / 'phase' / 'phasezoom' / 'phasezoom_occ' /'phase_curve'
         'full_residuals' / 'phase_residuals' / 'phasezoom_residuals' / 'phasezoom_occ_residuals' / 'phase_curve_residuals'
-        
+    
+    zoomwindow: int or float
+        the full width of the window to zoom into (in hours)
+        default: 8 hours
+    
     base: a BASEMENT class object
         (for internal use only)
         
@@ -656,11 +661,11 @@ def plot_1(ax, samples, inst, companion, style,
         #::: x-zoom?
         if style in ['phasezoom',
                      'phasezoom_residuals']:
-                ax.set( xlim=[-4,4], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
+                ax.set( xlim=[-zoomwindow/2.,zoomwindow/2.], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         elif style in ['phasezoom_occ',
                        'phasezoom_occ_residuals']:
-                xlower = -4 + phase_shift*params_median[companion+'_period']*24.
-                xupper = 4 + phase_shift*params_median[companion+'_period']*24.
+                xlower = -zoomwindow/2. + phase_shift*params_median[companion+'_period']*24.
+                xupper = zoomwindow/2. + phase_shift*params_median[companion+'_period']*24.
                 ax.set( xlim=[xlower, xupper], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         
         
@@ -670,7 +675,7 @@ def plot_1(ax, samples, inst, companion, style,
        
         if style in ['phase_curve', 
                      'phase_curve_residuals']:
-                ax.set( ylim=[0.9999,1.0001] )
+                ax.set( ylim=[0.999,1.001] )
 
 
 
@@ -907,9 +912,12 @@ def plot_initial_guess(return_figs=False):
             
         for companion in config.BASEMENT.settings['companions_phot']:
             for inst in config.BASEMENT.settings['inst_phot']:
-                fig, axes = afplot_per_transit(samples, inst, companion)
-                fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-                plt.close(fig)
+                try:
+                    fig, axes = afplot_per_transit(samples, inst, companion)
+                    fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+                    plt.close(fig)
+                except:
+                    pass
         return None
     
     else:

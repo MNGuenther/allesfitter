@@ -1,0 +1,19 @@
+#name,value,fit,bounds,label,unit,truth
+#limb darkening coefficients per instrument,,,,,,
+ldc_q1_Kepler,0.5,1,uniform 0 1,$q_{1;\mathrm{Kepler}}$,,
+ldc_q2_Kepler,0.5,1,uniform 0 1,$q_{2;\mathrm{Kepler}}$,,
+#companion b astrophysical params,,,,,,
+B_rr,0.177,1,uniform 0 1,$R_B / R_A$,,0.177
+B_rsuma,0.14353658536585368,1,uniform 0 1,$(R_A + R_B) / a_c$,,0.14353658536585368
+B_cosi,0.06975647374412523,1,uniform 0 1,$\cos{i}$,$\deg$,0.06975647374412523
+B_epoch,2455005.27,1,uniform 2455005 2455006,$T_{0}$,$\mathrm{BJD_{TDB}}$,
+B_period,8.36,1,uniform 8 9,$P$,d,8.360613
+B_sbratio_Kepler,0,1,uniform 0 1,$J$,,
+B_f_c,0.32616949427641045,0,,$\sqrt{e} \cos{\omega}$,,0.32616949427641045
+B_f_s,-0.08132318859630773,0,,$\sqrt{e} \sin{\omega}$,,-0.08132318859630773
+#baseline per instrument,,,,,,
+baseline_gp_sho_lnS0_flux_Kepler,-11.689208420989463,1,uniform -15 15,gp: $\ln S_\mathrm{0; Kepler}$,rel. flux,
+baseline_gp_sho_lnQ_flux_Kepler,2.7495793003505815,1,uniform -15 15,gp: $\ln Q_\mathrm{Kepler}$,rel. flux,
+baseline_gp_sho_lnomega0_flux_Kepler,0.377068731291874,1,uniform -15 15,gp: $\ln \omega_\mathrm{0; Kepler}$,rel. flux,
+#errors (overall scaling) per instrument,,,,,,
+log_err_flux_Kepler,-6.66421059617339,1,uniform -8 -6,$\ln \sigma_\mathrm{Kepler}$,rel. flux,

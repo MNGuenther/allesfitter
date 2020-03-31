@@ -1,0 +1,26 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$R_\star/a_\mathrm{B}$ & $0.1215\pm0.0029$ & derived \\ 
+$a_\mathrm{B}/R_\star$ & $8.23\pm0.19$ & derived \\ 
+$R_\mathrm{B}/a_\mathrm{B}$ & $0.01984\pm0.00061$ & derived \\ 
+$R_\mathrm{B}$ ($\mathrm{R_{\oplus}}$) & $56.4\pm4.5$ & derived \\ 
+$R_\mathrm{B}$ ($\mathrm{R_{jup}}$) & $5.03\pm0.40$ & derived \\ 
+$a_\mathrm{B}$ ($\mathrm{R_{\odot}}$) & $26.0\pm2.2$ & derived \\ 
+$a_\mathrm{B}$ (AU) & $0.1211\pm0.010$ & derived \\ 
+$i_\mathrm{B}$ (deg) & $85.75\pm0.31$ & derived \\ 
+$b_\mathrm{tra;B}$ & $0.620_{-0.033}^{+0.031}$ & derived \\ 
+$T_\mathrm{tot;B}$ (h) & $7.845_{-0.088}^{+0.097}$ & derived \\ 
+$T_\mathrm{full;B}$ (h) & $4.47\pm0.22$ & derived \\ 
+$b_\mathrm{occ;B}$ & $0.587_{-0.032}^{+0.029}$ & derived \\ 
+$T_\mathrm{0;occ;B}$ & $2455026.7512\pm0.0016$ & derived \\ 
+$rho_\mathrm{\star;B}$ (cgs) & $0.151\pm0.011$ & derived \\ 
+$T_\mathrm{eq;B}$ (K) & $1173\pm48$ & derived \\ 
+$\delta_\mathrm{tr; undil; B; Kepler}$ (ppt) & $27.93\pm0.40$ & derived \\ 
+$\delta_\mathrm{tr; dil; B; Kepler}$ (ppt) & $27.93\pm0.40$ & derived \\ 
+$\delta_\mathrm{occ; undil; B; Kepler}$ (ppm) & $1400\pm310$ & derived \\ 
+$\delta_\mathrm{occ; dil; B; Kepler}$ (ppm) & $1400\pm310$ & derived \\ 
+Limb darkening $u_\mathrm{1; Kepler}$ & $0.21_{-0.15}^{+0.20}$ & derived \\ 
+Limb darkening $u_\mathrm{2; Kepler}$ & $0.18_{-0.27}^{+0.29}$ & derived \\ 
+$rho_\mathrm{\star; combined}$ (cgs) & $0.151\pm0.011$ & derived \\ 

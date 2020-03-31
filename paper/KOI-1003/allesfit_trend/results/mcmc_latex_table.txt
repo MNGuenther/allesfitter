@@ -1,0 +1,8 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+gp: $\ln S_\mathrm{0; Kepler}$ & $-11.69_{-0.21}^{+0.28}$ & rel. flux& fit \\ 
+gp: $\ln Q_\mathrm{Kepler}$ & $2.75_{-0.73}^{+1.2}$ & rel. flux& fit \\ 
+gp: $\ln \omega_\mathrm{0; Kepler}$ & $0.377\pm0.038$ & rel. flux& fit \\ 
+$\ln \sigma_\mathrm{Kepler}$ & $-6.664\pm0.024$ & rel. flux& fit \\ 

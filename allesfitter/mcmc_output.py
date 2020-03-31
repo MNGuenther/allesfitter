@@ -241,7 +241,7 @@ def print_autocorr(sampler):
     for i, key in enumerate(config.BASEMENT.fitkeys):
         chain_length = ((config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']) / tau[i])
         logprint('\t', '{0: <30}'.format(key), '{0: <20}'.format(tau[i]), '{0: <20}'.format(chain_length))
-        if chain_length < 30:
+        if (chain_length < 30) or np.isinf(chain_length) or np.isnan(chain_length):
             converged = False
             
     if converged:
@@ -316,10 +316,12 @@ def mcmc_output(datadir):
         
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
-            fig, axes = afplot_per_transit(posterior_samples, inst, companion)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-            plt.close(fig)
-    
+            try:
+                fig, axes = afplot_per_transit(posterior_samples, inst, companion)
+                fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
+                plt.close(fig)
+            except:
+                pass
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)
@@ -340,7 +342,10 @@ def mcmc_output(datadir):
     
     #::: derive values (using stellar parameters from params_star.csv)
     # if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-    deriver.derive(posterior_samples, 'mcmc')
+    try:
+        deriver.derive(posterior_samples, 'mcmc')
+    except:
+        logprint('\nDerived values could not be produced.')
     # else:
     #     print('File "params_star.csv" not found. Cannot derive final parameters.')
     

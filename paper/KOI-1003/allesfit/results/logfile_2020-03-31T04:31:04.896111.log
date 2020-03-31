@@ -1,0 +1,24 @@
+
+Convergence check:
+--------------------------
+Total steps:         10000     
+Burn steps:          1000      
+Evaluation steps:    9000                
+Evaluation samples:  45000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 host_ldc_q1_Kepler             248.95845200822615   36.150610382581505  
+	 host_ldc_q2_Kepler             217.2523287100923    41.426483451000685  
+	 B_rr                           223.22054215225342   40.31886990876187   
+	 B_rsuma                        173.07101846324565   52.0017740688993    
+	 B_cosi                         187.39587171356163   48.02667165345393   
+	 B_epoch                        173.78104511468172   51.7893075971589    
+	 B_period                       174.86830954433472   51.46730144216446   
+	 B_sbratio_Kepler               173.31296533962316   51.92917899918017   
+	 baseline_gp_sho_lnS0_flux_Kepler 177.16870768739722   50.799038484154444  
+	 baseline_gp_sho_lnQ_flux_Kepler 198.67486981300715   45.30014293438724   
+	 baseline_gp_sho_lnomega0_flux_Kepler 169.6502704456165    53.05031330843095   
+	 log_err_flux_Kepler            163.3155373421158    55.10804511604225   
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+

@@ -100,6 +100,8 @@ def translate(params=None, quiet=False, **params_kwargs):
         if not is_equal( params['a'], ( (G/(4*np.pi**2) * (params['period']*u.d)**2 * (params['M_host']*u.Msun + M_companion_with_unit))**(1./3.) ).to(u.AU).value ):
             raise ValueError('All of a, period and M_host are given, but are not consistent.')
         
+    #more TBD
+            
         
     #==========================================================================
     #::: check the allowed keys
@@ -126,6 +128,7 @@ def translate(params=None, quiet=False, **params_kwargs):
                     'ldc', #in u-space (e.g. Claret 2017)
                     'ldc_transformed', #in Kipping q-space (eg Kipping 2013)
                     'R_host/a',
+                    'a/R_host',
                     'R_companion/a',
                     'R_companion/R_host',
                     '(R_host+R_companion)/a',
@@ -148,40 +151,69 @@ def translate(params=None, quiet=False, **params_kwargs):
     #==========================================================================
     #::: translate
     #==========================================================================
-    try: params['a'] = ( (G/(4*np.pi**2) * (params['period']*u.d)**2 * (params['M_host']*u.Msun + M_companion_with_unit))**(1./3.) ).to(u.AU).value #in AU    
-    except: pass
+    if params['a'] is None:
+        try: params['a'] = ( (G/(4*np.pi**2) * (params['period']*u.d)**2 * (params['M_host']*u.Msun + M_companion_with_unit))**(1./3.) ).to(u.AU).value #in AU    
+        except: pass
     
-    try: params['incl'] = np.rad2deg(np.arccos(params['cosi'])) #in deg
-    except: pass
+    if params['incl'] is None:
+        try: params['incl'] = np.rad2deg(np.arccos(params['cosi'])) #in deg
+        except: pass
     
-    try: params['cosi'] = np.cos(np.deg2rad(params['incl']))
-    except: pass
+    if params['cosi'] is None:
+        try: params['cosi'] = np.cos(np.deg2rad(params['incl']))
+        except: pass
     
-    try: params['f_c'] = np.sqrt(params['ecc']) * np.cos(np.deg2rad(params['omega']))
-    except: pass
+    if params['f_c'] is None:
+        try: params['f_c'] = np.sqrt(params['ecc']) * np.cos(np.deg2rad(params['omega']))
+        except: pass
         
-    try: params['f_s'] = np.sqrt(params['ecc']) * np.sin(np.deg2rad(params['omega']))
-    except: pass
+    if params['f_s'] is None:
+        try: params['f_s'] = np.sqrt(params['ecc']) * np.sin(np.deg2rad(params['omega']))
+        except: pass
     
-    try: params['R_host/a'] = ((params['R_host']*u.Rsun) / (params['a']*u.AU)).decompose().value
-    except: pass
+    if params['a/R_host'] is None:
+        try: params['a/R_host'] = 1./params['R_host/a']
+        except: pass
+    
+    if params['a/R_host'] is None:
+        try: params['R_host/a'] = ((params['R_host']*u.Rsun) / (params['a']*u.AU)).decompose().value
+        except: pass
 
-    try: params['R_companion/a'] = (R_companion_with_unit / (params['a']*u.AU)).decompose().value
-    except: pass
+    if params['R_host/a'] is None:
+        try: params['R_host/a'] = 1./params['a/R_host']
+        except: pass
+
+    if params['R_companion/a'] is None:
+        try: params['R_companion/a'] = (R_companion_with_unit / (params['a']*u.AU)).decompose().value
+        except: pass
+
+    if params['R_companion/a'] is None:
+        try: params['R_companion/a'] = params['R_companion/R_host'] / params['a/R_host']
+        except: pass
     
-    try: params['R_companion/R_host'] = (R_companion_with_unit / (params['R_host']*u.Rsun)).decompose().value
-    except: pass
+    if params['R_companion/R_host'] is None:
+        try: params['R_companion/R_host'] = (R_companion_with_unit / (params['R_host']*u.Rsun)).decompose().value
+        except: pass
     
-    try: params['(R_host+R_companion)/a'] = ((params['R_host']*u.Rsun + R_companion_with_unit) / (params['a']*u.AU)).decompose().value
-    except: pass
+    if params['(R_host+R_companion)/a'] is None:
+        try: params['(R_host+R_companion)/a'] = ((params['R_host']*u.Rsun + R_companion_with_unit) / (params['a']*u.AU)).decompose().value
+        except: pass
     
-    try:
-        if params['ld'] == 'quad':
-            q1 = (params['ldc'][0] + params['ldc'][1])**2
-            q2 = 0.5 * params['ldc'][0] / (params['ldc'][0] + params['ldc'][1])
-            params['ldc_transformed'] = [q1, q2]
-    except:
-        pass
+    if params['(R_host+R_companion)/a'] is None:
+        try: params['(R_host+R_companion)/a'] = params['R_host/a'] + params['R_companion/a']
+        except: pass
+    
+    if params['ldc'] is None:
+        try:
+            if params['ld'] == 'quad':
+                q1 = (params['ldc'][0] + params['ldc'][1])**2
+                q2 = 0.5 * params['ldc'][0] / (params['ldc'][0] + params['ldc'][1])
+                params['ldc_transformed'] = [q1, q2]
+        except:
+            pass
+        
+    #more TBD
+        
     
     #==========================================================================
     #::: return
@@ -194,3 +226,4 @@ def translate(params=None, quiet=False, **params_kwargs):
 
 if __name__ == '__main__':
     translate(R_companion=1, M_companion=0., cosi=0.1, M_host=0.6, R_host=0.5, period=13.)
+    translate({'R_companion/R_host':0.177, 'a/R_host':8.2, 'incl':86, 'omega':346, 'ecc':0.113, 'period':8.360613})

@@ -1,0 +1,107 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['b']          
+companions_rv                  []             
+inst_phot                      ['TESS']       
+inst_rv                        []             
+multiprocess                   True           
+multiprocess_cores             15             
+fast_fit                       False          
+secondary_eclipse              True           
+phase_curve                    True           
+shift_epoch                    True           
+inst_for_b_epoch               ['TESS']       
+ns_modus                       dynamic        
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      rwalk          
+ns_tol                         0.01           
+host_ld_law_TESS               quad           
+baseline_flux_TESS             sample_offset  
+error_flux_TESS                sample         
+host_grid_TESS                 very_sparse    
+b_grid_TESS                    very_sparse    
+
+automatically set:            
+companions_all                 ['b']          
+inst_all                       ['TESS']       
+print_progress                 True           
+fast_fit_width                 0.3333333333333333
+use_host_density_prior         True           
+fit_ttvs                       False          
+mcmc_pre_run_loops             0              
+mcmc_pre_run_steps             0              
+mcmc_nwalkers                  100            
+mcmc_total_steps               2000           
+mcmc_burn_steps                1000           
+mcmc_thin_by                   1              
+b_ld_law_TESS                  None           
+host_shape_TESS                sphere         
+b_shape_TESS                   sphere         
+exact_grav                     False          
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+t_exp_TESS                     None           
+t_exp_n_int_TESS               None           
+host_N_spots_TESS              0              
+b_N_spots_TESS                 0              
+N_flares                       0              
+mid_epoch                      0.0            
+
+Parameters:
+--------------------------
+
+user-given:                   
+b_rr                           0.09716         free  ['uniform', 0.0, 1.0]         
+b_rsuma                        0.31138662070035994 free  ['uniform', 0.0, 1.0]         
+b_cosi                         0.098911670541602 free  ['uniform', 0.0, 1.0]         
+b_epoch                        0.0             set  
+b_period                       0.9414576       set  
+b_f_c                          -0.00166485346595862 set  
+b_f_s                          -0.0953793911856062 set  
+b_K                            1.8166          set  
+b_q                            0.0059653       set  
+host_ldc_q1_TESS               0.28291761000000004 set  
+host_ldc_q2_TESS               0.20605376950554616 set  
+b_sbratio_TESS                 0.04            free  ['uniform', 0.0, 0.1]         
+b_phase_curve_beaming_TESS     0.021           free  ['uniform', -0.1, 0.1]        
+b_phase_curve_atmospheric_TESS -0.1744         free  ['uniform', -1.0, 1.0]        
+b_phase_curve_ellipsoidal_TESS -0.1905         free  ['uniform', -1.0, 1.0]        
+baseline_offset_flux_TESS      0.0001          free  ['uniform', -0.01, 0.01]      
+log_err_flux_TESS              -9.16           free  ['uniform', -10.0, -8.0]      
+
+automatically set:            
+dil_TESS                       0.0             set  
+b_a                            None            set  
+host_ldc_TESS                  None            set  
+b_ldc_TESS                     None            set  
+host_gdc_TESS                  None            set  
+b_gdc_TESS                     None            set  
+didt_TESS                      None            set  
+domdt_TESS                     None            set  
+host_rotfac_TESS               1.0             set  
+b_rotfac_TESS                  1.0             set  
+host_hf_TESS                   1.5             set  
+b_hf_TESS                      1.5             set  
+host_bfac_TESS                 None            set  
+b_bfac_TESS                    None            set  
+host_atmo_TESS                 None            set  
+b_atmo_TESS                    None            set  
+host_lambda_TESS               None            set  
+b_lambda_TESS                  None            set  
+host_vsini                     None            set  
+b_vsini                        None            set  
+host_spots_TESS                None            set  
+b_spots_TESS                   None            set  
+
+External priors:
+--------------------------
+
+Stellar density prior (automatically set): ['normal', 1.0263350228376733, 0.23931825300966425] (g cm^-3)
+
+ndim: 9

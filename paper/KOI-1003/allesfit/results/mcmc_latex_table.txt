@@ -1,0 +1,18 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$q_{1;\mathrm{Kepler}}$ & $0.164_{-0.091}^{+0.18}$ & & fit \\ 
+$q_{2;\mathrm{Kepler}}$ & $0.27_{-0.20}^{+0.39}$ & & fit \\ 
+$R_B / R_A$ & $0.1634_{-0.0021}^{+0.0017}$ & & fit \\ 
+$(R_A + R_B) / a_c$ & $0.1414\pm0.0034$ & & fit \\ 
+$\cos{i}$ & $0.0742\pm0.0054$ & $\deg$& fit \\ 
+$T_{0}$ & $2455021.9877\pm0.0012$ & $\mathrm{BJD_{TDB}}$& fit \\ 
+$P$ & $8.35992\pm0.00094$ & d& fit \\ 
+$J$ & $0.053\pm0.012$ & & fit \\ 
+$\sqrt{e} \cos{\omega}$ & $0.32616949427641045$ & & fixed \\ 
+$\sqrt{e} \sin{\omega}$ & $-0.08132318859630773$ & & fixed \\ 
+gp: $\ln S_\mathrm{0; Kepler}$ & $-11.98_{-0.26}^{+0.28}$ & rel. flux& fit \\ 
+gp: $\ln Q_\mathrm{Kepler}$ & $3.21_{-0.81}^{+1.3}$ & rel. flux& fit \\ 
+gp: $\ln \omega_\mathrm{0; Kepler}$ & $0.374_{-0.035}^{+0.033}$ & rel. flux& fit \\ 
+$\ln \sigma_\mathrm{Kepler}$ & $-6.707\pm0.022$ & rel. flux& fit \\ 

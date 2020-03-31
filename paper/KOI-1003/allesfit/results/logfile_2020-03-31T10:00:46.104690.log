@@ -1,0 +1,33 @@
+
+Convergence check:
+--------------------------
+Total steps:         10000     
+Burn steps:          2000      
+Evaluation steps:    8000                
+Evaluation samples:  40000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 host_ldc_q1_Kepler             237.0574383186311    33.74709545813587   
+	 host_ldc_q2_Kepler             215.27200837671467   37.162286264363836  
+	 B_rr                           219.04012027058104   36.52298944192311   
+	 B_rsuma                        169.17576921957112   47.28809590702614   
+	 B_cosi                         182.59220633735458   43.813480106699195  
+	 B_epoch                        169.1190881324824    47.30394474296751   
+	 B_period                       170.62439351599937   46.886613544210746  
+	 B_sbratio_Kepler               168.6254354204726    47.44242753207284   
+	 baseline_gp_sho_lnS0_flux_Kepler 171.1992304201842    46.729182020065956  
+	 baseline_gp_sho_lnQ_flux_Kepler 191.16775032328607   41.84806269086236   
+	 baseline_gp_sho_lnomega0_flux_Kepler 165.9415527646764    48.2097453393418    
+	 log_err_flux_Kepler            158.80432417334129   50.376461986436084  
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+Kepler B: deriving eclipse depths and more from model curves...
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.pdf
+
+Done. For all outputs, see allesfit/results 
+

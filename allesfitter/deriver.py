@@ -116,91 +116,104 @@ def calculate_values_from_model_curves(arg):
     #==========================================================================
     xx = xx0[ind_out]
     if (config.BASEMENT.settings['secondary_eclipse'] is True) and (len(xx)>0):
-        model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-        _depth_occ_diluted_ = ( np.nanmax(model) - np.nanmin(model) ) * 1e6 #in ppm
+        
+        #::: full model 
+        model_flux = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+        
+        #::: remove phase curve contributions
+        if (p[companion+'_phase_curve_beaming_'+inst] is not None): #A1
+            model_flux -= 1e-3*p[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+            
+        if (p[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
+            model_flux -= 1e-3*p[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+            
+        if (p[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
+            model_flux -= 1e-3*p[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+        
+        _depth_occ_diluted_ = ( np.nanmax(model_flux) - np.nanmin(model_flux) ) * 1e6 #in ppm
         if _depth_occ_diluted_ < 1e-7: _depth_occ_diluted_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
 
+        
+    # #==========================================================================
+    # #::: calculating phase curves (OLD)
+    # #==========================================================================
+    # xx = xx0[ind_out]
+    # if (config.BASEMENT.settings['phase_curve'] is True) and (len(xx)>0):
 
-    #==========================================================================
-    #:: calculating phase curves
-    #==========================================================================
-    xx = xx0[ind_out]
-    if (config.BASEMENT.settings['phase_curve'] is True) and (len(xx)>0):
-
-        def plottle(fname, title, model):
-            if i==0:
-                fig = plt.figure()
-                plt.plot(xx,model,'b.')
-                plt.ylim([0.999*np.nanmin(model),1.001*np.nanmax(model)])
-                plt.title(title)
-                fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
-                plt.close(fig)
+    #     def plottle(fname, title, model):
+    #         if i==0:
+    #             fig = plt.figure()
+    #             plt.plot(xx,model,'b.')
+    #             plt.ylim([0.999*np.nanmin(model),1.001*np.nanmax(model)])
+    #             plt.title(title)
+    #             fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
+    #             plt.close(fig)
                 
-        #----------------------------------------------------------------------
-        #::: amplitude of ellipsoidal modulation alone (ignoring all other effects)
-        #----------------------------------------------------------------------
-        p2 = copy.deepcopy(p)
-        p2['b_sbratio_'+inst] = 0
-        p2['b_geom_albedo_'+inst] = 0
-        p2['host_gdc_'+inst] = 0
-        p2['host_bfac_'+inst] = 0
-        model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        # plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
-        _ampl_ellipsoidal_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
+    #     #----------------------------------------------------------------------
+    #     #::: amplitude of ellipsoidal modulation alone (ignoring all other effects)
+    #     #----------------------------------------------------------------------
+    #     p2 = copy.deepcopy(p)
+    #     p2['b_sbratio_'+inst] = 0
+    #     p2['b_geom_albedo_'+inst] = 0
+    #     p2['host_gdc_'+inst] = 0
+    #     p2['host_bfac_'+inst] = 0
+    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+    #     # plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
+    #     _ampl_ellipsoidal_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
         
         
-        #----------------------------------------------------------------------
-        #::: amplitude of sbratio modulation alone (ignoring all other effects)
-        #----------------------------------------------------------------------
-        p2 = copy.deepcopy(p)
-        save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-        save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-        config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-        config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-        p2['b_geom_albedo_'+inst] = 0
-        p2['host_gdc_'+inst] = 0
-        p2['host_bfac_'+inst] = 0
-        model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        # plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
-        _ampl_sbratio_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
-        config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-        config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
+    #     #----------------------------------------------------------------------
+    #     #::: amplitude of sbratio modulation alone (ignoring all other effects)
+    #     #----------------------------------------------------------------------
+    #     p2 = copy.deepcopy(p)
+    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+    #     p2['b_geom_albedo_'+inst] = 0
+    #     p2['host_gdc_'+inst] = 0
+    #     p2['host_bfac_'+inst] = 0
+    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+    #     # plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
+    #     _ampl_sbratio_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
+    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
         
         
-        #----------------------------------------------------------------------
-        #::: amplitude of geom. albedo modulation alone (ignoring all other effects)
-        #----------------------------------------------------------------------
-        p2 = copy.deepcopy(p)
-        save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-        save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-        p2['b_sbratio_'+inst] = 0
-        config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-        config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-        p2['host_gdc_'+inst] = 0
-        p2['host_bfac_'+inst] = 0
-        model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        # plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
-        _ampl_geom_albedo_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
-        config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-        config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
+    #     #----------------------------------------------------------------------
+    #     #::: amplitude of geom. albedo modulation alone (ignoring all other effects)
+    #     #----------------------------------------------------------------------
+    #     p2 = copy.deepcopy(p)
+    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+    #     p2['b_sbratio_'+inst] = 0
+    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+    #     p2['host_gdc_'+inst] = 0
+    #     p2['host_bfac_'+inst] = 0
+    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+    #     # plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
+    #     _ampl_geom_albedo_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
+    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
         
         
-        #----------------------------------------------------------------------
-        #::: amplitude of gravity darkening modulation alone (ignoring all other effects)
-        #----------------------------------------------------------------------
-        p2 = copy.deepcopy(p)
-        save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-        save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-        p2['b_sbratio_'+inst] = 0
-        config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-        config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-        p2['b_geom_albedo_'+inst] = 0
-        p2['host_bfac_'+inst] = 0
-        model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-        # plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
-        _ampl_gdc_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
-        config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-        config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
+    #     #----------------------------------------------------------------------
+    #     #::: amplitude of gravity darkening modulation alone (ignoring all other effects)
+    #     #----------------------------------------------------------------------
+    #     p2 = copy.deepcopy(p)
+    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
+    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
+    #     p2['b_sbratio_'+inst] = 0
+    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
+    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
+    #     p2['b_geom_albedo_'+inst] = 0
+    #     p2['host_bfac_'+inst] = 0
+    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
+    #     # plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
+    #     _ampl_gdc_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
+    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
+    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
 
 
     return [_depth_tr_diluted_, _depth_occ_diluted_, _ampl_ellipsoidal_diluted_, _ampl_sbratio_diluted_, _ampl_geom_albedo_diluted_, _ampl_gdc_diluted_]
@@ -295,6 +308,7 @@ def derive(samples, mode):
         #::: radii
         #----------------------------------------------------------------------
         derived_samples[companion+'_R_star/a'] = get_params(companion+'_rsuma') / (1. + get_params(companion+'_rr'))
+        derived_samples[companion+'_a/R_star'] = (1. + get_params(companion+'_rr')) / get_params(companion+'_rsuma')
         derived_samples[companion+'_R_companion/a'] = get_params(companion+'_rsuma') * get_params(companion+'_rr') / (1. + get_params(companion+'_rr'))
         derived_samples[companion+'_R_companion_(R_earth)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_earth.value #in R_earth
         derived_samples[companion+'_R_companion_(R_jup)'] = star['R_star'] * get_params(companion+'_rr') * R_sun.value / R_jup.value #in R_jup
@@ -332,39 +346,39 @@ def derive(samples, mode):
             derived_samples[companion+'_epoch_occ'] = get_params(companion+'_epoch') + get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation from Winn2010
         
                     
+        
         #----------------------------------------------------------------------
-        #::: eccentricity corrections (from Winn 2010) 
-        #---------------------------------------------------------------------- 
-        eccentricity_correction_tra = ( np.sqrt(1. - derived_samples[companion+'_e']**2) / ( 1. + derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
-        eccentricity_correction_occ = ( np.sqrt(1. - derived_samples[companion+'_e']**2) / ( 1. - derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+        #::: impact params of primary eclipse with eccentricity corrections (from Winn 2010) 
+        #----------------------------------------------------------------------
+        eccentricity_correction_b_tra = ( (1. - derived_samples[companion+'_e']**2) / ( 1. + derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+        
+        derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_b_tra
         
         
         #----------------------------------------------------------------------
-        #::: impact params of primary eclipse
-        #----------------------------------------------------------------------
-        derived_samples[companion+'_b_tra'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_tra
+        #::: impact params of secondary eclipse with eccentricity corrections (from Winn 2010) 
+        #----------------------------------------------------------------------        
+        eccentricity_correction_b_occ = ( (1. - derived_samples[companion+'_e']**2) / ( 1. - derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
         
-        
-        #----------------------------------------------------------------------
-        #::: impact params of secondary eclipse
-        #----------------------------------------------------------------------
         if config.BASEMENT.settings['secondary_eclipse'] is True:
-            derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_occ
+            derived_samples[companion+'_b_occ'] = (1./derived_samples[companion+'_R_star/a']) * get_params(companion+'_cosi') * eccentricity_correction_b_occ
         
         
         #----------------------------------------------------------------------
-        #::: transit duration (in hours)
+        #::: transit duration (in hours) with eccentricity corrections (from Winn 2010) 
         #----------------------------------------------------------------------
+        eccentricity_correction_T_tra = ( np.sqrt(1. - derived_samples[companion+'_e']**2) / ( 1. + derived_samples[companion+'_e']*sin_d(derived_samples[companion+'_w']) ) )
+        
         derived_samples[companion+'_T_tra_tot'] = get_params(companion+'_period')/np.pi *24.  \
                                                   * np.arcsin( derived_samples[companion+'_R_star/a'] \
                                                                * np.sqrt( (1. + get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2 ) \
                                                                / sin_d(derived_samples[companion+'_i']) ) \
-                                                  * eccentricity_correction_tra    #in h
+                                                  * eccentricity_correction_T_tra    #in h
         derived_samples[companion+'_T_tra_full'] = get_params(companion+'_period')/np.pi *24.  \
                                                    * np.arcsin( derived_samples[companion+'_R_star/a'] \
                                                                 * np.sqrt( (1. - get_params(companion+'_rr'))**2 - derived_samples[companion+'_b_tra']**2  )\
                                                                 / sin_d(derived_samples[companion+'_i']) ) \
-                                                   * eccentricity_correction_tra    #in h
+                                                   * eccentricity_correction_T_tra    #in h
                                   
 
         #----------------------------------------------------------------------
@@ -537,6 +551,9 @@ def derive(samples, mode):
             
         names.append( companion+'_R_star/a' )
         labels.append( '$R_\star/a_\mathrm{'+companion+'}$' )
+        
+        names.append( companion+'_a/R_star' )
+        labels.append( '$a_\mathrm{'+companion+'}/R_\star$' )
         
         names.append( companion+'_R_companion/a'  )
         labels.append( '$R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )

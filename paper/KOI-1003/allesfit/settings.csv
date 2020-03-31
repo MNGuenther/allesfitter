@@ -1,0 +1,43 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+companions_phot,B
+inst_phot,Kepler
+fast_fit,False
+multiprocess,True
+multiprocess_cores,all
+shift_epoch,True
+secondary_eclipse,True
+use_stellar_density_prior,True
+#####################################,
+# MCMC settings,
+#####################################,
+mcmc_nwalkers,500
+mcmc_total_steps,10000
+mcmc_burn_steps,2000
+mcmc_thin_by,100
+mcmc_pre_run_loops,1
+mcmc_pre_run_steps,1000
+#####################################,
+# Limb darkening settings,
+#####################################,
+ld_law_Kepler,quad
+#####################################,
+# Grid settings,
+#####################################,
+host_grid_Kepler,very_sparse
+b_grid_Kepler,very_sparse
+#####################################,
+# Exposure interpolation settings,
+#####################################,
+t_exp_Kepler,0.020416666666666663
+t_exp_n_int_Kepler,10
+#####################################,
+# Baseline settings,
+#####################################,
+baseline_flux_Kepler,sample_GP_SHO
+#####################################,
+# Error settings,
+#####################################,
+error_flux_Kepler,sample

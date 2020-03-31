@@ -1,0 +1,6 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+baseline_gp_sho_lnS0_flux_Kepler,-11.689208420989463,0.2055403806997873,0.2849832736585416,gp: $\ln S_\mathrm{0; Kepler}$,rel. flux
+baseline_gp_sho_lnQ_flux_Kepler,2.7495793003505815,0.726264869395691,1.1550252074839134,gp: $\ln Q_\mathrm{Kepler}$,rel. flux
+baseline_gp_sho_lnomega0_flux_Kepler,0.377068731291874,0.0382333269961595,0.03776816905456243,gp: $\ln \omega_\mathrm{0; Kepler}$,rel. flux
+log_err_flux_Kepler,-6.66421059617339,0.023539222916475033,0.0237243149172075,$\ln \sigma_\mathrm{Kepler}$,rel. flux

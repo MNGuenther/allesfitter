@@ -308,7 +308,9 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
         n_int = None
     
     
+    #-------------------------------------------------------------------------- 
     #::: planet and EB transit lightcurve model
+    #-------------------------------------------------------------------------- 
     if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
         model_flux = ellc.lc(
                           t_obs =       xx, 
@@ -363,7 +365,25 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
         model_flux = np.ones_like(xx)
     
     
+    #-------------------------------------------------------------------------- 
+    #::: sine/cosine phase curve model
+    # A1 (beaming)
+    # B1 (atmospheric)
+    # B2 (ellipsoidal)
+    #-------------------------------------------------------------------------- 
+    if (params[companion+'_phase_curve_beaming_'+inst] is not None): #A1
+        model_flux += 1e-3*params[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        
+    if (params[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
+        model_flux += 1e-3*params[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        
+    if (params[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
+        model_flux += 1e-3*params[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        
+        
+    #-------------------------------------------------------------------------- 
     #::: flare lightcurve model
+    #-------------------------------------------------------------------------- 
     if settings['N_flares'] > 0:
         for i in range(1,settings['N_flares']+1):
             model_flux += aflare1(xx, params['flare_tpeak_'+str(i)], params['flare_fwhm_'+str(i)], params['flare_ampl_'+str(i)], upsample=True, uptime=10)
@@ -380,7 +400,7 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
 
 
 #==============================================================================
-#::: flux fct: piecewise (for TTVs)
+#::: flux fct: piecewise (for TTVs; no phase curve)
 #==============================================================================
 def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
     '''
@@ -660,7 +680,7 @@ def calc_thermal_curve(params, inst, companion, xx, t_exp, n_int):
 ###############################################################################
 #::: rv fct
 ###############################################################################
-def rv_fct(params, inst, companion, xx=None):
+def rv_fct(params, inst, companion, xx=None, settings=None):
     '''
     ! params must be updated via update_params() before calling this function !
     '''

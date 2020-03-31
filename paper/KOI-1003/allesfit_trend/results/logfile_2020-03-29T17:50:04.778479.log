@@ -1,0 +1,25 @@
+
+Convergence check:
+--------------------------
+Total steps:         5000      
+Burn steps:          1000      
+Evaluation steps:    4000                
+Evaluation samples:  20000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 baseline_gp_sho_lnS0_flux_Kepler 84.96480208491487    47.078318337072695  
+	 baseline_gp_sho_lnQ_flux_Kepler 79.31562234419187    50.43142677040235   
+	 baseline_gp_sho_lnomega0_flux_Kepler 76.32022666735648    52.41074580968024   
+	 log_err_flux_Kepler            80.26338195021734    49.835926456238354  
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+Kepler B: deriving eclipse depths and more from model curves...
+
+Derived values could not be produced.
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_trend/results 
+
