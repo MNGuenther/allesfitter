@@ -29,6 +29,7 @@ import os
 from tqdm import tqdm
 import itertools
 from transitleastsquares import catalog_info
+from astropy import units as u
 
 #::: my modules
 from .transit_search import tls_search
@@ -37,6 +38,8 @@ try:
     from exoworlds.tess import tessio
 except:
     pass
+from ..v2.classes import allesclass2
+from ..v2.translator import translate
 
 #::: settings and constants
 np.random.seed(42)
@@ -81,9 +84,6 @@ def setup_logfile(logfname):
             f.write('inj_period,inj_rplanet,tls_period,tls_depth,tls_duration,tls_SDE,tls_SNR\n')
         return None
                 
-        
-
-
 
 
 #::: check if a certain injection has already been logged, or if it needs to be done
@@ -93,11 +93,29 @@ def to_do_or_not_to_do_that_is_the_question(ex, period, rplanet):
         return True #do it
     #if a previous logfile exists and it includes those period and rplanet values (to 1e-6 precision), then skip this pair
     else:
-        for i in range(len(ex)):
-            if (np.abs(period - ex['inj_period'][i]) < 1e-6) and (np.abs(rplanet - ex['inj_rplanet'][i]) < 1e-6):
+        N = len(np.atleast_1d(ex['inj_period']))
+        for i in range(N):
+            if (np.abs(period - np.atleast_1d(ex['inj_period'])[i]) < 1e-6) and (np.abs(rplanet - np.atleast_1d(ex['inj_rplanet'])[i]) < 1e-6):
                 return False #skip it
     #if the pair was not skipped before, then go ahead and do it
     return True #do it
+    
+
+
+def inject(time, flux, flux_err, epoch, period, r_companion_earth, r_host=1, m_host=1):
+    dic = translate(period=period,
+                    r_companion_earth=r_companion_earth,
+                    m_companion_earth=0,
+                    r_host=r_host,
+                    m_host=m_host, 
+                    quiet=True)
+    alles = allesclass2()
+    alles.settings = {'companions_phot':['b'], 'inst_phot':['buf']}
+    alles.params = {'b_rr':dic['rr'], 'b_rsuma':dic['rsuma'], 'b_epoch':epoch, 'b_period':period}
+    alles.params_host = {'R_host':r_host, 'M_host':m_host}
+    alles.fill()   
+    model_flux = alles.generate_model('buf', 'flux', time)
+    return model_flux + flux - 1
     
 
 
@@ -105,12 +123,12 @@ def to_do_or_not_to_do_that_is_the_question(ex, period, rplanet):
 #::: Inject an ellc transit and TLS search on an input lightcurve
 ###############################################################################
 def inject_and_tls_search(time, flux, flux_err, 
-                          periods, rplanets, logfname, 
+                          period_grid, r_companion_earth_grid, 
+                          inj_options=None,
                           SNR_threshold=5.,
                           known_transits=None, 
-                          R_star=1., R_star_min=0.13, R_star_max=3.5, 
-                          M_star=1., M_star_min=0.1, M_star_max=1.,
-                          show_plot=False, save_plot=False):
+                          tls_kwargs=None,
+                          tls_options=None):
     '''
     Inputs:
     -------
@@ -154,10 +172,12 @@ def inject_and_tls_search(time, flux, flux_err,
     M_star_max : float
         maximum mass of the star (e.g. 99th percentile)
         default 1. M_sun (from TLS)
-    show_plot : bool
-        show a plot in the terminal or not
-    save_plot : bool
-        save a plot or not
+        
+    options : None or dict, keywords:
+        show_plot : bool
+            show a plot in the terminal or not
+        save_plot : bool
+            save a plot or not
         
     Summary:
     -------
@@ -169,38 +189,52 @@ def inject_and_tls_search(time, flux, flux_err,
     Nothing, but a list of all TLS results will get saved to a log file
     '''
 
+    #::: format inputs
+    period_grid = np.atleast_1d(period_grid)
+    r_companion_earth_grid = np.atleast_1d(r_companion_earth_grid)
+    
+    if inj_options is None: inj_options={}
+    inj_options['logfname'] = 'injection_recovery_test.csv'
+    
+    if tls_kwargs is None: tls_kwargs = {}
+    if 'R_star' not in tls_kwargs: tls_kwargs['R_star'] = 1.
+    if 'M_star' not in tls_kwargs: tls_kwargs['M_star'] = 1.
+    
     #::: set up a logfile
-    ex = setup_logfile(logfname)
+    ex = setup_logfile(inj_options['logfname'])
     
     #::: cycle through all periods and rplanets
     print('\n', flush=True)
-    for period, rplanet in tqdm(itertools.product(periods, rplanets), total=len(periods)*len(rplanets)): #combining the two for loops
+    for period, r_companion_earth in tqdm(itertools.product(period_grid, r_companion_earth_grid), total=len(period_grid)*len(r_companion_earth_grid)): #combining the two for loops
         
-        if to_do_or_not_to_do_that_is_the_question(ex, period, rplanet):
-            print('\tP = '+str(period)+' days, Rp = '+str(rplanet)+' Rearth --> do')
+        if to_do_or_not_to_do_that_is_the_question(ex, period, r_companion_earth):
+            print('\tP = '+str(period)+' days, Rp = '+str(r_companion_earth)+' Rearth --> do')
             epoch = time[0] + np.random.random()*period
-            flux2 = inject_lc_model(time, flux, flux_err, epoch, period, rplanet, 
-                               R_star=R_star, M_star=M_star,
-                               show_plot=show_plot, save_plot=save_plot)
+            
+            flux2 = inject(time, flux, flux_err, epoch, period, r_companion_earth, tls_kwargs['R_star'], tls_kwargs['M_star'])
+            
+            tls_kwargs['period_min'] = period - 0.5
+            tls_kwargs['period_max'] = period + 0.5
+            tls_kwargs['transit_depth_min'] = 0.5*(( (r_companion_earth*u.Rearth)/(tls_kwargs['R_star']*u.Rsun) ).decompose().value)**2
             results_all = tls_search(time, flux2, flux_err,
                                      SNR_threshold=SNR_threshold,
                                      known_transits=known_transits,
-                                     R_star=R_star, R_star_min=R_star_min, R_star_max=R_star_max, 
-                                     M_star=M_star, M_star_min=M_star_min, M_star_max=M_star_max)
+                                     tls_kwargs=tls_kwargs,
+                                     options=tls_options)
             if len(results_all)>0:
                 for r in results_all:
-                    with open(logfname,'a') as f:
+                    with open(inj_options['logfname'],'a') as f:
                         f.write(format(period, '.5f')+','+
-                                format(rplanet, '.5f')+','+
+                                format(r_companion_earth, '.5f')+','+
                                 format(r.period, '.5f')+','+
                                 format(r.depth, '.5f')+','+
                                 format(r.duration, '.5f')+','+
                                 format(r.SDE, '.5f')+','+
                                 format(r.snr, '.5f')+'\n')
             else:
-                with open(logfname,'a') as f:
+                with open(inj_options['logfname'],'a') as f:
                     f.write(format(period, '.5f')+','+
-                            format(rplanet, '.5f')+','+
+                            format(r_companion_earth, '.5f')+','+
                             'nan'+','+
                             'nan'+','+
                             'nan'+','+
@@ -208,12 +242,29 @@ def inject_and_tls_search(time, flux, flux_err,
                             'nan'+'\n')
                 
         else:
-            print('\tP = '+str(period)+' days, Rp = '+str(rplanet)+' Rearth --> skipped (already exists)')
+            print('\tP = '+str(period)+' days, Rp = '+str(r_companion_earth)+' Rearth --> skipped (already exists)')
     
     #::: finish
-    irplot(logfname)
+    irplot(inj_options['logfname'])
     print('Done.')
             
+
+
+def get_tls_kwargs_by_tic(tic_id, tls_kwargs=None):
+    u, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
+    print('TICv8 info:')
+    print('Quadratic limb darkening u_0, u_1', u[0], u[1])
+    print('Stellar radius', R_star, '+', R_star_lerr, '-', R_star_uerr)
+    print('Stellar mass', M_star, '+', M_star_lerr, '-', M_star_uerr)
+    if tls_kwargs is None: tls_kwargs = {}
+    tls_kwargs['R_star']=float(R_star)
+    tls_kwargs['R_star_min']=R_star-3*R_star_lerr
+    tls_kwargs['R_star_max']=R_star+3*R_star_uerr
+    tls_kwargs['M_star']=float(M_star)
+    tls_kwargs['M_star_min']=M_star-3*M_star_lerr
+    tls_kwargs['M_star_max']=M_star+3*M_star_uerr
+    tls_kwargs['u']=u    
+    return tls_kwargs
 
 
 
@@ -221,10 +272,11 @@ def inject_and_tls_search(time, flux, flux_err,
 #::: Inject an ellc transit and TLS search using tessio
 ###############################################################################
 def inject_and_tls_search_by_tic(tic_id, 
-                                 periods, rplanets, logfname, 
-                                 SNR_threshold=5.,
-                                 known_transits=None, 
-                                 show_plot=False, save_plot=False):
+                                  period_grid, r_companion_earth_grid, 
+                                  SNR_threshold=5.,
+                                  known_transits=None, 
+                                  tls_kwargs=None,
+                                  options=None):
     '''
     Inputs:
     -------
@@ -265,27 +317,23 @@ def inject_and_tls_search_by_tic(tic_id,
     
     #::: format inputs
     tic_id = str(int(tic_id))
-    periods = np.atleast_1d(periods)
-    rplanets = np.atleast_1d(rplanets)
+    period_grid = np.atleast_1d(period_grid)
+    r_companion_earth_grid = np.atleast_1d(r_companion_earth_grid)
 
     #::: load data
     dic = tessio.get(tic_id)
     time, flux, flux_err = dic['time'], dic['flux'], dic['flux_err']
     
-    #::: load TIC info
-    ab, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
-    print('TICv8 info:')
-    print('Quadratic limb darkening a, b', ab[0], ab[1])
-    print('Stellar radius', R_star, '+', R_star_lerr, '-', R_star_uerr)
-    print('Stellar mass', M_star, '+', M_star_lerr, '-', M_star_uerr)
+    #::: load tls kwargs
+    tls_kwargs = get_tls_kwargs_by_tic(tic_id, tls_kwargs=tls_kwargs)
     
     #::: run
-    inject_and_tls_search(time, flux, flux_err, periods, rplanets, logfname, 
+    inject_and_tls_search(time, flux, flux_err, 
+                          period_grid, r_companion_earth_grid, 
                           SNR_threshold=SNR_threshold,
                           known_transits=known_transits, 
-                          R_star=R_star, R_star_min=R_star-R_star_lerr, R_star_max=R_star+R_star_uerr, 
-                          M_star=M_star, M_star_min=M_star-M_star_lerr, M_star_max=M_star+M_star_uerr,
-                          show_plot=show_plot, save_plot=save_plot)
+                          tls_kwargs=tls_kwargs,
+                          options=options)
             
 
 

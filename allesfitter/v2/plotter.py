@@ -100,16 +100,16 @@ def plot_rv_phase(ax, phi, rv, rv_err, phase_grid, model_phaserv_grid):
 ###############################################################################
 #::: info text 
 ###############################################################################
-def plot_info(ax, text=0, params=None, **params_kwargs):
-    params = translate(params=params, quiet=True, **params_kwargs)
+def plot_info(ax, text=0, params=None, settings=None, **kwargs):
+    params = translate(params=params, settings=settings, quiet=True, **kwargs)
     
     ax.set_axis_off()
     
     if text==0:
-        ax.text(0,0.95,'R_comp = '+str(params['R_companion'])+' '+params['R_companion_unit'], transform=ax.transAxes) #bodies
-        ax.text(0,0.85,'M_comp = '+str(params['M_companion'])+' '+params['M_companion_unit'], transform=ax.transAxes)
-        ax.text(0,0.75,'R_host = '+str(params['R_host'])+' Rsun', transform=ax.transAxes)
-        ax.text(0,0.65,'M_host = '+str(params['M_host'])+' Msun', transform=ax.transAxes)
+        ax.text(0,0.95,'R_comp = '+np.format_float_positional(params['R_companion_earth'],2)+r' $R_\odot$ = ' + np.format_float_positional(params['R_companion_jup'],2)+r' $R_J$ = ' + np.format_float_positional(params['R_companion_sun'],2)+r' $R_\odot$', transform=ax.transAxes) #bodies
+        ax.text(0,0.85,'M_comp = '+np.format_float_positional(params['M_companion_earth'],2)+r' $M_\odot$ = ' + np.format_float_positional(params['M_companion_jup'],2)+r' $M_J$ = ' + np.format_float_positional(params['M_companion_sun'],2)+r' $M_\odot$', transform=ax.transAxes)
+        ax.text(0,0.75,'R_host = '+str(params['R_host'])+r' $R_\odot$', transform=ax.transAxes)
+        ax.text(0,0.65,'M_host = '+str(params['M_host'])+r' $M_\odot$', transform=ax.transAxes)
         ax.text(0,0.55,'sbratio = '+str(params['sbratio']), transform=ax.transAxes)
         ax.text(0,0.45,'epoch' + ' = '+str(params['epoch'])+r' $\mathrm{BJD_{TDB}}$', transform=ax.transAxes) #orbits
         ax.text(0,0.35,'period = '+str(params['period'])+' days', transform=ax.transAxes)
@@ -119,14 +119,14 @@ def plot_info(ax, text=0, params=None, **params_kwargs):
     
     if text==1:
         ax.text(0,0.95,'dil = '+str(params['dil']), transform=ax.transAxes)
-        ax.text(0,0.85,'R_comp/R_host = '+np.format_float_positional(params['R_companion/R_host'],5,False), transform=ax.transAxes)
-        ax.text(0,0.75,'(R_comp+R_host)/a = '+np.format_float_positional(params['(R_host+R_companion)/a'],5,False), transform=ax.transAxes)
-        ax.text(0,0.65,'R_comp/a = '+np.format_float_positional(params['R_companion/a'],5,False), transform=ax.transAxes)
-        ax.text(0,0.55,'R_host/a = '+np.format_float_positional(params['R_host/a'],5,False), transform=ax.transAxes)
+        ax.text(0,0.85,'R_comp/R_host = '+np.format_float_positional(params['rr'],5,False), transform=ax.transAxes)
+        ax.text(0,0.75,'(R_comp+R_host)/a = '+np.format_float_positional(params['rsuma'],5,False), transform=ax.transAxes)
+        ax.text(0,0.65,'R_comp/a = '+np.format_float_positional(params['R_companion_over_a'],5,False), transform=ax.transAxes)
+        ax.text(0,0.55,'R_host/a = '+np.format_float_positional(params['R_host_over_a'],5,False), transform=ax.transAxes)
         ax.text(0,0.45,'cosi = '+np.format_float_positional(params['cosi'],5,False), transform=ax.transAxes)
         ax.text(0,0.35,r'$\sqrt{e} \cos{\omega}$ = '+np.format_float_positional(params['f_c'],5,False), transform=ax.transAxes)
         ax.text(0,0.25,r'$\sqrt{e} \sin{\omega}$ = '+np.format_float_positional(params['f_s'],5,False), transform=ax.transAxes)
-        ax.text(0,0.15,'LD = '+str(params['ldc'])+' '+params['ld'], transform=ax.transAxes)
-        ax.text(0,0.05,'LD transf = ['+", ".join([np.format_float_positional(item,5,False) for item in params['ldc_transformed']]) + ']', transform=ax.transAxes)
-            
+        ax.text(0,0.15,'LD = '+str(params['ldc']), transform=ax.transAxes)
+        try: ax.text(0,0.05,'LD transf = ['+", ".join([np.format_float_positional(item,5,False) for item in params['ldc_transformed']]) + ']', transform=ax.transAxes)
+        except: pass
     return ax

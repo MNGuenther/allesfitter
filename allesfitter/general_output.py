@@ -48,30 +48,32 @@ from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
                      
 ###############################################################################
 #::: print function that prints into console and logfile at the same time
+#::: colors did crash the old linux servers, so had to remove them again :(
 ############################################################################### 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+# class bcolors:
+#     HEADER = '\033[95m'
+#     OKBLUE = '\033[94m'
+#     OKGREEN = '\033[92m'
+#     WARNING = '\033[93m'
+#     FAIL = '\033[91m'
+#     ENDC = '\033[0m'
+#     BOLD = '\033[1m'
+#     UNDERLINE = '\033[4m'
     
 def logprint(*text, typ='default'):
     if config.BASEMENT.settings['print_progress']:
-        if typ=='default':
-            print(*text)
-        elif typ=='success':
-            fulltext = ' '.join([str(t) for t in text])
-            print(bcolors.OKGREEN + fulltext + bcolors.ENDC)
-        elif typ=='warning':
-            fulltext = ' '.join([str(t) for t in text])
-            print(bcolors.WARNING + fulltext + bcolors.ENDC)
-        elif typ=='failure':
-            fulltext = ' '.join([str(t) for t in text])
-            print(bcolors.FAIL + fulltext + bcolors.ENDC)
+        print(*text)
+        # if typ=='default':
+            # print(*text)
+        # elif typ=='success':
+        #     fulltext = ' '.join([str(t) for t in text])
+        #     print(bcolors.OKGREEN + fulltext + bcolors.ENDC)
+        # elif typ=='warning':
+        #     fulltext = ' '.join([str(t) for t in text])
+        #     print(bcolors.WARNING + fulltext + bcolors.ENDC)
+        # elif typ=='failure':
+        #     fulltext = ' '.join([str(t) for t in text])
+        #     print(bcolors.FAIL + fulltext + bcolors.ENDC)
     original = sys.stdout
     try:
         with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:

@@ -416,14 +416,14 @@ def derive(samples, mode):
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #::: pool
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool:
-                results = list(tqdm(pool.imap(calculate_values_from_model_curves, args), total=N_less_samples))
+            # with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool:
+            #     results = list(tqdm(pool.imap(calculate_values_from_model_curves, args), total=N_less_samples))
                 
                 
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #::: loop (replaced by pool)
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            # results = [ calculate_values_from_model_curves(arg) for arg in tqdm( args ) ]
+            results = [ calculate_values_from_model_curves(arg) for arg in tqdm( args ) ]
             
             
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

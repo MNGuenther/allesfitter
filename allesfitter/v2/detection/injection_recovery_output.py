@@ -46,11 +46,8 @@ def is_multiple_of(a, b, tolerance=0.05):
 
 
 def is_detected(inj_period, tls_period):
-    print('')
-    print('is detected')
-    print(inj_period, tls_period)
     right_period = is_multiple_of(tls_period, inj_period/2.) #check if it is a multiple of half the period to within 5%
-    print(right_period)
+    
 #    right_epoch = False
 #    for tt in results.transit_times:
 #        for i in range(-5,5):
@@ -76,18 +73,14 @@ def is_detected_list(inj_periods, tls_periods):
 ###############################################################################
 #::: plot
 ###############################################################################
-def irplot(fname, period_bins=None, rplanet_bins=None, **kwargs):
-    
-    #::: handle inputs
-    if kwargs is None: kwargs = {}
-    if 'cmap' not in kwargs: kwargs['cmap'] = 'Blues_r'
+def irplot(fname, period_bins=None, rplanet_bins=None, outdir=None):
     
     #::: load the files and check which TLS detection matches an injection; 
     #::: note that one injection will have multiple TLS detections (due not false positives)
     results = np.genfromtxt(fname, delimiter=',', dtype=None, names=True)
-    inj_periods = np.atleast_1d(results['inj_period'])
-    inj_rplanets = np.atleast_1d(results['inj_rplanet'])
-    tls_periods = np.atleast_1d(results['tls_period'])
+    inj_periods = results['inj_period']
+    inj_rplanets = results['inj_rplanet']
+    tls_periods = results['tls_period']
     detected = is_detected_list(inj_periods, tls_periods)
     # print(detected)
     
@@ -108,7 +101,6 @@ def irplot(fname, period_bins=None, rplanet_bins=None, **kwargs):
     period = np.array(period)
     rplanet = np.array(rplanet)
     found = np.array(found)
-    print('found', found)
     
     
     
@@ -116,7 +108,7 @@ def irplot(fname, period_bins=None, rplanet_bins=None, **kwargs):
     #::: scatter plot
     ###############################################################################
     fig, ax = plt.subplots(figsize=(5,5))
-    ax.scatter(period, rplanet, c=found, s=100, cmap=kwargs['cmap'], edgecolors='b')
+    ax.scatter(period, rplanet, c=found, s=100, cmap='Blues_r', edgecolors='b')
     ax.set(xlabel='Period (days)', ylabel='Radius '+r'$(R_\oplus)$')
     ax.text(0.5,1.05,'filled: not recovered | unfilled: recovered',ha='center',va='center',transform=ax.transAxes)
     fig.savefig('injection_recovery_test_scatter.pdf', bbox_inches='tight')    
@@ -139,9 +131,7 @@ def irplot(fname, period_bins=None, rplanet_bins=None, **kwargs):
         normed_hist = (100.*h1/(h1+h2))
         
         fig, ax = plt.subplots(figsize=(6.5,5))
-        X, Y = np.meshgrid(x, y)
-        im = ax.pcolormesh(X, Y, normed_hist.T, cmap=kwargs['cmap'], vmin=0, vmax=100)
-        # im = plt.imshow(normed_hist.T, origin='lower', extent=(x[0], x[-1], y[0], y[-1]), interpolation='none', aspect='auto', cmap='jet', vmin=0, vmax=100, rasterized=True)
+        im = plt.imshow(normed_hist.T, origin='lower', extent=(x[0], x[-1], y[0], y[-1]), interpolation='none', aspect='auto', cmap='Blues_r', vmin=0, vmax=100, rasterized=True)
         plt.colorbar(im, label='Recovery rate (%)')
         plt.xlabel('Injected period (days)')
         plt.ylabel(r'Injected radius (R$_\oplus$)')

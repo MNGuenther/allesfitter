@@ -353,7 +353,7 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
                           shape_2 =     settings[companion+'_shape_'+inst],
                           spots_1 =     params['host_spots_'+inst], 
                           spots_2 =     params[companion+'_spots_'+inst], 
-                          exact_grav =  config.BASEMENT.settings['exact_grav'],
+                          exact_grav =  settings['exact_grav'],
                           verbose =     False
                           )
         
@@ -480,7 +480,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
                                   shape_2 =     settings[companion+'_shape_'+inst],
                                   spots_1 =     params['host_spots_'+inst], 
                                   spots_2 =     params[companion+'_spots_'+inst], 
-                                  exact_grav =  config.BASEMENT.settings['exact_grav'],
+                                  exact_grav =  settings['exact_grav'],
                                   verbose =     False
                                   )
                 
