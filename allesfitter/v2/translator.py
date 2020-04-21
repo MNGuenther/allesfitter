@@ -159,7 +159,7 @@ def translate(params=None, settings=None, quiet=False, **params_kwargs):
         limb darkening coefficients
         default is [0.4804, 0.1867]
     dil : float
-        dilution, D_0= 1 - (Ftarget / (Ftarget + Fblend))
+        dilution, D_0 = 1 - (Ftarget / (Ftarget + Fblend))
         default is 0
     sbratio : float
         surface brightness ratio
