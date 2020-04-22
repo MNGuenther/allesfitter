@@ -59,7 +59,7 @@ Please cite both the paper and the code, like `\citep{allesfitter-paper, allesfi
 
 **Contributors**: 
 
-Maximilian N. Günther, Tansu Daylan
+Maximilian N. Günther & Tansu Daylan
 
 **License**:
 
