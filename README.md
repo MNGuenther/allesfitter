@@ -6,9 +6,11 @@
 If you use *allesfitter* or parts of it in your work, please cite and acknowledge all software as detailed below.
 
 **Documentation:**
+
 https://www.allesfitter.com/
 
 **Allesfitter citations**:
+
 Please cite both the paper and the code, like `\citep{allesfitter-paper, allesfitter-code}`, with:
 
     @ARTICLE{allesfitter-paper,
@@ -56,7 +58,9 @@ Please cite both the paper and the code, like `\citep{allesfitter-paper, allesfi
     - seaborn: https://seaborn.pydata.org/index.html
 
 **Contributors**: 
+
 Maximilian N. Günther, Tansu Daylan
 
 **License**:
+
 The software is freely available at https://github.com/MNGuenther/allesfitter under the MIT License. Feedback and contributions are very welcome.
