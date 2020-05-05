@@ -1,0 +1,17 @@
+
+Results:
+--------------------------
+log(Z) = 38996.38067931597 +- 0.4198755771426735
+Nr. of posterior samples: 26618
+
+TESS b: deriving eclipse depths and more from model curves...
+
+TESS c: deriving eclipse depths and more from model curves...
+
+Saved ns_derived_results.csv, ns_derived_latex_table.txt, and ns_derived_latex_cmd.txt
+
+Saved ns_derived_corner.pdf
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_year_1/results

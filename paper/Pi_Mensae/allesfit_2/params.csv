@@ -1,6 +1,6 @@
 #name,value,fit,bounds,label,unit,truth
 #limb darkening coefficients per instrument,,,,,,
-ldc_q1_TESS,0.5,1,uniform 0 1,$q_{1;\mathrm{TESS}}$,,
+host_ldc_q1_TESS,0.5,1,uniform 0 1,$q_{1;\mathrm{TESS}}$,,
 #companion b astrophysical params,,,,,,
 b_epoch,2446087,1,uniform 2446045.0 2446129.0,$T_{0;b}$,$\mathrm{BJD_{TDB}}$,2446087
 b_period,2093.07,1,uniform 2084.42 2101.72,$P_b$,d,2093.07

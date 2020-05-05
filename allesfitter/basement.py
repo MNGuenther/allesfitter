@@ -30,6 +30,7 @@ import collections
 from datetime import datetime
 from multiprocessing import cpu_count
 import warnings
+warnings.formatwarning = lambda msg, *args, **kwargs: f'\n! WARNING: {msg}\ntype: {args[0]}, file: {args[1]}, line: {args[2]}\n'
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 from scipy.special import ndtri
@@ -241,10 +242,10 @@ class Basement():
             name = row[0]
             if name[:7]=='planets':
                 rows[i][0] = 'companions'+name[7:]
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0])
+                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
             if name[:6]=='ld_law':
                 rows[i][0] = 'host_ld_law'+name[6:]
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0])
+                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 
 #        self.settings = {r[0]:r[1] for r in rows}
         self.settings = collections.OrderedDict( [('user-given:','')]+[ (r[0],r[1] ) for r in rows ]+[('automatically set:','')] )
@@ -319,7 +320,7 @@ class Basement():
         #::: Phase variations
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if ('phase_variations' in self.settings.keys()) and len(self.settings['phase_variations']):
-            warnings.warn('\nDeprecation warning. You are using outdated keywords. Automatically renaming "phase_variations" ---> "phase_curve".\n')
+            warnings.warn('You are using outdated keywords. Automatically renaming "phase_variations" ---> "phase_curve".'+'. Please fix this before the Duolingo owl comes to get you.')
             self.settings['phase_curve'] = self.settings['phase_variations']
             
         if ('phase_curve' in self.settings.keys()) and len(self.settings['phase_curve']):
@@ -475,6 +476,13 @@ class Basement():
         else:
             self.settings['exact_grav'] = False
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Phase curves
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'phase_curve_style' not in self.settings.keys():
+            self.settings['phase_curve_style'] = 'series' #series (shporer/wong) or additive (daylan)
+            
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Stellar variability
@@ -493,7 +501,7 @@ class Basement():
                     self.settings['baseline_'+key+'_'+inst] = 'none'
 
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
+                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
         for inst in self.settings['inst_rv']:
@@ -502,7 +510,7 @@ class Basement():
                     self.settings['baseline_'+key+'_'+inst] = 'none'
                     
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.')
+                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
                 
@@ -668,15 +676,16 @@ class Basement():
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,encoding='utf-8',names=True)
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: make backwards compatible
+        #::: make backwards compatible --> THIS IS NOW DOWN BELOW
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for i, name in enumerate(np.atleast_1d(buf['name'])):
-            if name[:7]=='light_3':
-                buf['name'][i] = 'dil_'+name[8:]
+        # for i, name in enumerate(np.atleast_1d(buf['name'])):
+        #     if name[:7]=='light_3':
+        #         buf['name'][i] = 'dil_'+name[8:]
         
-        for i, name in enumerate(np.atleast_1d(buf['name'])):
-            if name[:3]=='ldc':
-                buf['name'][i] = 'host_'+name
+        # for i, name in enumerate(np.atleast_1d(buf['name'])):
+        #     if name[:3]=='ldc':
+        #         buf['name'][i] = 'host_'+name
+        
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: proceed...      
@@ -815,9 +824,26 @@ class Basement():
                 if companion+'_phase_curve_atmospheric_'+inst not in self.params: #in ppt
                     self.params[companion+'_phase_curve_atmospheric_'+inst] = None
                     
+                if companion+'_phase_curve_atmospheric_shift_'+inst not in self.params: #in days
+                    self.params[companion+'_phase_curve_atmospheric_shift_'+inst] = 0.
+                    
+                if companion+'_phase_curve_atmospheric_thermal_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] = None
+                    
+                if companion+'_phase_curve_atmospheric_thermal_shift_'+inst not in self.params: #in days
+                    self.params[companion+'_phase_curve_atmospheric_thermal_shift_'+inst] = 0.
+                    
+                if companion+'_phase_curve_atmospheric_reflected_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] = None
+                    
+                if companion+'_phase_curve_atmospheric_reflected_shift_'+inst not in self.params: #in days
+                    self.params[companion+'_phase_curve_atmospheric_reflected_shift_'+inst] = 0.
+                    
                 if companion+'_phase_curve_ellipsoidal_'+inst not in self.params: #in ppt
                     self.params[companion+'_phase_curve_ellipsoidal_'+inst] = None
                     
+                if companion+'_phase_curve_ellipsoidal_2nd_'+inst not in self.params: #in ppt
+                    self.params[companion+'_phase_curve_ellipsoidal_2nd_'+inst] = None
                     
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -851,7 +877,21 @@ class Basement():
                     raise ValueError(companion+'_f_c is '+str(self.params[companion+'_f_c'])+', but needs to lie within [-0.8,0.8]')
                 if np.abs(self.params[companion+'_f_s']) > 0.8:
                     raise ValueError(companion+'_f_s is '+str(self.params[companion+'_f_s'])+', but needs to lie within [-0.8,0.8]')
+                                 
                     
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: luser proof: avoid conflicting/degenerate phase curve commands
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                phase_curve_model_1 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)
+                phase_curve_model_2 = ((self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None) or (self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None))
+                phase_curve_model_3 = ((self.params['host_bfac_'+inst] is not None) or (self.params['host_atmo_'+inst] is not None) or (self.params['host_gdc_'+inst] is not None) or (self.settings['host_shape_'+inst]!='sphere')\
+                                       or (self.params[companion+'_bfac_'+inst] is not None) or (self.params[companion+'_atmo_'+inst] is not None) or (self.params[companion+'_gdc_'+inst] is not None) or (self.settings[companion+'_shape_'+inst]!='sphere'))
+                if (phase_curve_model_1 + phase_curve_model_2 + phase_curve_model_3) > 1:
+                    raise ValueError('You can use either\n'\
+                                     +'a) the sin/cos phase curve model with "*_phase_curve_atmospheric_*",\n'\
+                                     +'b) the sin/cos phase curve model with "*_phase_curve_atmospheric_thermal_*" and "*_phase_curve_atmospheric_reflected_*", or\n'\
+                                     +'c) the ellc phase curve model with "*_bfac_*", "*_atmo_*", "*_gdc_*" etc.\n'\
+                                     +'but you shall not mix and match.')
                     
        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -862,29 +902,37 @@ class Basement():
             elif inst in self.settings['inst_rv']: kkey='rv'
             
             if 'baseline_gp1_'+kkey+'_'+inst in self.params:
+                warnings.warn('You are using outdated keywords. Automatically renaming '+'baseline_gp1_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnsigma_'+kkey+'_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['baseline_gp_matern32_lnsigma_'+kkey+'_'+inst] = 1.*self.params['baseline_gp1_'+kkey+'_'+inst]
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp1_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnsigma_'+kkey+'_'+inst)
 
             if 'baseline_gp2_'+kkey+'_'+inst in self.params:
+                warnings.warn('You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['baseline_gp_matern32_lnrho_'+kkey+'_'+inst]   = 1.*self.params['baseline_gp2_'+kkey+'_'+inst]
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst)
 
             if 'host_geom_albedo_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_atmo_'+inst)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['host_atmo_'+inst] = self.params['host_geom_albedo_'+inst]
                 
             if companion+'_geom_albedo_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_atmo_'+inst)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params[companion+'_atmo_'+inst] = self.params[companion+'_geom_albedo_'+inst]
                     
             if 'host_heat_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+'host_heat_'+inst+' ---> '+'host_atmo_'+inst)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+'host_heat_'+inst+' ---> '+'host_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['host_atmo_'+inst] = self.params['host_heat_'+inst]
                 
             if companion+'_heat_'+inst in self.params:
-                warnings.warn('Deprecation warning. You are using outdated keywords. Automatically renaming '+companion+'_heat_'+inst+' ---> '+companion+'_atmo_'+inst)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+companion+'_heat_'+inst+' ---> '+companion+'_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params[companion+'_atmo_'+inst] = self.params[companion+'_heat_'+inst]
                     
+            if 'ldc_q1_'+inst in self.params:
+                warnings.warn('You are using outdated keywords. Automatically renaming ldc_q1_'+inst+' ---> host_ldc_q1_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                self.params['host_ldc_q1_'+inst] = self.params['ldc_q1_'+inst]
+                    
+            if 'ldc_q2_'+inst in self.params:
+                warnings.warn('You are using outdated keywords. Automatically renaming ldc_q2_'+inst+' ---> host_ldc_q2_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                self.params['host_ldc_q2_'+inst] = self.params['ldc_q2_'+inst]
+                
                 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

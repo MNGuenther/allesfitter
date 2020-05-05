@@ -16,6 +16,7 @@ Web: www.mnguenther.com
 
 from __future__ import print_function, division, absolute_import
  
+#::: modules
 import matplotlib.pyplot as plt
 import allesfitter
 
@@ -51,5 +52,9 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 # allesfitter.show_initial_guess('allesfit_4')
 # allesfitter.ns_fit('allesfit_4')
 # allesfitter.ns_output('allesfit_4')
-# allesfitter.ns_derive('allesfit_4')
 
+
+# allesfitter.estimate_noise_out_of_transit('allesfit_year_1')
+# allesfitter.show_initial_guess('allesfit_year_1')
+# allesfitter.ns_fit('allesfit_year_1')
+# allesfitter.ns_output('allesfit_year_1')

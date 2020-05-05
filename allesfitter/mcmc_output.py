@@ -384,8 +384,9 @@ def mcmc_output(datadir):
 ###############################################################################
 #::: get MCMC samples (for top-level user)
 ###############################################################################
-def get_mcmc_posterior_samples(datadir, Nsamples=None, QL=False, as_type='dic'):
-    config.init(datadir, QL=QL)
+def get_mcmc_posterior_samples(datadir, Nsamples=None, as_type='dic'): #QL=False, 
+    # config.init(datadir, QL=QL)
+    config.init(datadir)
     reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'save.h5'), read_only=True )
     return draw_mcmc_posterior_samples(reader, Nsamples=Nsamples, as_type=as_type) #only 20 samples for plotting
     

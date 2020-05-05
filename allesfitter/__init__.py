@@ -61,6 +61,7 @@ from .prepare_ttv_fit import prepare_ttv_fit
 
 from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes_factors
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
+from .postprocessing.plot_histograms import plot_histograms
 
 
 def GUI():
@@ -75,6 +76,7 @@ class allesclass():
         self.fulldata = config.BASEMENT.fulldata
         self.data = config.BASEMENT.data
         self.settings = config.BASEMENT.settings
+        self.labels = get_labels(datadir, as_type='dic')
         
         self.initial_guess_samples = draw_initial_guess_samples()
         self.initial_guess_params_median = general_output.get_params_from_samples(self.initial_guess_samples)[0]

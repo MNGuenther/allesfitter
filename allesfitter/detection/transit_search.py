@@ -203,6 +203,7 @@ def tls_search(time, flux, flux_err,
     if 'SNR_threshold' not in tls_kwargs: tls_kwargs['SNR_threshold'] = 5.
     if 'SDE_threshold' not in tls_kwargs: tls_kwargs['SDE_threshold'] = 5.
     if 'FAP_threshold' not in tls_kwargs: tls_kwargs['FAP_threshold'] = 0.05
+    tls_kwargs_original = {key: tls_kwargs[key] for key in tls_kwargs.keys() if key not in ['SNR_threshold','SDE_threshold','FAP_threshold']} #for the original tls
     #the rest is filled automatically by TLS
     
     if options is None: options = {}
@@ -272,7 +273,7 @@ def tls_search(time, flux, flux_err,
     while (SNR >= tls_kwargs['SNR_threshold']) and (SDE >= tls_kwargs['SDE_threshold']) and (FAP <= tls_kwargs['FAP_threshold']) and (FOUND_SIGNAL==False):
         
         model = tls(time, flux, flux_err)
-        results = model.power(**tls_kwargs)
+        results = model.power(**tls_kwargs_original)
         
         if (results.snr >= tls_kwargs['SNR_threshold']) and (results.SDE >= tls_kwargs['SDE_threshold']) and (results.FAP <= tls_kwargs['FAP_threshold']):
             

@@ -41,7 +41,7 @@ from . import config
 from .utils.latex_printer import round_tex
 from .general_output import logprint
 from .priors.simulate_PDF import simulate_PDF
-from .computer import update_params, calculate_model
+from .computer import update_params, calculate_model, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves.index_transits import index_transits
 
 
@@ -78,12 +78,12 @@ def calculate_values_from_model_curves(arg):
     #::: globals etc.
     #==========================================================================
     i, p = arg
-    _depth_tr_diluted_ = np.nan
-    _depth_occ_diluted_ = np.nan
-    _ampl_ellipsoidal_diluted_ = np.nan
-    _ampl_sbratio_diluted_ = np.nan
-    _ampl_geom_albedo_diluted_ = np.nan
-    _ampl_gdc_diluted_ = np.nan
+    _depth_tr_ = np.nan
+    _delta_nightside_ = np.nan
+    _depth_occ_ = np.nan
+    # _ampl_beaming_ = np.nan
+    # _ampl_atmospheric_ = np.nan
+    # _ampl_ellipsoidal_ = np.nan
 
 
     #==========================================================================
@@ -104,34 +104,41 @@ def calculate_values_from_model_curves(arg):
     #==========================================================================
     #:: calculating primary eclipse / transit depth
     #==========================================================================
-    ind_tr, ind_out = index_transits(xx0, p[companion+'_epoch'], p[companion+'_period'], width) #find the primary eclipse / transit
-    xx = xx0[ind_tr]
-    if len(xx) > 0:
-        model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-        _depth_tr_diluted_ = ( 1. - np.min(model) ) * 1e3 #in ppt
+    # ind_tr, ind_out = index_transits(xx0, p[companion+'_epoch'], p[companion+'_period'], width) #find the primary eclipse / transit
+    # xx = xx0[ind_tr]
+    # if len(xx) > 0:
+    # model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+    # _depth_tr_diluted_ = ( 1. - np.min(model) ) * 1e3 #in ppt
 
+    model_flux, model_flux1, model_flux2 = flux_subfct_ellc(p, inst, companion, xx=xx0, return_fluxes=True)
+    _depth_tr_ = np.ptp(model_flux1)
+    
 
     #==========================================================================
     #:: calculating secondary eclipse / occultation depth
     #==========================================================================
-    xx = xx0[ind_out]
-    if (config.BASEMENT.settings['secondary_eclipse'] is True) and (len(xx)>0):
+    # xx = xx0[ind_out]
+    if (config.BASEMENT.settings['secondary_eclipse'] is True) and (len(xx0)>0):
         
         #::: full model 
-        model_flux = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+        # model_flux = flux_subfct_ellc(p, inst, 'flux', xx=xx) #evaluated on xx (!)
         
         #::: remove phase curve contributions
-        if (p[companion+'_phase_curve_beaming_'+inst] is not None): #A1
-            model_flux -= 1e-3*p[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+        # if (p[companion+'_phase_curve_beaming_'+inst] is not None): #A1
+        #     model_flux -= 1e-3*p[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
             
-        if (p[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
-            model_flux -= 1e-3*p[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+        # if (p[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
+        #     model_flux -= 1e-3*p[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
             
-        if (p[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
-            model_flux -= 1e-3*p[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+        # if (p[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
+        #     model_flux -= 1e-3*p[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
         
-        _depth_occ_diluted_ = ( np.nanmax(model_flux) - np.nanmin(model_flux) ) * 1e6 #in ppm
-        if _depth_occ_diluted_ < 1e-7: _depth_occ_diluted_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
+        _delta_nightside_ = np.ptp(model_flux2) * 1e6 #in ppm
+        if _delta_nightside_ < 1e-7: _delta_nightside_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
+
+        phase_curve = flux_subfct_sinusoidal_phase_curves(p, inst, companion, model_flux2, xx=xx0) * 1e6 #in ppm
+        _depth_occ_ = _delta_nightside_ + np.ptp(phase_curve) #in ppm
+        if _depth_occ_ < 1e-7: _depth_occ_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
 
         
     # #==========================================================================
@@ -216,7 +223,8 @@ def calculate_values_from_model_curves(arg):
     #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
 
 
-    return [_depth_tr_diluted_, _depth_occ_diluted_, _ampl_ellipsoidal_diluted_, _ampl_sbratio_diluted_, _ampl_geom_albedo_diluted_, _ampl_gdc_diluted_]
+    # return [_depth_tr_diluted_, _depth_occ_diluted_, _ampl_ellipsoidal_diluted_, _ampl_sbratio_diluted_, _ampl_geom_albedo_diluted_, _ampl_gdc_diluted_]
+    return [_depth_tr_, _depth_occ_, _delta_nightside_]
 
 
 
@@ -345,7 +353,6 @@ def derive(samples, mode):
         if config.BASEMENT.settings['secondary_eclipse'] is True:
             derived_samples[companion+'_epoch_occ'] = get_params(companion+'_epoch') + get_params(companion+'_period')/2. * (1. + 4./np.pi * derived_samples[companion+'_e'] * cos_d(derived_samples[companion+'_w'])  ) #approximation from Winn2010
         
-                    
         
         #----------------------------------------------------------------------
         #::: impact params of primary eclipse with eccentricity corrections (from Winn 2010) 
@@ -394,12 +401,15 @@ def derive(samples, mode):
             inst = ii
             N_less_samples = 1000
             # N_less_samples = N_samples
-            derived_samples[companion+'_depth_tr_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
-            derived_samples[companion+'_depth_occ_diluted_'+inst]        = np.zeros(N_less_samples)*np.nan
-            derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
-            derived_samples[companion+'_ampl_sbratio_diluted_'+inst]     = np.zeros(N_less_samples)*np.nan
-            derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
-            derived_samples[companion+'_ampl_gdc_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_depth_tr_undiluted_'+inst]         = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
+            derived_samples[companion+'_depth_occ_undiluted_'+inst]        = np.zeros(N_less_samples)*np.nan
+            derived_samples[companion+'_delta_nightside_undiluted_'+inst]  = np.zeros(N_less_samples)*np.nan
+            # derived_samples[companion+'_depth_tr_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
+            # derived_samples[companion+'_depth_occ_diluted_'+inst]        = np.zeros(N_less_samples)*np.nan
+            # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
+            # derived_samples[companion+'_ampl_sbratio_diluted_'+inst]     = np.zeros(N_less_samples)*np.nan
+            # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
+            # derived_samples[companion+'_ampl_gdc_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan
             
             
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -430,23 +440,29 @@ def derive(samples, mode):
             #::: write arrays into dictionary
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             for i in range(N_less_samples):
-                derived_samples[companion+'_depth_tr_diluted_'+inst][i]         = results[i][0]
-                derived_samples[companion+'_depth_occ_diluted_'+inst][i]        = results[i][1]
-                derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = results[i][2]
-                derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i]     = results[i][3]
-                derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = results[i][4]
-                derived_samples[companion+'_ampl_gdc_diluted_'+inst][i]         = results[i][5]
+                derived_samples[companion+'_depth_tr_undiluted_'+inst][i]         = results[i][0]
+                derived_samples[companion+'_depth_occ_undiluted_'+inst][i]        = results[i][1]
+                derived_samples[companion+'_delta_nightside_undiluted_'+inst][i]  = results[i][2]
+                # derived_samples[companion+'_depth_tr_diluted_'+inst][i]         = results[i][0]
+                # derived_samples[companion+'_depth_occ_diluted_'+inst][i]        = results[i][1]
+                # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = results[i][2]
+                # derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i]     = results[i][3]
+                # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = results[i][4]
+                # derived_samples[companion+'_ampl_gdc_diluted_'+inst][i]         = results[i][5]
             
             
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #resize the arrays to match the true N_samples (by redrawing the 1000 values)
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            derived_samples[companion+'_depth_tr_diluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_diluted_'+inst], N_samples)
-            derived_samples[companion+'_depth_occ_diluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_diluted_'+inst], N_samples)
-            derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst], N_samples)
-            derived_samples[companion+'_ampl_sbratio_diluted_'+inst]      = np.resize(derived_samples[companion+'_ampl_sbratio_diluted_'+inst], N_samples)
-            derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst], N_samples)
-            derived_samples[companion+'_ampl_gdc_diluted_'+inst]          = np.resize(derived_samples[companion+'_ampl_gdc_diluted_'+inst], N_samples)
+            derived_samples[companion+'_depth_tr_undiluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_undiluted_'+inst], N_samples)
+            derived_samples[companion+'_depth_occ_undiluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_undiluted_'+inst], N_samples)
+            derived_samples[companion+'_delta_nightside_undiluted_'+inst]   = np.resize(derived_samples[companion+'_delta_nightside_undiluted_'+inst], N_samples)
+            # derived_samples[companion+'_depth_tr_diluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_diluted_'+inst], N_samples)
+            # derived_samples[companion+'_depth_occ_diluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_diluted_'+inst], N_samples)
+            # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst], N_samples)
+            # derived_samples[companion+'_ampl_sbratio_diluted_'+inst]      = np.resize(derived_samples[companion+'_ampl_sbratio_diluted_'+inst], N_samples)
+            # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst], N_samples)
+            # derived_samples[companion+'_ampl_gdc_diluted_'+inst]          = np.resize(derived_samples[companion+'_ampl_gdc_diluted_'+inst], N_samples)
 
     
         #----------------------------------------------------------------------
@@ -458,12 +474,12 @@ def derive(samples, mode):
                 dil = 0
         #        if np.mean(dil)<0.5: dil = 1-dil
         
-            derived_samples[companion+'_depth_tr_undiluted_'+inst] = derived_samples[companion+'_depth_tr_diluted_'+inst] / (1. - dil) #in ppt
-            derived_samples[companion+'_depth_occ_undiluted_'+inst] = derived_samples[companion+'_depth_occ_diluted_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_ampl_ellipsoidal_undiluted_'+inst] = derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_ampl_sbratio_undiluted_'+inst] = derived_samples[companion+'_ampl_sbratio_diluted_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_ampl_geom_albedo_undiluted_'+inst] = derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_ampl_gdc_undiluted_'+inst] = derived_samples[companion+'_ampl_gdc_diluted_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_depth_tr_diluted_'+inst]        = derived_samples[companion+'_depth_tr_undiluted_'+inst] * (1. - dil) #in ppt
+            derived_samples[companion+'_depth_occ_diluted_'+inst] = derived_samples[companion+'_depth_occ_undiluted_'+inst] * (1. - dil) #in ppm
+            derived_samples[companion+'_delta_nightside_diluted_'+inst] = derived_samples[companion+'_delta_nightside_undiluted_'+inst] * (1. - dil) #in ppm
+            # derived_samples[companion+'_ampl_sbratio_undiluted_'+inst] = derived_samples[companion+'_ampl_sbratio_diluted_'+inst] / (1. - dil) #in ppm
+            # derived_samples[companion+'_ampl_geom_albedo_undiluted_'+inst] = derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] / (1. - dil) #in ppm
+            # derived_samples[companion+'_ampl_gdc_undiluted_'+inst] = derived_samples[companion+'_ampl_gdc_diluted_'+inst] / (1. - dil) #in ppm
 
         
         #----------------------------------------------------------------------
@@ -626,29 +642,35 @@ def derive(samples, mode):
             names.append( companion+'_depth_occ_diluted_'+inst )
             labels.append( '$\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
-            labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )
+            names.append( companion+'_delta_nightside_undiluted_'+inst )
+            labels.append( '$\Delta_\mathrm{nightside; undil; '+companion+'; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_ellipsoidal_diluted_'+inst )
-            labels.append( '$A_\mathrm{ellipsoidal; dil; '+inst+'}$ (ppm)' )
+            names.append( companion+'_delta_nightside_diluted_'+inst )
+            labels.append( '$\Delta_\mathrm{nightside; dil; '+companion+'; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_sbratio_undiluted_'+inst )
-            labels.append( '$A_\mathrm{sbratio; undil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
+            # labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_sbratio_diluted_'+inst )
-            labels.append( '$A_\mathrm{sbratio; dil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_ellipsoidal_diluted_'+inst )
+            # labels.append( '$A_\mathrm{ellipsoidal; dil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_geom_albedo_undiluted_'+inst )
-            labels.append( '$A_\mathrm{geom. albedo; undil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_sbratio_undiluted_'+inst )
+            # labels.append( '$A_\mathrm{sbratio; undil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_geom_albedo_diluted_'+inst )
-            labels.append( '$A_\mathrm{geom. albedo; dil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_sbratio_diluted_'+inst )
+            # labels.append( '$A_\mathrm{sbratio; dil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_gdc_undiluted_'+inst )
-            labels.append( '$A_\mathrm{grav. dark.; undil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_geom_albedo_undiluted_'+inst )
+            # labels.append( '$A_\mathrm{geom. albedo; undil; '+inst+'}$ (ppm)' )
             
-            names.append( companion+'_ampl_gdc_diluted_'+inst )
-            labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+            # names.append( companion+'_ampl_geom_albedo_diluted_'+inst )
+            # labels.append( '$A_\mathrm{geom. albedo; dil; '+inst+'}$ (ppm)' )
+            
+            # names.append( companion+'_ampl_gdc_undiluted_'+inst )
+            # labels.append( '$A_\mathrm{grav. dark.; undil; '+inst+'}$ (ppm)' )
+            
+            # names.append( companion+'_ampl_gdc_diluted_'+inst )
+            # labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
             
             
             
