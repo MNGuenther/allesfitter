@@ -1,0 +1,22 @@
+#name,value,fit,bounds,label,unit,truth,comment
+#companion b astrophysical params,,,,,,,
+b_rr,0.09716,1,uniform 0 1,$R_b / R_\star$,,0.09716,Shporer2019
+b_rsuma,0.31138662070035994,1,uniform 0 1,$(R_\star + R_b) / a_b$,,0.3080179674340258,Shporer2019
+b_cosi,0.098911670541602,1,uniform 0 1,$\cos{i_b}$,,0.08924197536516044,Shporer2019
+b_epoch,0,0,,$T_{0;b}$,$\mathrm{BJD_{TDB}}$,,
+b_period,0.9414576,0,,$P_b$,d,,
+b_f_c,-0.00166485346595862,0,,$\sqrt{e_b} \cos{\omega_b}$,,,
+b_f_s,-0.0953793911856062,0,,$\sqrt{e_b} \sin{\omega_b}$,,,
+#limb darkening coefficients per instrument,,,,,,,
+host_ldc_q1_TESS,0.28291761000000004,0,,$q_{1; \mathrm{TESS}}$,,0.28291761000000004,from Claret 2007 Table 25 row 7734 and transformed into Kipping 2013 q-space
+host_ldc_q2_TESS,0.20605376950554616,0,,$q_{2; \mathrm{TESS}}$,,0.20605376950554616,from Claret 2007 Table 25 row 7734 and transformed into Kipping 2013 q-space
+#surface brightness per instrument and companion,,,,,,,
+b_sbratio_TESS,0.01,1,uniform 0 0.1,$J_\mathrm{b; TESS}$,,,
+#phase curve per instrument and companion,,,,,,,
+b_phase_curve_A1_TESS,0.021,1,uniform 0 1,phase curve: $A_\mathrm{1; b; TESS}$,,0.021,
+b_phase_curve_B1_TESS,-0.1744,1,uniform -1 0,phase curve: $B_\mathrm{1; b; TESS}$,,-0.1744,
+b_phase_curve_B2_TESS,-0.1905,1,uniform -1 0,phase curve: $B_\mathrm{2; b; TESS}$,,-0.1905,
+#baseline per instrument,,,,,,,
+baseline_offset_flux_TESS,0.0001,1,uniform -0.01 0.01,$\Delta F_\mathrm{TESS}$,,,
+#errors per instrument,,,,,,,
+log_err_flux_TESS,-9.16,1,uniform -10 -8,$\ln {\sigma_\mathrm{TESS}}$,$\ln{ \mathrm{rel. flux.} }$,,

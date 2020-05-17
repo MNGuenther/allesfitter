@@ -48,11 +48,11 @@ def plot_histograms(datadirs, titles, keys, options=None):
     if 'show_plot' not in options: options['show_plot'] = False
     if 'save_plot' not in options: options['save_plot'] = False
     if 'outdir' not in options: options['outdir'] = '.'
+    if 'font_scale' not in options: options['font_scale'] = 1.5 + 0.2*(len(keys)-1)
 
     
     #::: plot settings (need to renew everything 'cause seaborn likes to go cray cray)
-    font_scale = 1.5 + 0.2*(len(keys)-1)
-    sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=font_scale, color_codes=True)
+    sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=options['font_scale'], color_codes=True)
     sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
     sns.set_context(rc={'lines.markeredgewidth': 1})
     if options['colors'] is not None: 

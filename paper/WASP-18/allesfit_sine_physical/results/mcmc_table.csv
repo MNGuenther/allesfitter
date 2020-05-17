@@ -1,0 +1,17 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+b_rr,0.0975619111726885,0.00013616859065271325,0.00013494205849309826,$R_b / R_\star$,
+b_rsuma,0.3107330111392541,0.0021845499770347665,0.0021338027600741327,$(R_\star + R_b) / a_b$,
+b_cosi,0.09749401938447441,0.006182689468395036,0.005774074302920623,$\cos{i_b}$,
+b_epoch,0.0,(fixed),(fixed),$T_{0;b}$,$\mathrm{BJD_{TDB}}$
+b_period,0.9414576,(fixed),(fixed),$P_b$,d
+b_f_c,-0.00166485346595862,(fixed),(fixed),$\sqrt{e_b} \cos{\omega_b}$,
+b_f_s,-0.0953793911856062,(fixed),(fixed),$\sqrt{e_b} \sin{\omega_b}$,
+host_ldc_q1_TESS,0.28291761000000004,(fixed),(fixed),$q_{1; \mathrm{TESS}}$,
+host_ldc_q2_TESS,0.20605376950554616,(fixed),(fixed),$q_{2; \mathrm{TESS}}$,
+b_sbratio_TESS,0.00558028961200213,0.0015495698428744462,0.0015567227815221846,$J_\mathrm{b; TESS}$,
+b_phase_curve_beaming_TESS,0.022112319805856016,0.004453992568391817,0.004523824830907127,$A_\mathrm{b; beaming; TESS}$,
+b_phase_curve_atmospheric_TESS,0.288631308604659,0.011116418830217578,0.011355098824388565,$A_\mathrm{b; atmospheric; TESS}$,
+b_phase_curve_ellipsoidal_TESS,0.38428835911637993,0.011746637480399169,0.011782687012824145,$A_\mathrm{b; ellipsoidal; TESS}$,
+baseline_offset_flux_TESS,-0.0002612006194708126,1.009704053273622e-05,1.012234733962624e-05,$\Delta F_\mathrm{TESS}$,
+log_err_flux_TESS,-9.15686115778919,0.022364412563561586,0.022524028926971695,$\ln {\sigma_\mathrm{TESS}}$,$\ln{ \mathrm{rel. flux.} }$

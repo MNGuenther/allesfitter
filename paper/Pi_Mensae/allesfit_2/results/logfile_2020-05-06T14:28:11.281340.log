@@ -1,0 +1,29 @@
+
+Shifting epochs into the data center:
+--------------------------
+
+Companion b
+	input epoch: 2446087.0
+	shifted epoch: 2456552.35
+	shifted by 5 periods
+Companion c
+	input epoch: 2458325.504
+	shifted epoch: 2458338.0398000004
+	shifted by 2 periods
+
+Results:
+--------------------------
+log(Z) = 9678.853725842684 +- 0.4149636191894644
+Nr. of posterior samples: 26238
+
+TESS b: deriving eclipse depths and more from model curves...
+
+TESS c: deriving eclipse depths and more from model curves...
+
+Saved ns_derived_results.csv, ns_derived_latex_table.txt, and ns_derived_latex_cmd.txt
+
+Saved ns_derived_corner.pdf
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_2/results

@@ -10,6 +10,7 @@ fast_fit,TRUE
 fast_fit_width,0.3333333333333333
 multiprocess,True
 multiprocess_cores,all
+shift_epoch,True
 inst_for_b_epoch,AAT HARPS1 HARPS2
 inst_for_c_epoch,TESS
 use_stellar_density_prior,True

@@ -21,6 +21,7 @@ import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import ellc
+from copy import deepcopy
 
 #::: my modules
 import allesfitter
@@ -41,9 +42,9 @@ sns.set_palette('colorblind')
 companion = 'b'
 inst = 'TESS'
 key = 'flux'
-datadir = 'allesfit_orbit'
+datadir = 'allesfit_sine_physical'
 
-alles = allesfitter.allesclass(datadir)
+alles = allesfitter.allesclass(datadir, quiet=True)
 time = alles.data['TESS']['time']
 flux = alles.data['TESS']['flux']
 model_time = 1.*time
@@ -68,7 +69,7 @@ for ax in axes[1,:]:
     ax.plot(time, (flux-baseline-model_flux)*1e6, 'k.', color='silver', rasterized=True, zorder=1)
     ax.set(xlabel=r'$\Delta$'+'Time ('+r'$\mathrm{BJD_{TDB}}$'+')')
 axes[0,0].set(xlim=[-0.1,0.1], ylabel='Flux - Offset (ppt)')
-axes[0,1].set(xlim=[model_time[0],model_time[-1]], ylim=[-599,499], ylabel='Flux - Offset (ppm)')   
+axes[0,1].set(xlim=[model_time[0],model_time[-1]], ylim=[-299,799], ylabel='Flux - Offset (ppm)')   
 axes[1,0].set(ylabel='Res. (ppm)')    
 axes[1,1].set(ylabel='Res. (ppm)')   
 
@@ -77,12 +78,12 @@ axes[1,1].set(ylabel='Res. (ppm)')
 #==============================================================================
 #::: ellipsoidal modulation
 #==============================================================================
-alles = allesfitter.allesclass(datadir)
-alles.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
-alles.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
-# alles.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None             
-alles.posterior_params_median['b_sbratio_TESS'] = 0
-model_flux_ellipsoidal = alles.get_posterior_median_model(inst, key, xx=model_time, settings=alles.settings)
+alles2 = deepcopy(alles)
+alles2.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
+alles2.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
+# alles2.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None             
+alles2.posterior_params_median['b_sbratio_TESS'] = 0
+model_flux_ellipsoidal = alles2.get_posterior_median_model(inst, key, xx=model_time, settings=alles2.settings)
 axes[0,1].plot(model_time, (model_flux_ellipsoidal-1)*1e6, lw=2, ls=(0, (3, 1, 1, 1, 1, 1)), label='Ellipsoidal')
 
 
@@ -90,12 +91,12 @@ axes[0,1].plot(model_time, (model_flux_ellipsoidal-1)*1e6, lw=2, ls=(0, (3, 1, 1
 #==============================================================================
 #::: atmospheric modulation
 #==============================================================================
-alles = allesfitter.allesclass(datadir)
-alles.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
-# alles.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
-alles.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
-alles.posterior_params_median['b_sbratio_TESS'] = 0
-model_flux_atmospheric = alles.get_posterior_median_model(inst, key, xx=model_time, settings=alles.settings)
+alles2 = deepcopy(alles)
+alles2.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
+# alles2.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
+alles2.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
+alles2.posterior_params_median['b_sbratio_TESS'] = 0
+model_flux_atmospheric = alles2.get_posterior_median_model(inst, key, xx=model_time, settings=alles2.settings)
 axes[0,1].plot(model_time, (model_flux_atmospheric-1)*1e6, lw=2, ls='--', label='Atmospheric')
 
 
@@ -103,12 +104,12 @@ axes[0,1].plot(model_time, (model_flux_atmospheric-1)*1e6, lw=2, ls='--', label=
 #==============================================================================
 #::: Doppler boosting (beaming) modulation
 #==============================================================================
-alles = allesfitter.allesclass(datadir)
-# alles.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
-alles.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
-alles.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
-alles.posterior_params_median['b_sbratio_TESS'] = 0
-model_flux_Doppler = alles.get_posterior_median_model(inst, key, xx=model_time, settings=alles.settings)
+alles2 = deepcopy(alles)
+# alles2.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
+alles2.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
+alles2.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
+alles2.posterior_params_median['b_sbratio_TESS'] = 0
+model_flux_Doppler = alles2.get_posterior_median_model(inst, key, xx=model_time, settings=alles2.settings)
 axes[0,1].plot(model_time, (model_flux_Doppler-1)*1e6, lw=2, ls=':', label='Doppler Boosting')
 
 
@@ -116,12 +117,12 @@ axes[0,1].plot(model_time, (model_flux_Doppler-1)*1e6, lw=2, ls=':', label='Dopp
 #==============================================================================
 #::: helper model to compute secondary eclipse depth
 #==============================================================================
-alles = allesfitter.allesclass(datadir)
-alles.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
-alles.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
-alles.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
-# alles.posterior_params_median['b_sbratio_TESS'] = 0
-model_flux_helper = alles.get_posterior_median_model(inst, key, xx=model_time, settings=alles.settings)
+alles2 = deepcopy(alles)
+alles2.posterior_params_median['b_phase_curve_beaming_TESS'] = None             
+alles2.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None          
+alles2.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
+# alles2.posterior_params_median['b_sbratio_TESS'] = 0
+model_flux_helper = alles2.get_posterior_median_model(inst, key, xx=model_time, settings=alles2.settings)
 # axes[0,1].plot(model_time, (model_flux_helper-1)*1e6, lw=2, color='r', ls=':')
 
 # ind_occ = np.where((time>0.4) & (time<0.6))[0]

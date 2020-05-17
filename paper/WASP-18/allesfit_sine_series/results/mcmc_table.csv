@@ -1,0 +1,17 @@
+#name,median,lower_error,upper_error,label,unit
+#Fitted parameters,,,
+b_rr,0.09756550113573237,0.0001369905326036036,0.00013440109300191794,$R_b / R_\star$,
+b_rsuma,0.3107797940473129,0.002195875785129864,0.00214943604330764,$(R_\star + R_b) / a_b$,
+b_cosi,0.0976408977579562,0.006234998020738486,0.0057896984239658444,$\cos{i_b}$,
+b_epoch,0.0,(fixed),(fixed),$T_{0;b}$,$\mathrm{BJD_{TDB}}$
+b_period,0.9414576,(fixed),(fixed),$P_b$,d
+b_f_c,-0.00166485346595862,(fixed),(fixed),$\sqrt{e_b} \cos{\omega_b}$,
+b_f_s,-0.0953793911856062,(fixed),(fixed),$\sqrt{e_b} \sin{\omega_b}$,
+host_ldc_q1_TESS,0.28291761000000004,(fixed),(fixed),$q_{1; \mathrm{TESS}}$,
+host_ldc_q2_TESS,0.20605376950554616,(fixed),(fixed),$q_{2; \mathrm{TESS}}$,
+b_sbratio_TESS,0.005588737357771111,0.0015682887887250134,0.0015466288771207462,$J_\mathrm{b; TESS}$,
+b_phase_curve_A1_TESS,0.02209022472299888,0.004482512988005453,0.0044961281873860184,phase curve: $A_\mathrm{1; b; TESS}$,
+b_phase_curve_B1_TESS,-0.14425577488486624,0.005606852883341257,0.0056062456071430955,phase curve: $B_\mathrm{1; b; TESS}$,
+b_phase_curve_B2_TESS,-0.1921714234938447,0.005843460060960065,0.005897448746826933,phase curve: $B_\mathrm{2; b; TESS}$,
+baseline_offset_flux_TESS,7.526063347992174e-05,3.7088035829500995e-06,3.7995427397642185e-06,$\Delta F_\mathrm{TESS}$,
+log_err_flux_TESS,-9.157138622176003,0.022029781291982076,0.022693944273823874,$\ln {\sigma_\mathrm{TESS}}$,$\ln{ \mathrm{rel. flux.} }$

@@ -1,0 +1,36 @@
+Property & Value & Source \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Derived parameters}} \\ 
+\hline 
+$R_\star/a_\mathrm{b}$ & $0.0320_{-0.0023}^{+0.0028}$ & derived \\ 
+$a_\mathrm{b}/R_\star$ & $31.3\pm2.5$ & derived \\ 
+$R_\mathrm{b}/a_\mathrm{b}$ & $0.00270_{-0.00047}^{+0.0013}$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$) & $3.53_{-0.45}^{+1.3}$ & derived \\ 
+$R_\mathrm{b}$ ($\mathrm{R_{jup}}$) & $0.315_{-0.040}^{+0.11}$ & derived \\ 
+$a_\mathrm{b}$ ($\mathrm{R_{\odot}}$) & $11.9_{-1.1}^{+1.2}$ & derived \\ 
+$a_\mathrm{b}$ (AU) & $0.0552_{-0.0050}^{+0.0054}$ & derived \\ 
+$i_\mathrm{b}$ (deg) & $88.26_{-0.25}^{+0.17}$ & derived \\ 
+$b_\mathrm{tra;b}$ & $0.952_{-0.026}^{+0.051}$ & derived \\ 
+$T_\mathrm{tot;b}$ (h) & $2.163\pm0.068$ & derived \\ 
+$rho_\mathrm{\star;b}$ (cgs) & $1.99_{-0.44}^{+0.51}$ & derived \\ 
+$T_\mathrm{eq;b}$ (K) & $392\pm22$ & derived \\ 
+$\delta_\mathrm{tr; undil; b; TESS}$ (ppt) & $0.00448_{-0.00017}^{+0.00014}$ & derived \\ 
+$\delta_\mathrm{tr; dil; b; TESS}$ (ppt) & $0.00448_{-0.00017}^{+0.00014}$ & derived \\ 
+$R_\star/a_\mathrm{c}$ & $0.01862_{-0.00016}^{+0.00023}$ & derived \\ 
+$a_\mathrm{c}/R_\star$ & $53.72_{-0.66}^{+0.47}$ & derived \\ 
+$R_\mathrm{c}/a_\mathrm{c}$ & $0.002291_{-0.000018}^{+0.000036}$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{\oplus}}$) & $5.11\pm0.27$ & derived \\ 
+$R_\mathrm{c}$ ($\mathrm{R_{jup}}$) & $0.456\pm0.025$ & derived \\ 
+$a_\mathrm{c}$ ($\mathrm{R_{\odot}}$) & $20.4\pm1.1$ & derived \\ 
+$a_\mathrm{c}$ (AU) & $0.0948\pm0.0052$ & derived \\ 
+$i_\mathrm{c}$ (deg) & $89.883_{-0.089}^{+0.066}$ & derived \\ 
+$b_\mathrm{tra;c}$ & $0.110_{-0.062}^{+0.081}$ & derived \\ 
+$T_\mathrm{tot;c}$ (h) & $5.487_{-0.032}^{+0.036}$ & derived \\ 
+$T_\mathrm{full;c}$ (h) & $4.262_{-0.033}^{+0.036}$ & derived \\ 
+$rho_\mathrm{\star;c}$ (cgs) & $2.456_{-0.089}^{+0.066}$ & derived \\ 
+$T_\mathrm{eq;c}$ (K) & $299\pm12$ & derived \\ 
+$\delta_\mathrm{tr; undil; c; TESS}$ (ppt) & $0.01829_{-0.00013}^{+0.00014}$ & derived \\ 
+$\delta_\mathrm{tr; dil; c; TESS}$ (ppt) & $0.01829_{-0.00013}^{+0.00014}$ & derived \\ 
+Limb darkening $u_\mathrm{1; TESS}$ & $0.466\pm0.075$ & derived \\ 
+Limb darkening $u_\mathrm{2; TESS}$ & $0.12_{-0.16}^{+0.17}$ & derived \\ 
+$rho_\mathrm{\star; combined}$ (cgs) & $2.39_{-0.63}^{+0.13}$ & derived \\ 

@@ -54,7 +54,7 @@ class Basement():
     ###############################################################################
     #::: init
     ###############################################################################
-    def __init__(self, datadir):
+    def __init__(self, datadir, quiet=False):
         '''
         Inputs:
         -------
@@ -74,6 +74,7 @@ class Basement():
         All the variables needed for allesfitter
         '''
         
+        self.quiet = quiet
         self.now = datetime.now().isoformat()
         
         self.datadir = datadir
@@ -84,11 +85,15 @@ class Basement():
         self.load_params()
         self.load_data()
         
+        self.logprint('\nallesfitter version')
+        self.logprint('--------------------------\n')
+        self.logprint('v1.1.1')
+        
         if self.settings['shift_epoch']:
             try:
                 self.change_epoch()
             except:
-                warnings.warn('\nCould not shift epoch (ignore if no period was given)\n')
+                warnings.warn('\nCould not shift epoch (you can peacefully ignore this warning if no period was given)\n')
         
         if self.settings['fit_ttvs']:  
             self.prepare_ttv_fit()
@@ -125,12 +130,15 @@ class Basement():
     #::: print function that prints into console and logfile at the same time
     ############################################################################### 
     def logprint(self, *text):
-        print(*text)
-        original = sys.stdout
-        with open( os.path.join(self.outdir,'logfile_'+self.now+'.log'), 'a' ) as f:
-            sys.stdout = f
+        if not self.quiet:
             print(*text)
-        sys.stdout = original
+            original = sys.stdout
+            with open( os.path.join(self.outdir,'logfile_'+self.now+'.log'), 'a' ) as f:
+                sys.stdout = f
+                print(*text)
+            sys.stdout = original
+        else:
+            pass
         
         
 
@@ -230,10 +238,16 @@ class Basement():
             else:
                 return False
             
+        
+        def is_empty_or_none(key):
+            return (key not in self.settings) or (str(self.settings[key]).lower() == 'none') or (len(self.settings[key])==0)
+            
+        
         def unique(array):
             uniq, index = np.unique(array, return_index=True)
             return uniq[index.argsort()]
             
+        
         rows = np.genfromtxt( os.path.join(self.datadir,'settings.csv'),dtype=None,encoding='utf-8',delimiter=',' )
 
         #::: make backwards compatible
@@ -281,7 +295,7 @@ class Basement():
         if 'shift_epoch' in self.settings:
             self.settings['shift_epoch'] = set_bool(self.settings['shift_epoch'] )
         else:
-            self.settings['shift_epoch'] = False
+            self.settings['shift_epoch'] = True 
             
             
         for companion in self.settings['companions_all']:
@@ -355,6 +369,15 @@ class Basement():
         else:
             self.settings['use_host_density_prior'] = True
         
+        
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Host stellar density prior
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'use_tidal_eccentricity_prior' in self.settings:
+            self.settings['use_tidal_eccentricity_prior'] = set_bool(self.settings['use_tidal_eccentricity_prior'] )
+        else:
+            self.settings['use_tidal_eccentricity_prior'] = False
+            
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: TTVs
@@ -450,10 +473,10 @@ class Basement():
                 if companion+'_grid_'+inst not in self.settings: 
                     self.settings[companion+'_grid_'+inst] = 'default'
                     
-                if 'host_ld_law_'+inst not in self.settings or self.settings['host_ld_law_'+inst] is None or len(self.settings['host_ld_law_'+inst])==0 or self.settings['host_ld_law_'+inst]=='None': 
+                if is_empty_or_none('host_ld_law_'+inst): 
                     self.settings['host_ld_law_'+inst] = None
                     
-                if companion+'_ld_law_'+inst not in self.settings or self.settings[companion+'_ld_law_'+inst] is None or len(self.settings[companion+'_ld_law_'+inst])==0 or self.settings[companion+'_ld_law_'+inst]=='None': 
+                if is_empty_or_none(companion+'_ld_law_'+inst):
                     self.settings[companion+'_ld_law_'+inst] = None
                 
                 if 'host_shape_'+inst not in self.settings: 
@@ -478,12 +501,18 @@ class Basement():
         
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: Phase curves
+        #::: Phase curve styles
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        if 'phase_curve_style' not in self.settings.keys():
-            self.settings['phase_curve_style'] = 'series' #series (shporer/wong) or additive (daylan)
+        if is_empty_or_none('phase_curve_style'):
+            self.settings['phase_curve_style'] = None
+        if self.settings['phase_curve_style'] not in [None, 'sine_series', 'sine_physical', 'ellc_physical']:
+            raise ValueError("The setting 'phase_curve_style' must be one of [None, 'sine_series', 'sine_physical', 'ellc_physical'], but was '"+str(self.settings['phase_curve_style'])+"'.")
+        if (self.settings['phase_curve'] is True) and (self.settings['phase_curve_style'] is None):
+            raise ValueError("You chose 'phase_curve=True' but did not select a 'phase_curve_style'; please select one of ['sine_series', 'sine_physical', 'ellc_physical'].")
+        if (self.settings['phase_curve'] is False) and (self.settings['phase_curve_style'] in ['sine_series', 'sine_physical', 'ellc_physical']):
+           raise ValueError("You chose 'phase_curve=False' but also selected a 'phase_curve_style'; please double check and set 'phase_curve_style=None' (or remove it).")
+                               
             
-                
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Stellar variability
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -703,7 +732,7 @@ class Basement():
         self.params['user-given:'] = ''                                        #just for printing
         for i,key in enumerate(self.allkeys):
             #::: if it's not a "coupled parameter", then use the given value
-            if np.atleast_1d(buf['value'])[i] not in self.allkeys:
+            if np.atleast_1d(buf['value'])[i] not in np.atleast_1d(self.allkeys):
                 self.params[key] = np.float(np.atleast_1d(buf['value'])[i])
             #::: if it's a "coupled parameter", then write the string of the key it is coupled to
             else:
@@ -713,6 +742,15 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: automatically set default params if they were not given
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        def validate(key, default, default_min, default_max):
+            if (key in self.params) and (self.params[key] is not None):
+                if (self.params[key] < default_min) or (self.params[key] > default_max):
+                    raise ValueError("User input for "+key+" is "+self.params+" but must lie within ["+str(default_min)+","+str(default_max)+"].")
+            if (key not in self.params):
+                self.params[key] = default
+            
+        
+        
         self.params['automatically set:'] = ''                                 #just for printing
         for companion in self.settings['companions_all']:
             for inst in self.settings['inst_all']:
@@ -720,131 +758,90 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: ellc defaults
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if 'dil_'+inst not in self.params:
-                    self.params['dil_'+inst] = 0.
                 
-                if companion+'_rr' not in self.params:
-                    self.params[companion+'_rr'] = None
-                    
-                if companion+'_rsuma' not in self.params:
-                    self.params[companion+'_rsuma'] = None
-                    
-                if companion+'_cosi' not in self.params:
-                    self.params[companion+'_cosi'] = 0.
-                    
-                if companion+'_epoch' not in self.params:
-                    self.params[companion+'_epoch'] = None
-                    
-                if companion+'_period' not in self.params:
-                    self.params[companion+'_period'] = None
+                #::: frequently used parameters
+                validate(companion+'_rr', None, 0., np.inf)
+                validate(companion+'_rsuma', None, 0., np.inf)
+                validate(companion+'_epoch', 0., -np.inf, np.inf)
+                validate(companion+'_period', 0., 0., np.inf)
+                validate(companion+'_sbratio_'+inst, 0., 0., np.inf)
+                validate(companion+'_K', 0., 0., np.inf)
+                validate(companion+'_f_s', 0., -1, 1)
+                validate(companion+'_f_c', 0., -1, 1)
+                validate('dil_'+inst, 0., -np.inf, np.inf)
+                validate('host_ldc_'+inst, None, 0, 1)
+                validate(companion+'_ldc_'+inst, None, 0, 1)
+                
+                #::: catch exceptions
+                if self.params[companion+'_period'] is None:
                     self.settings['do_not_phase_fold'] = True
-                    # raise ValueError('It seems like you forgot to include the params for companion '+companion+' in the params.csv file...')
-                    
-                if companion+'_sbratio_'+inst not in self.params:
-                    self.params[companion+'_sbratio_'+inst] = 0.               
-                    
-                if companion+'_a' not in self.params:
-                    self.params[companion+'_a'] = None
-                    
-                if companion+'_q' not in self.params:
-                    self.params[companion+'_q'] = 1.
-                    
-                if companion+'_K' not in self.params:
-                    self.params[companion+'_K'] = 0.
                 
-                if companion+'_f_c' not in self.params:
-                    self.params[companion+'_f_c'] = 0.
-                    
-                if companion+'_f_s' not in self.params:
-                    self.params[companion+'_f_s'] = 0.
-                    
-                if 'host_ldc_'+inst not in self.params:
-                    self.params['host_ldc_'+inst] = None
-                    
-                if companion+'_ldc_'+inst not in self.params:
-                    self.params[companion+'_ldc_'+inst] = None
-                    
-                if 'host_gdc_'+inst not in self.params:
-                    self.params['host_gdc_'+inst] = None
-                    
-                if companion+'_gdc_'+inst not in self.params:
-                    self.params[companion+'_gdc_'+inst] = None
-                    
-                if 'didt_'+inst not in self.params:
-                    self.params['didt_'+inst] = None
-                    
-                if 'domdt_'+inst not in self.params:
-                    self.params['domdt_'+inst] = None
-                    
-                if 'host_rotfac_'+inst not in self.params:
-                    self.params['host_rotfac_'+inst] = 1.
-                    
-                if companion+'_rotfac_'+inst not in self.params:
-                    self.params[companion+'_rotfac_'+inst] = 1.
-                    
-                if 'host_hf_'+inst not in self.params:
-                    self.params['host_hf_'+inst] = 1.5
-                    
-                if companion+'_hf_'+inst not in self.params:
-                    self.params[companion+'_hf_'+inst] = 1.5
-                    
-                if 'host_bfac_'+inst not in self.params:
-                    self.params['host_bfac_'+inst] = None
-                    
-                if companion+'_bfac_'+inst not in self.params:
-                    self.params[companion+'_bfac_'+inst] = None
-                    
-                if 'host_atmo_'+inst not in self.params:
-                    self.params['host_atmo_'+inst] = None
-                    
-                if companion+'_atmo_'+inst not in self.params:
-                    self.params[companion+'_atmo_'+inst] = None
-                    
-                if 'host_lambda_'+inst not in self.params:
-                    self.params['host_lambda_'+inst] = None
-                    
-                if companion+'_lambda_'+inst not in self.params:
-                    self.params[companion+'_lambda_'+inst] = None
-                    
-                if 'host_vsini' not in self.params:
-                    self.params['host_vsini'] = None
-                    
-                if companion+'_vsini' not in self.params:
-                    self.params[companion+'_vsini'] = None
-                    
+                #::: advanced parameters
+                validate(companion+'_a', None, 0., np.inf)
+                validate(companion+'_q', 1., 0., np.inf)
+                
+                validate('didt_'+inst, None, -np.inf, np.inf)
+                validate('domdt_'+inst, None, -np.inf, np.inf)
+                
+                validate('host_gdc_'+inst, None, 0., 1.)
+                validate('host_rotfac_'+inst, 1., 0., np.inf)
+                validate('host_hf_'+inst, 1.5, -np.inf, np.inf)
+                validate('host_bfac_'+inst, None, -np.inf, np.inf)
+                validate('host_heat_'+inst, None, -np.inf, np.inf)
+                validate('host_lambda_'+inst, None, -np.inf, np.inf)
+                validate('host_vsini', None, -np.inf, np.inf)
+                
+                validate(companion+'_gdc_'+inst, None, 0., 1.)
+                validate(companion+'_rotfac_'+inst, 1., 0., np.inf)
+                validate(companion+'_hf_'+inst, 1.5, -np.inf, np.inf)
+                validate(companion+'_bfac_'+inst, None, -np.inf, np.inf)
+                validate(companion+'_heat_'+inst, None, -np.inf, np.inf)
+                validate(companion+'_lambda_'+inst, None, -np.inf, np.inf)
+                validate(companion+'_vsini', None, -np.inf, np.inf)
+        
+                #::: packaged parameters
                 if 'host_spots_'+inst not in self.params:
                     self.params['host_spots_'+inst] = None
-                    
                 if companion+'_spots_'+inst not in self.params:
                     self.params[companion+'_spots_'+inst] = None
                     
-                if companion+'_phase_curve_beaming_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_beaming_'+inst] = None
                     
-                if companion+'_phase_curve_atmospheric_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_atmospheric_'+inst] = None
-                    
-                if companion+'_phase_curve_atmospheric_shift_'+inst not in self.params: #in days
-                    self.params[companion+'_phase_curve_atmospheric_shift_'+inst] = 0.
-                    
-                if companion+'_phase_curve_atmospheric_thermal_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] = None
-                    
-                if companion+'_phase_curve_atmospheric_thermal_shift_'+inst not in self.params: #in days
-                    self.params[companion+'_phase_curve_atmospheric_thermal_shift_'+inst] = 0.
-                    
-                if companion+'_phase_curve_atmospheric_reflected_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] = None
-                    
-                if companion+'_phase_curve_atmospheric_reflected_shift_'+inst not in self.params: #in days
-                    self.params[companion+'_phase_curve_atmospheric_reflected_shift_'+inst] = 0.
-                    
-                if companion+'_phase_curve_ellipsoidal_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_ellipsoidal_'+inst] = None
-                    
-                if companion+'_phase_curve_ellipsoidal_2nd_'+inst not in self.params: #in ppt
-                    self.params[companion+'_phase_curve_ellipsoidal_2nd_'+inst] = None
-                    
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: phase curve style: sine_series
+                # all in ppt
+                # A1 (beaming)
+                # B1 (atmospheric), can be split in thermal and reflected
+                # B2 (ellipsoidal)
+                # B3 (ellipsoidal 2nd order)
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                validate(companion+'_phase_curve_A1_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_B1_'+inst, None, -np.inf, 0.)
+                validate(companion+'_phase_curve_B1_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_B1t_'+inst, None, -np.inf, 0.)
+                validate(companion+'_phase_curve_B1t_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_B1r_'+inst, None, -np.inf, 0.)
+                validate(companion+'_phase_curve_B1r_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_B2_'+inst, None, -np.inf, 0.)
+                validate(companion+'_phase_curve_B3_'+inst, None, -np.inf, 0.)
+
+                                       
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: phase curve style: sine_physical  
+                # A1 (beaming)
+                # B1 (atmospheric), can be split in thermal and reflected
+                # B2 (ellipsoidal)
+                # B3 (ellipsoidal 2nd order)  
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                validate(companion+'_phase_curve_beaming_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_atmospheric_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_atmospheric_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_atmospheric_thermal_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_atmospheric_thermal_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_atmospheric_reflected_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_atmospheric_reflected_shift_'+inst, 0., -np.inf, np.inf)
+                validate(companion+'_phase_curve_ellipsoidal_'+inst, None, 0., np.inf)
+                validate(companion+'_phase_curve_ellipsoidal_2nd_'+inst, None, 0., np.inf)
+                
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: calculate number of spots
@@ -863,35 +860,32 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug/feature in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if self.params[companion+'_atmo_'+inst] is not None:
-                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_atmo_'+inst] > 0):
-                        self.params[companion+'_sbratio_'+inst] = 1e-15               #this is to avoid a bug/feature in ellc
-                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_atmo_'+inst] == 0):
-                        self.params[companion+'_atmo_'+inst] = 1e-15           #this is to avoid a bug/feature in ellc
+                if self.params[companion+'_heat_'+inst] is not None:
+                    if (self.params[companion+'_sbratio_'+inst] == 0) and (self.params[companion+'_heat_'+inst] > 0):
+                        self.params[companion+'_sbratio_'+inst] = 1e-15        #this is to avoid a bug/feature in ellc
+                    if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_heat_'+inst] == 0):
+                        self.params[companion+'_heat_'+inst] = 1e-15           #this is to avoid a bug/feature in ellc
               
-                
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                #::: luser proof: avoid crazy eccentricities that crash ellc
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if np.abs(self.params[companion+'_f_c']) > 0.8:
-                    raise ValueError(companion+'_f_c is '+str(self.params[companion+'_f_c'])+', but needs to lie within [-0.8,0.8]')
-                if np.abs(self.params[companion+'_f_s']) > 0.8:
-                    raise ValueError(companion+'_f_s is '+str(self.params[companion+'_f_s'])+', but needs to lie within [-0.8,0.8]')
-                                 
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: luser proof: avoid conflicting/degenerate phase curve commands
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                phase_curve_model_1 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)
-                phase_curve_model_2 = ((self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None) or (self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None))
-                phase_curve_model_3 = ((self.params['host_bfac_'+inst] is not None) or (self.params['host_atmo_'+inst] is not None) or (self.params['host_gdc_'+inst] is not None) or (self.settings['host_shape_'+inst]!='sphere')\
-                                       or (self.params[companion+'_bfac_'+inst] is not None) or (self.params[companion+'_atmo_'+inst] is not None) or (self.params[companion+'_gdc_'+inst] is not None) or (self.settings[companion+'_shape_'+inst]!='sphere'))
-                if (phase_curve_model_1 + phase_curve_model_2 + phase_curve_model_3) > 1:
+                phase_curve_model_1 = (self.params[companion+'_phase_curve_B1_'+inst] is not None)
+                phase_curve_model_2 = ((self.params[companion+'_phase_curve_B1t_'+inst] is not None) or (self.params[companion+'_phase_curve_B1r_'+inst] is not None))
+                phase_curve_model_3 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)
+                phase_curve_model_4 = ((self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None) or (self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None))
+                phase_curve_model_5 = ((self.params['host_bfac_'+inst] is not None) or (self.params['host_heat_'+inst] is not None) or \
+                                       (self.params['host_gdc_'+inst] is not None) or (self.settings['host_shape_'+inst]!='sphere') or \
+                                       (self.params[companion+'_bfac_'+inst] is not None) or (self.params[companion+'_heat_'+inst] is not None) or \
+                                       (self.params[companion+'_gdc_'+inst] is not None) or (self.settings[companion+'_shape_'+inst]!='sphere'))
+                if (phase_curve_model_1 + phase_curve_model_2 + phase_curve_model_3 + phase_curve_model_4 + phase_curve_model_5) > 1:
                     raise ValueError('You can use either\n'\
-                                     +'a) the sin/cos phase curve model with "*_phase_curve_atmospheric_*",\n'\
-                                     +'b) the sin/cos phase curve model with "*_phase_curve_atmospheric_thermal_*" and "*_phase_curve_atmospheric_reflected_*", or\n'\
-                                     +'c) the ellc phase curve model with "*_bfac_*", "*_atmo_*", "*_gdc_*" etc.\n'\
-                                     +'but you shall not mix and match.')
+                                     +'1) the sine_series phase curve model with "*_phase_curve_B1_*",\n'\
+                                     +'2) the sine_series phase curve model with "*_phase_curve_B1t_*" and "*_phase_curve_B1r_*", or\n'\
+                                     +'3) the sine_physical phase curve model with "*_phase_curve_atmospheric_*",\n'\
+                                     +'4) the sine_physical phase curve model with "*_phase_curve_atmospheric_thermal_*" and "*_phase_curve_atmospheric_reflected_*", or\n'\
+                                     +'5) the ellc_physical phase curve model with "*_bfac_*", "*_heat_*", "*_gdc_*" etc.\n'\
+                                     +'but you shall not pass with a mix&match.')
                     
        
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -909,22 +903,6 @@ class Basement():
                 warnings.warn('You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['baseline_gp_matern32_lnrho_'+kkey+'_'+inst]   = 1.*self.params['baseline_gp2_'+kkey+'_'+inst]
 
-            if 'host_geom_albedo_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+'host_geom_albedo_'+inst+' ---> '+'host_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['host_atmo_'+inst] = self.params['host_geom_albedo_'+inst]
-                
-            if companion+'_geom_albedo_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+companion+'_geom_albedo_'+inst+' ---> '+companion+'_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params[companion+'_atmo_'+inst] = self.params[companion+'_geom_albedo_'+inst]
-                    
-            if 'host_heat_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+'host_heat_'+inst+' ---> '+'host_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['host_atmo_'+inst] = self.params['host_heat_'+inst]
-                
-            if companion+'_heat_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+companion+'_heat_'+inst+' ---> '+companion+'_atmo_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params[companion+'_atmo_'+inst] = self.params[companion+'_heat_'+inst]
-                    
             if 'ldc_q1_'+inst in self.params:
                 warnings.warn('You are using outdated keywords. Automatically renaming ldc_q1_'+inst+' ---> host_ldc_q1_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['host_ldc_q1_'+inst] = self.params['ldc_q1_'+inst]
@@ -932,7 +910,6 @@ class Basement():
             if 'ldc_q2_'+inst in self.params:
                 warnings.warn('You are using outdated keywords. Automatically renaming ldc_q2_'+inst+' ---> host_ldc_q2_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
                 self.params['host_ldc_q2_'+inst] = self.params['ldc_q2_'+inst]
-                
                 
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -944,7 +921,6 @@ class Basement():
             self.coupled_with = [None]*len(self.allkeys)
             
             
-            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: deal with coupled params
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -952,7 +928,6 @@ class Basement():
             if isinstance(self.coupled_with[i], str) and (len(self.coupled_with[i])>0):
                 self.params[key] = self.params[self.coupled_with[i]]           #luser proof: automatically set the values of the params coupled to another param
                 buf['fit'][i] = 0                                              #luser proof: automatically set fit=0 for the params coupled to another param
-        
         
         
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -983,26 +958,11 @@ class Basement():
         self.ndim = len(self.theta_0)                   #len(ndim)
 
     
-    
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: luser proof: check if all initial guesses lie within their bounds
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for th, b, key in zip(self.theta_0, self.bounds, self.fitkeys):
-            
-            #::: luser proof: avoid crazy uniform eccentricity bounds that crash ellc
-            if ('_f_c' in key) and (b[0] == 'uniform') and ((b[1] < -0.9) or (b[2] > 0.9)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
-            if ('_f_s' in key) and (b[0] == 'uniform') and ((b[1] < -0.9) or (b[2] > 0.9)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
-            if ('_f_c' in key) and (b[0] == 'normal'):
-                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.9, 0.9]')
-            if ('_f_s' in key) and (b[0] == 'normal'):
-                raise ValueError('Normal priors on eccentricity are not allowed. Please use "trunc_normal" constrained within [-0.9, 0.9]')
-            if ('_f_c' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.9) or (b[2] > 0.9)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
-            if ('_f_s' in key) and (b[0] == 'trunc_normal') and ((b[1] < -0.9) or (b[2] > 0.9)):
-                raise ValueError('Eccentricity bounds are ['+str(b[1])+','+str(b[2])+'], but have to be in [-0.9, 0.9]')
-                                                
+                  
             #:::: test bounds
             if (b[0] == 'uniform') and not (b[1] <= th <= b[2]): 
                 raise ValueError('The initial guess for '+key+' lies outside of its bounds.')
@@ -1132,8 +1092,15 @@ class Basement():
         '''
         change epoch entry from params.csv to set epoch into the middle of the range
         '''
+        
+        self.logprint('\nShifting epochs into the data center:')
+        self.logprint('--------------------------\n')
+        
         #::: for all companions
         for companion in self.settings['companions_all']:
+            
+            self.logprint('Companion',companion)
+            self.logprint('\tinput epoch:',self.params[companion+'_epoch'])
             
             #::: get data time range
             alldata = []
@@ -1239,94 +1206,9 @@ class Basement():
                     raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
                     
         
-#                print('first_epoch; N', first_epoch, N)
-#                print('mid_epoch, error; N_shift', self.settings['mid_epoch'], N_shift)
-#                print('----------------------------------------------------------------------------')
-#                print('new epoch:', self.settings['mid_epoch'], self.bounds[ind_e])
-#                print('############################################################################')
-#                print('\n')
-#                err
+                self.logprint('\tshifted epoch:',self.params[companion+'_epoch'])
+                self.logprint('\tshifted by',N_shift,'periods')
                 
-#                print('\n', 'New epochs:')
-#                print(self.params[companion+'_epoch'])
-#                    
-        '''
-        #::: change epoch entry from params.csv to set epoch into the middle of the range
-        for companion in self.settings['companions_all']:
-            #::: get data time range
-            alldata = []
-            for inst in self.settings['inst_for_'+companion+'_epoch']:
-                alldata += list(self.data[inst]['time'])
-            start = np.nanmin( alldata )
-            end = np.nanmax( alldata )
-            
-#            import matplotlib.pyplot as plt
-#            plt.figure()
-#            plt.plot(all_data, np.ones_like(all_data), 'bo')
-            
-            first_epoch = 1.*self.params[companion+'_epoch']
-            period      = 1.*self.params[companion+'_period']
-            
-#            plt.axvline(first_epoch, color='r', lw=2)
-            
-            #::: place the first_epoch at the start of the data to avoid luser mistakes
-#            if start<=first_epoch:
-#                first_epoch -= int(np.round((first_epoch-start)/period)) * period
-#            else:
-#                first_epoch += int(np.round((start-first_epoch)/period)) * period
-            if 'fast_fit_width' in self.settings and self.settings['fast_fit_width'] is not None:
-                width = self.settings['fast_fit_width']
-            else:
-                width = 0
-            first_epoch = get_first_epoch(alldata, self.params[companion+'_epoch'], self.params[companion+'_period'], width=width)
-            
-#            plt.axvline(first_epoch, color='b', lw=2)
-                
-            #::: place epoch_for_fit into the middle of all data
-            N = int(np.round((end-start)/2./period))
-            epoch_shift = N * period 
-            epoch_for_fit = first_epoch + epoch_shift
-            
-            #::: update params
-            self.params[companion+'_epoch'] = 1.*epoch_for_fit
-            
-            #::: update theta, bounds and fittruths
-            ind_epoch_fitkeys = np.where(self.fitkeys==companion+'_epoch')[0]
-            if len(ind_epoch_fitkeys):
-                ind_epoch_fitkeys = ind_epoch_fitkeys[0]
-                buf = 1.*self.theta_0[ind_epoch_fitkeys]
-                self.theta_0[ind_epoch_fitkeys]    = 1.*epoch_for_fit                #initial guess
-                
-                #::: update fittruhts
-                self.fittruths[ind_epoch_fitkeys] += epoch_shift 
-                
-                #:::change bounds if uniform bounds
-                if self.bounds[ind_epoch_fitkeys][0] == 'uniform':
-                    lower = buf - self.bounds[ind_epoch_fitkeys][1]
-                    upper = self.bounds[ind_epoch_fitkeys][2] - buf
-                    self.bounds[ind_epoch_fitkeys][1]  = epoch_for_fit - lower           #lower bound
-                    self.bounds[ind_epoch_fitkeys][2]  = epoch_for_fit + upper           #upper bound
-                
-                #:::change bounds if normal or trunc_normal bounds
-                elif self.bounds[ind_epoch_fitkeys][0] == 'normal':
-                    mean = 1.*self.theta_0[ind_epoch_fitkeys]
-                    std = 1.*self.bounds[ind_epoch_fitkeys][2]
-                    self.bounds[ind_epoch_fitkeys][1]  = mean         
-                    self.bounds[ind_epoch_fitkeys][2]  = std        
-                    
-                elif self.bounds[ind_epoch_fitkeys][0] == 'trunc_normal':
-                    lower = buf - self.bounds[ind_epoch_fitkeys][1]
-                    upper = self.bounds[ind_epoch_fitkeys][2] - buf
-                    mean = 1.*self.theta_0[ind_epoch_fitkeys]
-                    std = 1.*self.bounds[ind_epoch_fitkeys][4]
-                    self.bounds[ind_epoch_fitkeys][1]  = epoch_for_fit - lower           #lower bound
-                    self.bounds[ind_epoch_fitkeys][2]  = epoch_for_fit + upper
-                    self.bounds[ind_epoch_fitkeys][3]  = mean         
-                    self.bounds[ind_epoch_fitkeys][4]  = std        
-                    
-                else:
-                    raise ValueError('Parameters "bounds" have to be "uniform", "normal" or "trunc_normal".')
-        '''
 
 
     ###############################################################################
@@ -1363,7 +1245,6 @@ class Basement():
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
         return time, flux, flux_err
-    
     
     
     

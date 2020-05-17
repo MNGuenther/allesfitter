@@ -1,0 +1,41 @@
+
+allesfitter version
+--------------------------
+
+v1.1.1
+
+Shifting epochs into the data center:
+--------------------------
+
+Companion b
+	input epoch: 0.0
+
+Convergence check:
+--------------------------
+Total steps:         5000      
+Burn steps:          1000      
+Evaluation steps:    4000                
+Evaluation samples:  40000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 b_rr                           88.66249920681912    45.114902419673236  
+	 b_rsuma                        91.7486697519319     43.59736234667069   
+	 b_cosi                         91.88665472641473    43.531892764076396  
+	 b_sbratio_TESS                 89.6560155880715     44.614965027870255  
+	 b_phase_curve_beaming_TESS     87.92615965202795    45.49271816067248   
+	 b_phase_curve_atmospheric_TESS 84.09823053146464    47.563426420766774  
+	 b_phase_curve_ellipsoidal_TESS 86.6884846276106     46.14223004569612   
+	 baseline_offset_flux_TESS      86.4321892104843     46.27905455754436   
+	 log_err_flux_TESS              87.02494623581588    45.96383190126885   
+
+Succesfully converged! All chains are at least 30x the autocorrelation length.
+
+
+TESS b: deriving eclipse depths and more from model curves...
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.pdf
+
+Done. For all outputs, see allesfit_sine_physical/results 
+

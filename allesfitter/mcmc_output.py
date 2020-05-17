@@ -245,15 +245,15 @@ def print_autocorr(sampler):
             converged = False
             
     if converged:
-        logprint('\nSuccesfully converged! All chains are at least 30x the autocorrelation length.\n', typ='success')
+        logprint('\nSuccesfully converged! All chains are at least 30x the autocorrelation length.\n')
     else:
-        logprint('\nNot yet converged! Some chains are less than 30x the autocorrelation length. Please continue to run with longer chains, or start again with more walkers.\n', typ='failure')
+        logprint('\nNot yet converged! Some chains are less than 30x the autocorrelation length. Please continue to run with longer chains, or start again with more walkers.\n')
         
 
 ###############################################################################
 #::: analyse the output from save_mcmc.h5 file
 ###############################################################################
-def mcmc_output(datadir):
+def mcmc_output(datadir, quiet=False):
     '''
     Inputs:
     -------
@@ -267,7 +267,7 @@ def mcmc_output(datadir):
     This will output information into the console, and create a output files 
     into datadir/results/ (or datadir/QL/ if QL==True)    
     '''
-    config.init(datadir)
+    config.init(datadir, quiet=quiet)
     
     
     #::: security check
@@ -309,10 +309,12 @@ def mcmc_output(datadir):
 
     #::: plot the fit
     posterior_samples = draw_mcmc_posterior_samples(reader, Nsamples=20) #only 20 samples for plotting
+    
     for companion in config.BASEMENT.settings['companions_all']:
         fig, axes = afplot(posterior_samples, companion)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
-        plt.close(fig)
+        if fig is not None:
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
+            plt.close(fig)
         
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
@@ -340,14 +342,15 @@ def mcmc_output(datadir):
     save_table(posterior_samples, 'mcmc')
     save_latex_table(posterior_samples, 'mcmc')
     
+    
     #::: derive values (using stellar parameters from params_star.csv)
-    # if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-    try:
+    if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
+    # try:
         deriver.derive(posterior_samples, 'mcmc')
-    except:
-        logprint('\nDerived values could not be produced.')
-    # else:
-    #     print('File "params_star.csv" not found. Cannot derive final parameters.')
+    # except:
+        # logprint('\nDerived values could not be produced.')
+    else:
+        logprint('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
@@ -369,7 +372,7 @@ def mcmc_output(datadir):
     #::: clean up and delete the tmp file
     os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
     
-    logprint('\nDone. For all outputs, see', config.BASEMENT.outdir, '\n', typ='success')
+    logprint('\nDone. For all outputs, see', config.BASEMENT.outdir, '\n')
     
     
     #::: return a nerdy quote
@@ -387,6 +390,6 @@ def mcmc_output(datadir):
 def get_mcmc_posterior_samples(datadir, Nsamples=None, as_type='dic'): #QL=False, 
     # config.init(datadir, QL=QL)
     config.init(datadir)
-    reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'save.h5'), read_only=True )
+    reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), read_only=True )
     return draw_mcmc_posterior_samples(reader, Nsamples=Nsamples, as_type=as_type) #only 20 samples for plotting
     

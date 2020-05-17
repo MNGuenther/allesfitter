@@ -36,7 +36,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 ###############################################################################
 #::: plot the fit
 ###############################################################################
-# alles = allesfitter.allesclass('allesfit_4')
+# alles = allesfitter.allesclass('allesfit_year_1')
 # fig, axes = plt.subplots(2, 3, figsize=(15,5), gridspec_kw={'height_ratios': [3,1]}, sharex='col')
 
 # alles.plot('TESS','c','phasezoom',ax=axes[0,0], kwargs_data={'rasterized':False}, kwargs_ax={'title':''})
@@ -70,19 +70,19 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 ###############################################################################
 #::: plot the Bayes factors
 ###############################################################################
-# sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=2.5, color_codes=True)
-# fig, ax = plt.subplots(figsize=(10,6), tight_layout=True)
-# allesfitter.ns_plot_bayes_factors(['allesfit_1','allesfit_2','allesfit_3','allesfit_4'], 
-#                                   labels=['standard','linear LD','eccentric','GP baseline'], ax=ax)
-# ax.set(xticklabels=['linear LD\nvs.\nquadratic LD', 'eccentric\nvs.\ncircular', 'GP baseline\nvs.\nconstant baseline',])
-# fig.savefig('Pi_Mensae_Bayes_factors.pdf', bbox_inchs='tight')
+sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=2.5, color_codes=True)
+fig, ax = plt.subplots(figsize=(10,6), tight_layout=True)
+allesfitter.ns_plot_bayes_factors(['allesfit_1','allesfit_2','allesfit_3','allesfit_4'], 
+                                  labels=['standard','linear LD','eccentric','GP baseline'], ax=ax)
+ax.set(xticklabels=['linear LD\nvs.\nquadratic LD', 'eccentric\nvs.\ncircular', 'GP baseline\nvs.\nconstant baseline',])
+fig.savefig('Pi_Mensae_Bayes_factors.pdf', bbox_inchs='tight')
 
 
 
 ###############################################################################
 #::: plot the posterior histograms between Sector 1 and Year 1
 ###############################################################################
-allesfitter.plot_histograms(datadirs=['allesfit_4', 'allesfit_year_1_noshiftepoch'], 
-                            titles=['Sector 1', 'Year 1'], 
-                            keys=['c_rr', 'c_rsuma', 'c_cosi', 'c_epoch', 'c_period', 'host_ldc_q1_TESS', 'host_ldc_q2_TESS'], 
-                            options={'layout':'2x4', 'simplify':True, 'colors':['lightgrey','b'], 'epoch_median':True, 'show_plot':True, 'save_plot':True})
+# allesfitter.plot_histograms(datadirs=['allesfit_4', 'allesfit_year_1'], 
+#                             titles=['Sector 1', 'Year 1'], 
+#                             keys=['c_rr', 'c_rsuma', 'c_cosi', 'c_epoch', 'c_period', 'host_ldc_q1_TESS', 'host_ldc_q2_TESS'], 
+#                             options={'layout':'2x4', 'simplify':True, 'colors':['lightgrey','b'], 'epoch_median':True, 'show_plot':True, 'save_plot':True})

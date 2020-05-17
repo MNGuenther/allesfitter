@@ -22,6 +22,6 @@ from .basement import Basement
 
 
 
-def init(datadir):
+def init(datadir, quiet=False):
     global BASEMENT
-    BASEMENT = Basement(datadir)
+    BASEMENT = Basement(datadir, quiet=quiet)

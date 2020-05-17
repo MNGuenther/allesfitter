@@ -70,8 +70,8 @@ def GUI():
 
 
 class allesclass():
-    def __init__(self,datadir):
-        config.init(datadir)
+    def __init__(self,datadir,quiet=True):
+        config.init(datadir,quiet=quiet)
         self.BASEMENT = config.BASEMENT
         self.fulldata = config.BASEMENT.fulldata
         self.data = config.BASEMENT.data
@@ -274,4 +274,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.1.0'
+__version__ = '1.1.1'

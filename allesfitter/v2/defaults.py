@@ -28,7 +28,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #::: my modules
-from .translator import translate
+# from .translator import translate
 
 
 

@@ -1,0 +1,50 @@
+#name,value,fit,bounds,label,unit,truth,comment
+#companion b astrophysical params,,,,,,,
+b_rr,0.11,1,uniform 0 0.17,$R_b / R_\star$,,0.11,Dawson et al. 2019
+b_rsuma,0.03814432989690734,1,uniform 0 1,$(R_\star + R_b) / a_b$,,0.03814432989690734,Dawson et al. 2019
+b_cosi,0.03489949670250108,1,uniform 0 1,$\cos{i_b}$,,0.03489949670250108,Dawson et al. 2019
+b_epoch,2458496.1366,0,,$T_{0;b}$,BJD,,linear estimate
+b_period,17.0714,0,,$P_b$,d,,linear estimate
+#companion c astrophysical params,,,,,,,
+c_rr,0.1236,1,uniform 0 1,$R_c / R_\star$,,0.1236,Dawson et al. 2019
+c_rsuma,0.02088475836431273,1,uniform 0 1,$(R_\star + R_c) / a_c$,,0.02088475836431273,Dawson et al. 2019
+c_cosi,0.0019198609978,1,uniform 0 1,$\cos{i_c}$,,0.0019198609978,Dawson et al. 2019
+c_epoch,2458504.0408,0,,$T_{0;c}$,BJD,,linear estimate
+c_period,34.5555,0,,$P_c$,d,,linear estimate
+#limb darkening coefficients per instrument,,,,,,,
+host_ldc_q1_TESS,0.5,1,uniform 0 1,$q_{1; \mathrm{TESS}}$,,,
+host_ldc_q2_TESS,0.5,1,uniform 0 1,$q_{2; \mathrm{TESS}}$,,,
+#errors per instrument,,,,,,,
+log_err_flux_TESS,-6.000562315153353,1,normal -6.000562315153353 0.0017112378762709213,$\log{\sigma_\mathrm{TESS}}$,ln (rel. flux),,
+#baseline per instrument,,,,,,,
+baseline_gp_matern32_lnsigma_flux_TESS,-7.549512536421136,1,normal -7.549512536421136 0.04704844463781299,GP $\ln{\sigma}$ (TESS),ln (rel. flux),,
+baseline_gp_matern32_lnrho_flux_TESS,-0.23627798345297177,1,normal -0.23627798345297177 0.0722596744391529,GP $\ln{\rho}$ (TESS),ln (rel. flux),,
+#TTV companion b,,,,,,,
+b_ttv_transit_1,-0.1065,1,uniform -0.1165 -0.0965,TTV$_\mathrm{b;1}$,d,,
+b_ttv_transit_2,-0.0652,1,uniform -0.0752 -0.0552,TTV$_\mathrm{b;2}$,d,,
+b_ttv_transit_3,-0.0295,1,uniform -0.0395 -0.0195,TTV$_\mathrm{b;3}$,d,,
+b_ttv_transit_4,-0.0063,1,uniform -0.0163 0.0037,TTV$_\mathrm{b;4}$,d,,
+b_ttv_transit_5,0.014,1,uniform 0.004 0.024,TTV$_\mathrm{b;5}$,d,,
+b_ttv_transit_6,0,0,0,TTV$_\mathrm{b;6}$,d,,there is no data in transit 6
+b_ttv_transit_7,0.0294,1,uniform 0.0194 0.0394,TTV$_\mathrm{b;7}$,d,,
+b_ttv_transit_8,0.0343,1,uniform 0.0243 0.0443,TTV$_\mathrm{b;8}$,d,,
+b_ttv_transit_9,0.0391,1,uniform 0.0291 0.0491,TTV$_\mathrm{b;9}$,d,,
+b_ttv_transit_10,0.0314,1,uniform 0.0214 0.0414,TTV$_\mathrm{b;10}$,d,,
+b_ttv_transit_11,0.0181,1,uniform 0.0081 0.0281,TTV$_\mathrm{b;11}$,d,,
+b_ttv_transit_12,0.0145,1,uniform 0.0045 0.0245,TTV$_\mathrm{b;12}$,d,,
+b_ttv_transit_13,-0.012,1,uniform -0.022 -0.002,TTV$_\mathrm{b;13}$,d,,
+b_ttv_transit_14,-0.021,1,uniform -0.0310 -0.0110,TTV$_\mathrm{b;14}$,d,,
+b_ttv_transit_15,-0.0338,1,uniform -0.0438 -0.0238,TTV$_\mathrm{b;15}$,d,,
+b_ttv_transit_16,-0.0286,1,uniform -0.0386 -0.0186,TTV$_\mathrm{b;16}$,d,,
+b_ttv_transit_17,-0.0235,1,uniform -0.0335 -0.0135,TTV$_\mathrm{b;17}$,d,,
+b_ttv_transit_18,-0.0002,1,uniform -0.0102 0.0098,TTV$_\mathrm{b;18}$,d,,
+#TTV companion c,,,,,,,
+c_ttv_transit_1,0.0167,1,uniform 0.0067 0.0267,TTV$_\mathrm{c;1}$,d,,
+c_ttv_transit_2,0.0005,1,uniform -0.0095 0.0105,TTV$_\mathrm{c;2}$,d,,
+c_ttv_transit_3,-0.0077,1,uniform -0.0177 0.0023,TTV$_\mathrm{c;3}$,d,,
+c_ttv_transit_4,-0.0105,1,uniform -0.0205 -0.0005,TTV$_\mathrm{c;4}$,d,,
+c_ttv_transit_5,-0.008,1,uniform -0.0180 0.002,TTV$_\mathrm{c;5}$,d,,
+c_ttv_transit_6,-0.0005,1,uniform -0.0105 0.0095,TTV$_\mathrm{c;6}$,d,,
+c_ttv_transit_7,0.0064,1,uniform -0.0036 0.0164,TTV$_\mathrm{c;7}$,d,,
+c_ttv_transit_8,0.0039,1,uniform -0.0061 0.0139,TTV$_\mathrm{c;8}$,d,,
+c_ttv_transit_9,-0.0011,1,uniform -0.0111 0.0089,TTV$_\mathrm{c;9}$,d,,

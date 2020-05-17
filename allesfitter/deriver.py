@@ -41,9 +41,9 @@ from . import config
 from .utils.latex_printer import round_tex
 from .general_output import logprint
 from .priors.simulate_PDF import simulate_PDF
-from .computer import update_params, calculate_model, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
+from .computer import update_params, calculate_model, flux_fct, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves.index_transits import index_transits
-
+from .lightcurves.lightcurves import get_epoch_occ
 
 
 ###############################################################################
@@ -62,169 +62,115 @@ from .exoworlds_rdx.lightcurves.index_transits import index_transits
 #::: globals
 #::: sorry for that... it's multiprocessing, not me, I swear!
 ###############################################################################
-companion = None
-inst = None
-samples2 = None
-derived_samples = None
-
+# companion = None
+# inst = None
+# samples2 = None
+# derived_samples = None
 
 
 ###############################################################################
-#::: define iteration function (needs to be at the top level for multiprocessing)
+#::: calculate values from model curves
 ###############################################################################
-def calculate_values_from_model_curves(arg):
+def calculate_values_from_model_curves(p, inst, companion):
+    '''
+    Parameters
+    ----------
+    p : dict
+        parameters corresponding to one single sample
+    inst : str
+        instrument name
+    companion : str
+        companion name
+
+    Returns
+    -------
+    list
+        list containing the transit depth, occultation depth, and nightside flux
+    '''
     
     #==========================================================================
-    #::: globals etc.
+    #::: init
     #==========================================================================
-    i, p = arg
-    _depth_tr_ = np.nan
-    _delta_nightside_ = np.nan
-    _depth_occ_ = np.nan
-    # _ampl_beaming_ = np.nan
-    # _ampl_atmospheric_ = np.nan
-    # _ampl_ellipsoidal_ = np.nan
+    depth_tr = np.nan
+    depth_occ = np.nan
+    nightside_flux = np.nan
+    epoch_occ = get_epoch_occ(p[companion+'_epoch'], p[companion+'_period'], p[companion+'_f_s'], p[companion+'_f_c'])
 
 
     #==========================================================================
-    #::: setting the model params and time axes (replaced with globals)
+    #:: calculating
     #==========================================================================
-    # ii = np.random.randint(low=0,high=samples2.shape[0])
-    # s = samples2[ii,:]
-    # p = update_params(s)
     
-    
-    #==========================================================================
-    #::: stuff
-    #==========================================================================
-    width = np.median(derived_samples[companion+'_T_tra_tot'])/24.
-    xx0 = np.linspace( p[companion+'_epoch']-0.25*p[companion+'_period'], p[companion+'_epoch']+0.75*p[companion+'_period'], 10001 ) #one full orbit (in time units), with 10001 points (to not crash memory and to include pahse 0 and 0.5)
-
-
-    #==========================================================================
-    #:: calculating primary eclipse / transit depth
-    #==========================================================================
-    # ind_tr, ind_out = index_transits(xx0, p[companion+'_epoch'], p[companion+'_period'], width) #find the primary eclipse / transit
-    # xx = xx0[ind_tr]
-    # if len(xx) > 0:
-    # model = calculate_model(p, inst, 'flux', xx=xx) #evaluated on xx (!)
-    # _depth_tr_diluted_ = ( 1. - np.min(model) ) * 1e3 #in ppt
-
-    model_flux, model_flux1, model_flux2 = flux_subfct_ellc(p, inst, companion, xx=xx0, return_fluxes=True)
-    _depth_tr_ = np.ptp(model_flux1)
-    
-
-    #==========================================================================
-    #:: calculating secondary eclipse / occultation depth
-    #==========================================================================
-    # xx = xx0[ind_out]
-    if (config.BASEMENT.settings['secondary_eclipse'] is True) and (len(xx0)>0):
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    #::: without phase curve
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    if (config.BASEMENT.settings['phase_curve'] is False):
+        #::: compute transit / primary eclipse depth
+        depth_tr = 1. - flux_subfct_ellc(p, inst, companion, xx=[p[companion+'_epoch']])[0]
         
-        #::: full model 
-        # model_flux = flux_subfct_ellc(p, inst, 'flux', xx=xx) #evaluated on xx (!)
+        #::: compute occultation / secondary eclipse depth (if wished)
+        if (config.BASEMENT.settings['secondary_eclipse'] is True): 
+            depth_occ = 1. - flux_subfct_ellc(p, inst, companion, xx=[epoch_occ])[0]
+
+
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    #::: with phase curve sine_series or sine_physical
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    elif (config.BASEMENT.settings['phase_curve'] is True) and (config.BASEMENT.settings['phase_curve_style'] in ['sine_series','sine_physical']):
         
-        #::: remove phase curve contributions
-        # if (p[companion+'_phase_curve_beaming_'+inst] is not None): #A1
-        #     model_flux -= 1e-3*p[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
+        #::: 0: epoch, 1: epoch_occ
+        xx0 = [p[companion+'_epoch'], epoch_occ]
+        
+        #::: for debugging
+        # xx0 = np.linspace(p[companion+'_epoch']-0.25*p[companion+'_period'], p[companion+'_epoch']+0.75*p[companion+'_period'], 1001)
+        
+        #::: the full model flux with phase curve and dips
+        phase_curve_dips = flux_fct(p, inst, companion, xx=xx0)
+
+        #::: the phase curve without any dips
+        ellc_flux, ellc_flux1, ellc_flux2 = flux_subfct_ellc(p, inst, companion, xx=xx0, return_fluxes=True)
+        phase_curve_no_dips = flux_subfct_sinusoidal_phase_curves(p, inst, companion, np.ones_like(xx0), xx=xx0)
+        
+        #::: the phase curve with atmopsheric dips, but without nightside flux (sbratio=1e-12)
+        p2 = copy.deepcopy(p)
+        p2[companion+'_sbratio_'+inst] = 1e-12
+        ellc_flux, ellc_flux1, ellc_flux2 = flux_subfct_ellc(p2, inst, companion, xx=xx0, return_fluxes=True)
+        phase_curve_atmo_dips = flux_subfct_sinusoidal_phase_curves(p2, inst, companion, ellc_flux2, xx=xx0)
+
+        #::: for debugging
+        # fig = plt.figure()
+        # plt.plot(xx0, phase_curve_dips, label='phase_curve_dips')
+        # plt.plot(xx0, phase_curve_no_dips, label='phase_curve_no_dips')
+        # plt.plot(xx0, phase_curve_atmo_dips, label='phase_curve_atmo_dips')
+        # plt.legend()
+        # plt.ylim([0.999,1.001])
+        # plt.axhline(1,c='grey',ls='--')
+        # fig.savefig(os.path.join(config.BASEMENT.outdir,'phase_curve_depths.pdf'), bbox_inches='tight')
+
+        #::: compute transit / primary eclipse depth
+        depth_tr = 1e3 * (phase_curve_no_dips[0] - phase_curve_dips[0]) #in ppt; 0: epoch
+        
+        #::: compute
+        if (config.BASEMENT.settings['secondary_eclipse'] is True): 
             
-        # if (p[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
-        #     model_flux -= 1e-3*p[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
-            
-        # if (p[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
-        #     model_flux -= 1e-3*p[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/p[companion+'_period'] * (xx - p[companion+'_epoch']))
-        
-        _delta_nightside_ = np.ptp(model_flux2) * 1e6 #in ppm
-        if _delta_nightside_ < 1e-7: _delta_nightside_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
-
-        phase_curve = flux_subfct_sinusoidal_phase_curves(p, inst, companion, model_flux2, xx=xx0) * 1e6 #in ppm
-        _depth_occ_ = _delta_nightside_ + np.ptp(phase_curve) #in ppm
-        if _depth_occ_ < 1e-7: _depth_occ_ = 0. #avoid float rounding issues (float precision at 1e-16, i.e. 1e-10 ppm; cut at 1e-7 ppm for some margin)
-
-        
-    # #==========================================================================
-    # #::: calculating phase curves (OLD)
-    # #==========================================================================
-    # xx = xx0[ind_out]
-    # if (config.BASEMENT.settings['phase_curve'] is True) and (len(xx)>0):
-
-    #     def plottle(fname, title, model):
-    #         if i==0:
-    #             fig = plt.figure()
-    #             plt.plot(xx,model,'b.')
-    #             plt.ylim([0.999*np.nanmin(model),1.001*np.nanmax(model)])
-    #             plt.title(title)
-    #             fig.savefig(os.path.join(config.BASEMENT.outdir,fname), bbox_inches='tight')
-    #             plt.close(fig)
+            #::: compute occultation / secondary eclipse depth
+            depth_occ = 1e3 * (phase_curve_no_dips[1] - phase_curve_dips[1]) #in ppt; 1: epoch_occ
                 
-    #     #----------------------------------------------------------------------
-    #     #::: amplitude of ellipsoidal modulation alone (ignoring all other effects)
-    #     #----------------------------------------------------------------------
-    #     p2 = copy.deepcopy(p)
-    #     p2['b_sbratio_'+inst] = 0
-    #     p2['b_geom_albedo_'+inst] = 0
-    #     p2['host_gdc_'+inst] = 0
-    #     p2['host_bfac_'+inst] = 0
-    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-    #     # plottle('phase_curve_ellipsoidal.pdf', 'ellipsoidal modulation', model)
-    #     _ampl_ellipsoidal_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
-        
-        
-    #     #----------------------------------------------------------------------
-    #     #::: amplitude of sbratio modulation alone (ignoring all other effects)
-    #     #----------------------------------------------------------------------
-    #     p2 = copy.deepcopy(p)
-    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-    #     p2['b_geom_albedo_'+inst] = 0
-    #     p2['host_gdc_'+inst] = 0
-    #     p2['host_bfac_'+inst] = 0
-    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-    #     # plottle('phase_curve_sbratio.pdf', 'sbratio depth', model)
-    #     _ampl_sbratio_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
-    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
-        
-        
-    #     #----------------------------------------------------------------------
-    #     #::: amplitude of geom. albedo modulation alone (ignoring all other effects)
-    #     #----------------------------------------------------------------------
-    #     p2 = copy.deepcopy(p)
-    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-    #     p2['b_sbratio_'+inst] = 0
-    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-    #     p2['host_gdc_'+inst] = 0
-    #     p2['host_bfac_'+inst] = 0
-    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-    #     # plottle('phase_curve_geom_albedo.pdf', 'geom albedo modulation', model)
-    #     _ampl_geom_albedo_diluted_ = ( np.max(model) - 1. ) * 1e6 #in ppm
-    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
-        
-        
-    #     #----------------------------------------------------------------------
-    #     #::: amplitude of gravity darkening modulation alone (ignoring all other effects)
-    #     #----------------------------------------------------------------------
-    #     p2 = copy.deepcopy(p)
-    #     save_host_shape_inst = copy.deepcopy(config.BASEMENT.settings['host_shape_'+inst])
-    #     save_companion_shape_inst = copy.deepcopy(config.BASEMENT.settings[companion+'_shape_'+inst])
-    #     p2['b_sbratio_'+inst] = 0
-    #     config.BASEMENT.settings['host_shape_'+inst] = 'sphere'
-    #     config.BASEMENT.settings['b_shape_'+inst] = 'sphere'
-    #     p2['b_geom_albedo_'+inst] = 0
-    #     p2['host_bfac_'+inst] = 0
-    #     model = calculate_model(p2, inst, 'flux', xx=xx) #evaluated on xx (!)
-    #     # plottle('phase_curve_gdc.pdf', 'grav darkening modulation', model)
-    #     _ampl_gdc_diluted_ = ( np.min(model) - 1. ) * 1e6 #in ppm
-    #     config.BASEMENT.settings['host_shape_'+inst] = save_host_shape_inst
-    #     config.BASEMENT.settings['b_shape_'+inst] = save_companion_shape_inst
+            #::: compute nightside flux
+            nightside_flux = 1e3 * (phase_curve_atmo_dips[1] - phase_curve_dips[1]) #in ppt; 1: epoch_occ
+            
 
-
-    # return [_depth_tr_diluted_, _depth_occ_diluted_, _ampl_ellipsoidal_diluted_, _ampl_sbratio_diluted_, _ampl_geom_albedo_diluted_, _ampl_gdc_diluted_]
-    return [_depth_tr_, _depth_occ_, _delta_nightside_]
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    #::: with phase curve ellc_physical
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    elif (config.BASEMENT.settings['phase_curve'] is True) and (config.BASEMENT.settings['phase_curve_style'] in ['ellc_physical']):
+        pass #TODO: not yet implemented
+        
+    
+    #==========================================================================
+    #::: return
+    #==========================================================================
+    return [depth_tr, depth_occ, nightside_flux]
 
 
 
@@ -400,86 +346,41 @@ def derive(samples, mode):
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             inst = ii
             N_less_samples = 1000
-            # N_less_samples = N_samples
-            derived_samples[companion+'_depth_tr_undiluted_'+inst]         = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
-            derived_samples[companion+'_depth_occ_undiluted_'+inst]        = np.zeros(N_less_samples)*np.nan
-            derived_samples[companion+'_delta_nightside_undiluted_'+inst]  = np.zeros(N_less_samples)*np.nan
-            # derived_samples[companion+'_depth_tr_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan #1e3*get_params(companion+'_rr')**2 #in ppt
-            # derived_samples[companion+'_depth_occ_diluted_'+inst]        = np.zeros(N_less_samples)*np.nan
-            # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
-            # derived_samples[companion+'_ampl_sbratio_diluted_'+inst]     = np.zeros(N_less_samples)*np.nan
-            # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] = np.zeros(N_less_samples)*np.nan
-            # derived_samples[companion+'_ampl_gdc_diluted_'+inst]         = np.zeros(N_less_samples)*np.nan
-            
+            derived_samples[companion+'_depth_tr_dil_'+inst] = np.nan*np.empty(N_less_samples)
+            derived_samples[companion+'_depth_occ_dil_'+inst] = np.nan*np.empty(N_less_samples)
+            derived_samples[companion+'_nightside_flux_dil_'+inst] = np.nan*np.empty(N_less_samples)
+
             
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #::: iterate through all samples, draw different models and measure the depths
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             logprint('\n' + inst + ' ' + companion + ': deriving eclipse depths and more from model curves...')
-            args = []
             for i in range(N_less_samples):
                 s = samples[ np.random.randint(low=0,high=samples2.shape[0]) , : ]
                 p = update_params(s)
-                args.append( (i,p) )
+                r = calculate_values_from_model_curves(p, inst, companion)
+                derived_samples[companion+'_depth_tr_dil_'+inst][i] = r[0]
+                derived_samples[companion+'_depth_occ_dil_'+inst][i] = r[1]
+                derived_samples[companion+'_nightside_flux_dil_'+inst][i] = r[2]
                 
-                
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            #::: pool
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            # with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool:
-            #     results = list(tqdm(pool.imap(calculate_values_from_model_curves, args), total=N_less_samples))
-                
-                
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            #::: loop (replaced by pool)
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            results = [ calculate_values_from_model_curves(arg) for arg in tqdm( args ) ]
-            
-            
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            #::: write arrays into dictionary
-            #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            for i in range(N_less_samples):
-                derived_samples[companion+'_depth_tr_undiluted_'+inst][i]         = results[i][0]
-                derived_samples[companion+'_depth_occ_undiluted_'+inst][i]        = results[i][1]
-                derived_samples[companion+'_delta_nightside_undiluted_'+inst][i]  = results[i][2]
-                # derived_samples[companion+'_depth_tr_diluted_'+inst][i]         = results[i][0]
-                # derived_samples[companion+'_depth_occ_diluted_'+inst][i]        = results[i][1]
-                # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst][i] = results[i][2]
-                # derived_samples[companion+'_ampl_sbratio_diluted_'+inst][i]     = results[i][3]
-                # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst][i] = results[i][4]
-                # derived_samples[companion+'_ampl_gdc_diluted_'+inst][i]         = results[i][5]
-            
             
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #resize the arrays to match the true N_samples (by redrawing the 1000 values)
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            derived_samples[companion+'_depth_tr_undiluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_undiluted_'+inst], N_samples)
-            derived_samples[companion+'_depth_occ_undiluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_undiluted_'+inst], N_samples)
-            derived_samples[companion+'_delta_nightside_undiluted_'+inst]   = np.resize(derived_samples[companion+'_delta_nightside_undiluted_'+inst], N_samples)
-            # derived_samples[companion+'_depth_tr_diluted_'+inst]          = np.resize(derived_samples[companion+'_depth_tr_diluted_'+inst], N_samples)
-            # derived_samples[companion+'_depth_occ_diluted_'+inst]         = np.resize(derived_samples[companion+'_depth_occ_diluted_'+inst], N_samples)
-            # derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_ellipsoidal_diluted_'+inst], N_samples)
-            # derived_samples[companion+'_ampl_sbratio_diluted_'+inst]      = np.resize(derived_samples[companion+'_ampl_sbratio_diluted_'+inst], N_samples)
-            # derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst]  = np.resize(derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst], N_samples)
-            # derived_samples[companion+'_ampl_gdc_diluted_'+inst]          = np.resize(derived_samples[companion+'_ampl_gdc_diluted_'+inst], N_samples)
+            derived_samples[companion+'_depth_tr_dil_'+inst] = np.resize(derived_samples[companion+'_depth_tr_dil_'+inst], N_samples)
+            derived_samples[companion+'_depth_occ_dil_'+inst] = np.resize(derived_samples[companion+'_depth_occ_dil_'+inst], N_samples)
+            derived_samples[companion+'_nightside_flux_dil_'+inst] = np.resize(derived_samples[companion+'_nightside_flux_dil_'+inst], N_samples)
 
     
         #----------------------------------------------------------------------
         #::: undiluted (per companion; per inst)
         #----------------------------------------------------------------------
         for inst in config.BASEMENT.settings['inst_phot']:
-            dil = get_params('light_3_'+inst)
-            if np.isnan(dil):
-                dil = 0
-        #        if np.mean(dil)<0.5: dil = 1-dil
-        
-            derived_samples[companion+'_depth_tr_diluted_'+inst]        = derived_samples[companion+'_depth_tr_undiluted_'+inst] * (1. - dil) #in ppt
-            derived_samples[companion+'_depth_occ_diluted_'+inst] = derived_samples[companion+'_depth_occ_undiluted_'+inst] * (1. - dil) #in ppm
-            derived_samples[companion+'_delta_nightside_diluted_'+inst] = derived_samples[companion+'_delta_nightside_undiluted_'+inst] * (1. - dil) #in ppm
-            # derived_samples[companion+'_ampl_sbratio_undiluted_'+inst] = derived_samples[companion+'_ampl_sbratio_diluted_'+inst] / (1. - dil) #in ppm
-            # derived_samples[companion+'_ampl_geom_albedo_undiluted_'+inst] = derived_samples[companion+'_ampl_geom_albedo_diluted_'+inst] / (1. - dil) #in ppm
-            # derived_samples[companion+'_ampl_gdc_undiluted_'+inst] = derived_samples[companion+'_ampl_gdc_diluted_'+inst] / (1. - dil) #in ppm
+            dil = get_params('dil_'+inst)
+            if np.isnan(dil): dil = 0
+            derived_samples[companion+'_depth_tr_undil_'+inst] = derived_samples[companion+'_depth_tr_dil_'+inst] / (1. - dil) #in ppt
+            derived_samples[companion+'_depth_occ_undil_'+inst] = derived_samples[companion+'_depth_occ_dil_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_nightside_flux_undil_'+inst] = derived_samples[companion+'_nightside_flux_dil_'+inst] / (1. - dil) #in ppm
 
         
         #----------------------------------------------------------------------
@@ -566,111 +467,87 @@ def derive(samples, mode):
     for companion in companions:
             
         names.append( companion+'_R_star/a' )
-        labels.append( '$R_\star/a_\mathrm{'+companion+'}$' )
+        labels.append( 'Host radius over semi-major axis '+companion+'; $R_\star/a_\mathrm{'+companion+'}$' )
         
         names.append( companion+'_a/R_star' )
-        labels.append( '$a_\mathrm{'+companion+'}/R_\star$' )
+        labels.append( 'Semi-major axis '+companion+' over host radius; $a_\mathrm{'+companion+'}/R_\star$' )
         
         names.append( companion+'_R_companion/a'  )
-        labels.append( '$R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )
+        labels.append( 'Companion radius '+companion+' over host semi-major axis '+companion+'; $R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )
         
         names.append( companion+'_R_companion_(R_earth)' )
-        labels.append( '$R_\mathrm{'+companion+'}$ ($\mathrm{R_{\oplus}}$)' )
+        labels.append( 'Companion radius '+companion+'; $R_\mathrm{'+companion+'}$ ($\mathrm{R_{\oplus}}$)' )
         
         names.append( companion+'_R_companion_(R_jup)' )
-        labels.append( '$R_\mathrm{'+companion+'}$ ($\mathrm{R_{jup}}$)' )
+        labels.append( 'Companion radius '+companion+'; $R_\mathrm{'+companion+'}$ ($\mathrm{R_{jup}}$)' )
         
         names.append( companion+'_a_(R_sun)' )
-        labels.append( '$a_\mathrm{'+companion+'}$ ($\mathrm{R_{\odot}}$)' )
+        labels.append( 'Semi-major axis '+companion+'; $a_\mathrm{'+companion+'}$ ($\mathrm{R_{\odot}}$)' )
         
         names.append( companion+'_a_(AU)' )
-        labels.append( '$a_\mathrm{'+companion+'}$ (AU)' )
+        labels.append( 'Semi-major axis '+companion+'; $a_\mathrm{'+companion+'}$ (AU)' )
         
         names.append( companion+'_i' )
-        labels.append( '$i_\mathrm{'+companion+'}$ (deg)' )
+        labels.append( 'Inclination '+companion+'; $i_\mathrm{'+companion+'}$ (deg)' )
         
         names.append( companion+'_e' )
-        labels.append( '$e_\mathrm{'+companion+'}$' )
+        labels.append( 'Eccentricity '+companion+'; $e_\mathrm{'+companion+'}$' )
         
         names.append( companion+'_w' )
-        labels.append( '$w_\mathrm{'+companion+'}$ (deg)' )
+        labels.append( 'Argument of periastron '+companion+'; $w_\mathrm{'+companion+'}$ (deg)' )
         
         names.append( companion+'_M_companion_(M_earth)' )
-        labels.append( '$M_\mathrm{'+companion+'}$ ($\mathrm{M_{\oplus}}$)' )
+        labels.append( 'Companion mass '+companion+'; $M_\mathrm{'+companion+'}$ ($\mathrm{M_{\oplus}}$)' )
         
         names.append( companion+'_M_companion_(M_jup)' )
-        labels.append( '$M_\mathrm{'+companion+'}$ ($\mathrm{M_{jup}}$)' )
+        labels.append( 'Companion mass '+companion+'; $M_\mathrm{'+companion+'}$ ($\mathrm{M_{jup}}$)' )
         
         names.append( companion+'_b_tra' )
-        labels.append( '$b_\mathrm{tra;'+companion+'}$' )
+        labels.append( 'Impact parameter '+companion+'; $b_\mathrm{tra;'+companion+'}$' )
         
         names.append( companion+'_T_tra_tot'  )
-        labels.append( '$T_\mathrm{tot;'+companion+'}$ (h)' )
+        labels.append( 'Total transit duration '+companion+'; $T_\mathrm{tot;'+companion+'}$ (h)' )
         
         names.append( companion+'_T_tra_full' )
-        labels.append( '$T_\mathrm{full;'+companion+'}$ (h)' )
+        labels.append( 'Full-transit duration '+companion+'; $T_\mathrm{full;'+companion+'}$ (h)' )
         
         names.append( companion+'_b_occ'  )
-        labels.append( '$b_\mathrm{occ;'+companion+'}$' )
+        labels.append( 'Impact parameter occultation '+companion+'; $b_\mathrm{occ;'+companion+'}$' )
         
         names.append( companion+'_epoch_occ'  )
-        labels.append( '$T_\mathrm{0;occ;'+companion+'}$' )
+        labels.append( 'Epoch occultation '+companion+'; $T_\mathrm{0;occ;'+companion+'}$' )
         
         names.append( companion+'_host_density' )
-        labels.append( '$rho_\mathrm{\star;'+companion+'}$ (cgs)' )
+        labels.append( 'Host density from orbit '+companion+'; $rho_\mathrm{\star;'+companion+'}$ (cgs)' )
     
         names.append( companion+'_density' )
-        labels.append( '$rho_\mathrm{'+companion+'}$ (cgs)' )
+        labels.append( 'Companion density '+companion+'; $rho_\mathrm{'+companion+'}$ (cgs)' )
         
         names.append( companion+'_surface_gravity')
-        labels.append( '$g_\mathrm{\star;'+companion+'}$ (cgs)' )
+        labels.append( 'Companion surface gravity '+companion+'; $g_\mathrm{\star;'+companion+'}$ (cgs)' )
         
         names.append( companion+'_Teq' )
-        labels.append( '$T_\mathrm{eq;'+companion+'}$ (K)' )
+        labels.append( 'Equilibrium temperature '+companion+'; $T_\mathrm{eq;'+companion+'}$ (K)' )
         
         for inst in config.BASEMENT.settings['inst_phot']:
             
-            names.append( companion+'_depth_tr_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{tr; undil; '+companion+'; '+inst+'}$ (ppt)' )
+            names.append( companion+'_depth_tr_undil_'+inst )
+            labels.append( 'Transit depth (undil.) '+companion+'; $\delta_\mathrm{tr; undil; '+companion+'; '+inst+'}$ (ppt)' )
             
-            names.append( companion+'_depth_tr_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{tr; dil; '+companion+'; '+inst+'}$ (ppt)' )
+            names.append( companion+'_depth_tr_dil_'+inst )
+            labels.append( 'Transit depth (dil.) '+companion+'; $\delta_\mathrm{tr; dil; '+companion+'; '+inst+'}$ (ppt)' )
         
-            names.append( companion+'_depth_occ_undiluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; undil; '+companion+'; '+inst+'}$ (ppm)' )
+            names.append( companion+'_depth_occ_undil_'+inst )
+            labels.append( 'Occultation depth (undil.) '+companion+'; $\delta_\mathrm{occ; undil; '+companion+'; '+inst+'}$ (ppt)' )
             
-            names.append( companion+'_depth_occ_diluted_'+inst )
-            labels.append( '$\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppm)' )
+            names.append( companion+'_depth_occ_dil_'+inst )
+            labels.append( 'Occultation depth (dil.) '+companion+'; $\delta_\mathrm{occ; dil; '+companion+'; '+inst+'}$ (ppt)' )
             
-            names.append( companion+'_delta_nightside_undiluted_'+inst )
-            labels.append( '$\Delta_\mathrm{nightside; undil; '+companion+'; '+inst+'}$ (ppm)' )
+            names.append( companion+'_nightside_flux_undil_'+inst )
+            labels.append( 'Nightside flux (undil.)'+companion+'; $F_\mathrm{nightside; undil; '+companion+'; '+inst+'}$ (ppt)' )
             
-            names.append( companion+'_delta_nightside_diluted_'+inst )
-            labels.append( '$\Delta_\mathrm{nightside; dil; '+companion+'; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_ellipsoidal_undiluted_'+inst )
-            # labels.append( '$A_\mathrm{ellipsoidal; undil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_ellipsoidal_diluted_'+inst )
-            # labels.append( '$A_\mathrm{ellipsoidal; dil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_sbratio_undiluted_'+inst )
-            # labels.append( '$A_\mathrm{sbratio; undil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_sbratio_diluted_'+inst )
-            # labels.append( '$A_\mathrm{sbratio; dil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_geom_albedo_undiluted_'+inst )
-            # labels.append( '$A_\mathrm{geom. albedo; undil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_geom_albedo_diluted_'+inst )
-            # labels.append( '$A_\mathrm{geom. albedo; dil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_gdc_undiluted_'+inst )
-            # labels.append( '$A_\mathrm{grav. dark.; undil; '+inst+'}$ (ppm)' )
-            
-            # names.append( companion+'_ampl_gdc_diluted_'+inst )
-            # labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+            names.append( companion+'_nightside_flux_dil_'+inst )
+            labels.append( 'Nightside flux (dil.)'+companion+'; $F_\mathrm{nightside; dil; '+companion+'; '+inst+'}$ (ppt)' )
             
             
             
@@ -679,7 +556,7 @@ def derive(samples, mode):
             for other_companion in companions:
                 if other_companion is not companion:
                     names.append( companion+'_period/'+other_companion+'_period' )
-                    labels.append( '$P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
+                    labels.append( 'Period ratio; $P_\mathrm{'+companion+'} / P_\mathrm{'+other_companion+'}$' )
            
             
     #::: host
@@ -689,13 +566,13 @@ def derive(samples, mode):
             
         elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
             names.append( 'host_ldc_u1_'+inst )
-            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            labels.append( 'Limb darkening; $u_\mathrm{1; '+inst+'}$' )
             
         elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
             names.append( 'host_ldc_u1_'+inst )
-            labels.append( 'Limb darkening $u_\mathrm{1; '+inst+'}$' )
+            labels.append( 'Limb darkening; $u_\mathrm{1; '+inst+'}$' )
             names.append( 'host_ldc_u2_'+inst )
-            labels.append( 'Limb darkening $u_\mathrm{2; '+inst+'}$' )
+            labels.append( 'Limb darkening; $u_\mathrm{2; '+inst+'}$' )
             
         elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
             raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
@@ -705,11 +582,11 @@ def derive(samples, mode):
             raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
                 
         names.append( companion+'_ampl_gdc_diluted_'+inst )
-        labels.append( '$A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
+        labels.append( 'Gravity darkening; $A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
         
         
     names.append( 'combined_host_density' )
-    labels.append( '$rho_\mathrm{\star; combined}$ (cgs)' )
+    labels.append( 'Median stellar density from orbits; $rho_\mathrm{\star; combined}$ (cgs)' )
         
             
     ###############################################################################
@@ -744,9 +621,9 @@ def derive(samples, mode):
                  
             outfile.write('#property,value,lower_error,upper_error,source\n')
             
-            f.write('Property & Value & Source \\\\ \n')
+            f.write('Parameter & Value & Source \\\\ \n')
             f.write('\\hline \n')
-            f.write('\\multicolumn{4}{c}{\\textit{Derived parameters}} \\\\ \n')
+            f.write('\\multicolumn{3}{c}{\\textit{Derived parameters}} \\\\ \n')
             f.write('\\hline \n')
             
             for name,label in zip(names, labels):

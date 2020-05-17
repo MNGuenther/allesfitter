@@ -1,0 +1,27 @@
+
+Starting...
+
+Running MCMC fit...
+	Running on 15 CPUs.
+
+Running pre-run loop 1 / 1
+
+Running full MCMC
+
+Acceptance fractions:
+[0.72 0.61 0.67 0.76 0.7  0.67 0.62 0.62 0.64 0.63 0.62 0.58 0.61 0.76
+ 0.67 0.65 0.68 0.56 0.75 0.63 0.67 0.68 0.6  0.63 0.65 0.71 0.72 0.57
+ 0.63 0.6  0.63 0.6  0.59 0.66 0.51 0.65 0.64 0.57 0.65 0.66 0.64 0.68
+ 0.64 0.62 0.61 0.64 0.73 0.74 0.64 0.63]
+
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 gp: $\log{\sigma}$             48.533505239918284   51.510806558100754  
+	 gp: $\log{\rho}$               43.43571814464151    57.55631785976157   
+	 $\log{(y_\mathrm{err})}$       46.10048789645875    54.22936099103714   
+
+Retrieve samples for detrending...
+
+Creating output...
+
+Done. All output files are in allesfit_4/priors/TESS

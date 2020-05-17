@@ -116,13 +116,12 @@ def ns_output(datadir):
     
     #::: plot the fit        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
+    
     for companion in config.BASEMENT.settings['companions_all']:
         fig, axes = afplot(posterior_samples_for_plot, companion)
-        fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+companion+'.pdf'), bbox_inches='tight' )
-#        f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'ns_fit.pickle.gz'), 'wb')
-#        pickle.dump((fig,axes), f)
-#        f.close()        
-        plt.close(fig)
+        if fig is not None:
+            fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+companion+'.pdf'), bbox_inches='tight' )       
+            plt.close(fig)
 
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:

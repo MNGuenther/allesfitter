@@ -197,9 +197,9 @@ def update_params(theta):
     #::: semi-major axes, per companion
     #=========================================================================
     for companion in config.BASEMENT.settings['companions_all']:
-        ecc = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
+        params[companion+'_ecc'] = params[companion+'_f_s']**2 + params[companion+'_f_c']**2
         try:
-            a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - ecc**2)/np.sin(params[companion+'_incl']*np.pi/180.)
+            a_1 = 0.019771142 * params[companion+'_K'] * params[companion+'_period'] * np.sqrt(1. - params[companion+'_ecc']**2)/np.sin(params[companion+'_incl']*np.pi/180.)
             params[companion+'_a'] = (1.+1./params[companion+'_q'])*a_1
         except:
             params[companion+'_a'] = None
@@ -310,8 +310,8 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
     
     #-------------------------------------------------------------------------- 
     #::: flux sub-fct: ellc lightcurve 
-    # for transits, occultations, eclipses, 
-    # spots and rotation,
+    # for eclipses, transits, occultations, 
+    # spots, rotation,
     # and physical phase curve models; but no phase shift and no thermal vs reflected
     #-------------------------------------------------------------------------- 
     model_flux, model_flux1, model_flux2 = flux_subfct_ellc(params, inst, companion, xx=xx, settings=settings, t_exp=t_exp, n_int=n_int, return_fluxes=True)
@@ -331,13 +331,15 @@ def flux_fct_full(params, inst, companion, xx=None, settings=None):
     #::: flux sub-fct: sinusoidal phase curves
     # allowing phase shifts and thermal vs reflected
     #-------------------------------------------------------------------------- 
-    model_flux += flux_subfct_sinusoidal_phase_curves(params, inst, companion, model_flux2, xx=xx, settings=settings) - 1.
+    if settings['phase_curve_style'] in ['sine_series', 'sine_physical']:
+        model_flux += flux_subfct_sinusoidal_phase_curves(params, inst, companion, model_flux2, xx=xx, settings=settings) - 1.
     
         
     #-------------------------------------------------------------------------- 
     #::: flux sub-fct: flare models
     #-------------------------------------------------------------------------- 
-    model_flux += flux_subfct_flares(params, inst, companion, xx=xx, settings=settings) - 1.
+    if settings['N_flares'] > 0:
+        model_flux += flux_subfct_flares(params, inst, companion, xx=xx, settings=settings) - 1.
     
     
     #-------------------------------------------------------------------------- 
@@ -370,6 +372,13 @@ def flux_subfct_ellc(params, inst, companion, xx=None, settings=None, t_exp=None
     # else:
     #     t_exp = None
     #     n_int = None
+    
+
+    #-------------------------------------------------------------------------- 
+    #::: index transits and occultations
+    #-------------------------------------------------------------------------- 
+    # ind_ecl1, ind_ecl2, ind_out = index_eclipses_smart(xx, params[companion+'_epoch'], params[companion+'_period'], params[companion+'_rr'], params[companion+'_rsuma'], params[companion+'_cosi'], params[companion+'_f_s'], params[companion+'_f_c'], extra_factor=1.5)
+    #TODO: possible future speed improvement
         
         
     #-------------------------------------------------------------------------- 
@@ -401,8 +410,8 @@ def flux_subfct_ellc(params, inst, companion, xx=None, settings=None, t_exp=None
                                     hf_2 =        params[companion+'_hf_'+inst], #1.5,
                                     bfac_1 =      params['host_bfac_'+inst],
                                     bfac_2 =      params[companion+'_bfac_'+inst], 
-                                    heat_1 =      divide(params['host_atmo_'+inst],2.),
-                                    heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
+                                    heat_1 =      divide(params['host_heat_'+inst],2.),
+                                    heat_2 =      divide(params[companion+'_heat_'+inst],2.),
                                     lambda_1 =    params['host_lambda_'+inst], 
                                     lambda_2 =    params[companion+'_lambda_'+inst], 
                                     vsini_1 =     params['host_vsini'],
@@ -429,6 +438,8 @@ def flux_subfct_ellc(params, inst, companion, xx=None, settings=None, t_exp=None
     #::: else: constant 1
     #-------------------------------------------------------------------------- 
     else:
+        model_flux1 = np.ones_like(xx)
+        model_flux2 = np.zeros_like(xx)
         model_flux = np.ones_like(xx)
 
         
@@ -463,7 +474,7 @@ def flux_subfct_sinusoidal_phase_curves(params, inst, companion, model_flux2, xx
         
         
     #-------------------------------------------------------------------------- 
-    #::: derive normalized curve for fractional loss of light 
+    #::: derive normalized curve for fractional loss of "atmospheric light" 
     # during occultation / secondary eclipse 
     #-------------------------------------------------------------------------- 
     if all(model_flux2==0.): flux2_norm = 1.
@@ -481,43 +492,67 @@ def flux_subfct_sinusoidal_phase_curves(params, inst, companion, model_flux2, xx
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #::: the standard sine/cosine definition, e.g. used by Shporer and Wong
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    if settings['phase_curve_style'] == 'series':
+    if settings['phase_curve_style'] == 'sine_series':
         
-        if (params[companion+'_phase_curve_beaming_'+inst] is not None): #A1
-            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        if (params[companion+'_phase_curve_A1_'+inst] is not None): #A1 (beaming)
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_A1_'+inst] * np.sin(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
             
-        if (params[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_'+inst] * np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_shift_'+inst]))
+        if (params[companion+'_phase_curve_B1_'+inst] is not None): #B1 (atmospheric)
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B1_'+inst] * (flux2_norm * (np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_B1_shift_'+inst])) - 1) + 1 )
 
-        if (params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None): #B1 thermal part
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_thermal_'+inst] * np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_thermal_shift_'+inst]))
+        if (params[companion+'_phase_curve_B1t_'+inst] is not None): #B1 (atmospheric) thermal part
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B1t_'+inst] * (flux2_norm * (np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_B1t_shift_'+inst])) - 1) + 1 )
 
-        if (params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None): #B1 reflected part
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_reflected_'+inst] * np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_reflected_shift_'+inst]))
+        if (params[companion+'_phase_curve_B1r_'+inst] is not None): #B1 (atmospheric) reflected part
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B1r_'+inst] * (flux2_norm * (np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_B1r_shift_'+inst])) - 1) + 1 )
 
-        if (params[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2
-            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_ellipsoidal_'+inst] * np.cos(2. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        if (params[companion+'_phase_curve_B2_'+inst] is not None): #B2 (ellipsoidal)
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B2_'+inst] * np.cos(2. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
 
-        if (params[companion+'_phase_curve_ellipsoidal_2nd_'+inst] is not None): #B3
-            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_ellipsoidal_2nd_'+inst] * np.cos(3. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+        if (params[companion+'_phase_curve_B3_'+inst] is not None): #B3 (ellipsoidal)
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B3_'+inst] * np.cos(3. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
 
-    
+        #::: for debugging:
+            
+        # if (params[companion+'_phase_curve_A1_'+inst] is not None): #A1 (beaming)
+        #     flux_A1 = (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_A1_'+inst] * np.sin(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+            
+        # if (params[companion+'_phase_curve_B1_'+inst] is not None): #B1 (atmospheric)
+        #     flux_B1 = (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B1_'+inst] * (flux2_norm * (np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_B1_shift_'+inst])) - 1) + 1 )
+
+        # if (params[companion+'_phase_curve_B2_'+inst] is not None): #B2 (ellipsoidal)
+        #     flux_B2 = (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_B2_'+inst] * np.cos(2. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
+
+        # import matplotlib.pyplot as plt
+        
+        # plt.figure()
+        # plt.plot(xx, flux2_norm, label='flux2_norm')
+        # plt.legend()
+        
+        # plt.figure()
+        # plt.plot(xx, flux_A1, label='A1')
+        # plt.plot(xx, flux_B1, label='B1')
+        # plt.plot(xx, flux_B2, label='B2')
+        # plt.ylim([0.999-1,1.001-1])
+        # plt.legend()
+        
+
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #::: the additive sine/cosine definition, e.g. used by Daylan
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    elif settings['phase_curve_style'] == 'additive':
+    elif settings['phase_curve_style'] == 'sine_physical':
         
         if (params[companion+'_phase_curve_beaming_'+inst] is not None): #A1, rescaled
             model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_beaming_'+inst] * np.sin(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch']))
             
         if (params[companion+'_phase_curve_atmospheric_'+inst] is not None): #B1, rescaled
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_'+inst] * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_shift_'+inst])))
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_atmospheric_'+inst] * flux2_norm * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_shift_'+inst])))
     
         if (params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None): #B1 thermal part, rescaled
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_thermal_'+inst] * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_thermal_shift_'+inst])))
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_atmospheric_thermal_'+inst] * flux2_norm * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_thermal_shift_'+inst])))
     
         if (params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None): #B1 reflected part, rescaled
-            model_flux += (1.-params['dil_'+inst]) * flux2_norm * 1e-3*params[companion+'_phase_curve_atmospheric_reflected_'+inst] * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_reflected_shift_'+inst])))
+            model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_atmospheric_reflected_'+inst] * flux2_norm * 0.5 * (1. - np.cos(2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'] + params[companion+'_phase_curve_atmospheric_reflected_shift_'+inst])))
     
         if (params[companion+'_phase_curve_ellipsoidal_'+inst] is not None): #B2, rescaled
             model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_ellipsoidal_'+inst] * 0.5 * (1. - np.cos(2. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'])))
@@ -526,6 +561,7 @@ def flux_subfct_sinusoidal_phase_curves(params, inst, companion, model_flux2, xx
             model_flux += (1.-params['dil_'+inst]) * 1e-3*params[companion+'_phase_curve_ellipsoidal_2nd_'+inst] * 0.5 * (1. - np.cos(3. * 2.*np.pi/params[companion+'_period'] * (xx - params[companion+'_epoch'])))
    
         
+    # err
     #-------------------------------------------------------------------------- 
     #::: return
     #-------------------------------------------------------------------------- 
@@ -605,63 +641,65 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
             xx_piecewise = xx[ind]
         
         if len(xx_piecewise)>0:
-            model_flux_piecewise = flux_subfct_ellc(params, inst, companion, xx=xx_piecewise, settings=settings, t_exp=t_exp, n_int=n_int)
+            
+            #::: FutureMax warning: one does not simply replace this with flux_subfct_ellc, because it need the additive term after epoch
+            # model_flux_piecewise = flux_subfct_ellc(params, inst, companion, xx=xx_piecewise, settings=settings, t_exp=t_exp, n_int=n_int)
 
-            # #::: planet and EB transit lightcurve model
-            # if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
-            #     model_flux_piecewise = ellc.lc(
-            #                       t_obs =       xx_piecewise, 
-            #                       radius_1 =    params[companion+'_radius_1'], 
-            #                       radius_2 =    params[companion+'_radius_2'], 
-            #                       sbratio =     params[companion+'_sbratio_'+inst], 
-            #                       incl =        params[companion+'_incl'], 
-            #                       light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
-            #                       t_zero =      params[companion+'_epoch'] + params[companion+'_ttv_transit_'+str(n_transit+1)],
-            #                       period =      params[companion+'_period'],
-            #                       a =           params[companion+'_a'],
-            #                       q =           params[companion+'_q'],
-            #                       f_c =         params[companion+'_f_c'],
-            #                       f_s =         params[companion+'_f_s'],
-            #                       ldc_1 =       params['host_ldc_'+inst],
-            #                       ldc_2 =       params[companion+'_ldc_'+inst],
-            #                       gdc_1 =       params['host_gdc_'+inst],
-            #                       gdc_2 =       params[companion+'_gdc_'+inst],
-            #                       didt =        params['didt_'+inst], 
-            #                       domdt =       params['domdt_'+inst], 
-            #                       rotfac_1 =    params['host_rotfac_'+inst], 
-            #                       rotfac_2 =    params[companion+'_rotfac_'+inst], 
-            #                       hf_1 =        params['host_hf_'+inst], #1.5, 
-            #                       hf_2 =        params[companion+'_hf_'+inst], #1.5,
-            #                       bfac_1 =      params['host_bfac_'+inst],
-            #                       bfac_2 =      params[companion+'_bfac_'+inst], 
-            #                       heat_1 =      divide(params['host_atmo_'+inst],2.),
-            #                       heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
-            #                       lambda_1 =    params['host_lambda_'+inst], 
-            #                       lambda_2 =    params[companion+'_lambda_'+inst], 
-            #                       vsini_1 =     params['host_vsini'],
-            #                       vsini_2 =     params[companion+'_vsini'], 
-            #                       t_exp =       t_exp,
-            #                       n_int =       n_int,
-            #                       grid_1 =      settings['host_grid_'+inst],
-            #                       grid_2 =      settings[companion+'_grid_'+inst],
-            #                       ld_1 =        settings['host_ld_law_'+inst],
-            #                       ld_2 =        settings[companion+'_ld_law_'+inst],
-            #                       shape_1 =     settings['host_shape_'+inst],
-            #                       shape_2 =     settings[companion+'_shape_'+inst],
-            #                       spots_1 =     params['host_spots_'+inst], 
-            #                       spots_2 =     params[companion+'_spots_'+inst], 
-            #                       exact_grav =  settings['exact_grav'],
-            #                       verbose =     False
-            #                       )
+            #::: planet and EB transit lightcurve model
+            if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0):
+                model_flux_piecewise = ellc.lc(
+                                  t_obs =       xx_piecewise, 
+                                  radius_1 =    params[companion+'_radius_1'], 
+                                  radius_2 =    params[companion+'_radius_2'], 
+                                  sbratio =     params[companion+'_sbratio_'+inst], 
+                                  incl =        params[companion+'_incl'], 
+                                  light_3 =     params['dil_'+inst] / (1.-params['dil_'+inst]),
+                                  t_zero =      params[companion+'_epoch'] + params[companion+'_ttv_transit_'+str(n_transit+1)],
+                                  period =      params[companion+'_period'],
+                                  a =           params[companion+'_a'],
+                                  q =           params[companion+'_q'],
+                                  f_c =         params[companion+'_f_c'],
+                                  f_s =         params[companion+'_f_s'],
+                                  ldc_1 =       params['host_ldc_'+inst],
+                                  ldc_2 =       params[companion+'_ldc_'+inst],
+                                  gdc_1 =       params['host_gdc_'+inst],
+                                  gdc_2 =       params[companion+'_gdc_'+inst],
+                                  didt =        params['didt_'+inst], 
+                                  domdt =       params['domdt_'+inst], 
+                                  rotfac_1 =    params['host_rotfac_'+inst], 
+                                  rotfac_2 =    params[companion+'_rotfac_'+inst], 
+                                  hf_1 =        params['host_hf_'+inst], #1.5, 
+                                  hf_2 =        params[companion+'_hf_'+inst], #1.5,
+                                  bfac_1 =      params['host_bfac_'+inst],
+                                  bfac_2 =      params[companion+'_bfac_'+inst], 
+                                  heat_1 =      divide(params['host_heat_'+inst],2.),
+                                  heat_2 =      divide(params[companion+'_heat_'+inst],2.),
+                                  lambda_1 =    params['host_lambda_'+inst], 
+                                  lambda_2 =    params[companion+'_lambda_'+inst], 
+                                  vsini_1 =     params['host_vsini'],
+                                  vsini_2 =     params[companion+'_vsini'], 
+                                  t_exp =       t_exp,
+                                  n_int =       n_int,
+                                  grid_1 =      settings['host_grid_'+inst],
+                                  grid_2 =      settings[companion+'_grid_'+inst],
+                                  ld_1 =        settings['host_ld_law_'+inst],
+                                  ld_2 =        settings[companion+'_ld_law_'+inst],
+                                  shape_1 =     settings['host_shape_'+inst],
+                                  shape_2 =     settings[companion+'_shape_'+inst],
+                                  spots_1 =     params['host_spots_'+inst], 
+                                  spots_2 =     params[companion+'_spots_'+inst], 
+                                  exact_grav =  settings['exact_grav'],
+                                  verbose =     False
+                                  )
                 
-            #     #::: and here comes an ugly hack around ellc, for those who want to fit reflected light and thermal emission separately
-            #     '''
-            #     if (companion+'_thermal_emission_amplitude_'+inst in params) and (params[companion+'_thermal_emission_amplitude_'+inst]>0):
-            #         model_flux += calc_thermal_curve(params, inst, companion, xx, t_exp, n_int)
-            #     '''
+                #::: and here comes an ugly hack around ellc, for those who want to fit reflected light and thermal emission separately
+                '''
+                if (companion+'_thermal_emission_amplitude_'+inst in params) and (params[companion+'_thermal_emission_amplitude_'+inst]>0):
+                    model_flux += calc_thermal_curve(params, inst, companion, xx, t_exp, n_int)
+                '''
                 
-            # else:
-            #     model_flux_piecewise = np.ones_like(xx)
+            else:
+                model_flux_piecewise = np.ones_like(xx)
                     
             model_flux[ind] = model_flux_piecewise
     
@@ -888,8 +926,8 @@ def rv_fct(params, inst, companion, xx=None, settings=None):
                           hf_2 =        params[companion+'_hf_'+inst], #1.5,
                           bfac_1 =      params['host_bfac_'+inst],
                           bfac_2 =      params[companion+'_bfac_'+inst], 
-                          heat_1 =      divide(params['host_atmo_'+inst],2.),
-                          heat_2 =      divide(params[companion+'_atmo_'+inst],2.),
+                          heat_1 =      divide(params['host_heat_'+inst],2.),
+                          heat_2 =      divide(params[companion+'_heat_'+inst],2.),
                           lambda_1 =    params['host_lambda_'+inst],
                           lambda_2 =    params[companion+'_lambda_'+inst], 
                           vsini_1 =     params['host_vsini'],
@@ -922,6 +960,8 @@ def rv_fct(params, inst, companion, xx=None, settings=None):
 ###############################################################################  
 def calculate_external_priors(params):
     '''
+    ! params must be updated via update_params() before calling this function !
+    
     bounds has to be list of len(theta), containing tuples of form
     ('none'), ('uniform', lower bound, upper bound), or ('normal', mean, std)
     '''
@@ -929,6 +969,10 @@ def calculate_external_priors(params):
     
     #::: stellar density prior
     for companion in config.BASEMENT.settings['companions_phot']:
+        '''
+        The stellar density computed from R_host and M_host
+        can be directly compared with the stellar density computed from the orbital motions (see e.g. Winn 210)
+        '''
         if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params[companion+'_host_density'] is not None):
             b = config.BASEMENT.external_priors['host_density']
             if b[0] == 'uniform':
@@ -940,8 +984,24 @@ def calculate_external_priors(params):
     
     #::: constrain eccentricities to avoid ellc crashes
     for companion in config.BASEMENT.settings['companions_all']:
-        if (np.abs(params[companion+'_f_c']) > 0.8) or (np.abs(params[companion+'_f_s']) > 0.8):
+        '''
+        The EXOFASTv2 paper (https://arxiv.org/abs/1907.09480; page 37) introduces these constrains from collisions:
+        ecc < 1 - (a+R2)/R1
+        and from tidal limits (optional):
+        ecc < 1 - 3a/R1
+        '''
+        #::: avoid runaway eccentricities
+        if not (params[companion+'_ecc'] < 1.):
             lnp = -np.inf
+        
+        #::: avoid collisions
+        if not (params[companion+'_ecc'] < (1. - params[companion+'_rsuma'])): 
+            lnp = -np.inf
+            
+        # ::: avoid tidal circularizaion
+        if config.BASEMENT.settings['use_tidal_eccentricity_prior'] is True:
+            if not (params[companion+'_ecc'] < (1. - 3*params[companion+'_radius_1'])): 
+                lnp = -np.inf
             
     #::: constrain dilution to avoid ellc crashes
     for inst in config.BASEMENT.settings['inst_all']:

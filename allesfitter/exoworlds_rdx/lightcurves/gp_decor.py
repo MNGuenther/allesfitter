@@ -126,7 +126,7 @@ def gp_decor(x,y,
         systematics_amplitude=None,
         systematics_timescale=None,
         mean=1.,
-        nwalkers=50, thin_by=50, burn_steps=2500, total_steps=5000,
+        nwalkers=50, thin_by=50, burn_steps=2500, total_steps=5000, pre_run_loops=1, pre_run_steps=1000,
         bin_width=None,
         gp_code='celerite', kernel='Matern32',
         method='median_posterior', chunk_size=2000, Nsamples_detr=10, Nsamples_plot=10, 
@@ -442,8 +442,31 @@ def gp_decor(x,y,
 
     #::: run MCMC
     def run_mcmc(sampler):
+        
+        #::: initial guess
         p0 = initial + 1e-8 * np.random.randn(nwalkers, ndim)
+        
+        #::: if pre-runs are wished for
+        for i in range(pre_run_loops):
+            logprint("\nRunning pre-run loop",i+1,'/',pre_run_loops)
+            
+            #::: run the sampler        
+            sampler.run_mcmc(p0, pre_run_steps, progress=True)
+            
+            #::: get maximum likelhood solution
+            log_prob = sampler.get_log_prob(flat=True)
+            posterior_samples = sampler.get_chain(flat=True)
+            ind_max = np.argmax(log_prob)
+            p0 = posterior_samples[ind_max,:] + 1e-8 * np.random.randn(nwalkers, ndim)
+
+            #::: reset sampler and backend
+            os.remove(os.path.join(outdir,fname+'mcmc_save.h5'))
+            sampler.reset()
+                
+        #::: run evaluation
+        logprint("\nRunning full MCMC")
         sampler.run_mcmc(p0, total_steps/thin_by, thin_by=thin_by, progress=True);
+    
     
     if multiprocess:    
         with closing(Pool(processes=(multiprocess_cores))) as pool:

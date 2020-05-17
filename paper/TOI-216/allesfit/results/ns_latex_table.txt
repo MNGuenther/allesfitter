@@ -1,0 +1,46 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$R_b / R_\star$ & $0.0846_{-0.0097}^{+0.030}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.0347_{-0.0028}^{+0.0041}$ & & fit \\ 
+$\cos{i_b}$ & $0.0304_{-0.0029}^{+0.0044}$ & & fit \\ 
+$T_{0;b}$ & $2458496.1366$ & BJD& fixed \\ 
+$P_b$ & $17.0714$ & d& fixed \\ 
+$R_c / R_\star$ & $0.12332\pm0.00077$ & & fit \\ 
+$(R_\star + R_c) / a_c$ & $0.02091_{-0.00018}^{+0.00026}$ & & fit \\ 
+$\cos{i_c}$ & $0.0020_{-0.0011}^{+0.0015}$ & & fit \\ 
+$T_{0;c}$ & $2458504.0408$ & BJD& fixed \\ 
+$P_c$ & $34.5555$ & d& fixed \\ 
+$q_{1; \mathrm{TESS}}$ & $0.351_{-0.100}^{+0.13}$ & & fit \\ 
+$q_{2; \mathrm{TESS}}$ & $0.39_{-0.11}^{+0.14}$ & & fit \\ 
+$\log{\sigma_\mathrm{TESS}}$ & $-6.0019\pm0.0014$ & ln (rel. flux)& fit \\ 
+GP $\ln{\sigma}$ (TESS) & $-7.507\pm0.037$ & ln (rel. flux)& fit \\ 
+GP $\ln{\rho}$ (TESS) & $-0.262\pm0.063$ & ln (rel. flux)& fit \\ 
+TTV$_\mathrm{b;1}$ & $-0.1024\pm0.0023$ & d& fit \\ 
+TTV$_\mathrm{b;2}$ & $-0.0633\pm0.0022$ & d& fit \\ 
+TTV$_\mathrm{b;3}$ & $-0.0263\pm0.0019$ & d& fit \\ 
+TTV$_\mathrm{b;4}$ & $-0.0055\pm0.0019$ & d& fit \\ 
+TTV$_\mathrm{b;5}$ & $0.0150\pm0.0022$ & d& fit \\ 
+TTV$_\mathrm{b;6}$ & $0.0$ & d& fixed \\ 
+TTV$_\mathrm{b;7}$ & $0.0282\pm0.0021$ & d& fit \\ 
+TTV$_\mathrm{b;8}$ & $0.0347\pm0.0026$ & d& fit \\ 
+TTV$_\mathrm{b;9}$ & $0.0370\pm0.0025$ & d& fit \\ 
+TTV$_\mathrm{b;10}$ & $0.0289_{-0.0026}^{+0.0028}$ & d& fit \\ 
+TTV$_\mathrm{b;11}$ & $0.0184\pm0.0026$ & d& fit \\ 
+TTV$_\mathrm{b;12}$ & $0.0170_{-0.0035}^{+0.0033}$ & d& fit \\ 
+TTV$_\mathrm{b;13}$ & $-0.0131_{-0.0028}^{+0.0030}$ & d& fit \\ 
+TTV$_\mathrm{b;14}$ & $-0.0193\pm0.0028$ & d& fit \\ 
+TTV$_\mathrm{b;15}$ & $-0.0327_{-0.0031}^{+0.0030}$ & d& fit \\ 
+TTV$_\mathrm{b;16}$ & $-0.0284\pm0.0029$ & d& fit \\ 
+TTV$_\mathrm{b;17}$ & $-0.0204\pm0.0030$ & d& fit \\ 
+TTV$_\mathrm{b;18}$ & $0.0002\pm0.0026$ & d& fit \\ 
+TTV$_\mathrm{c;1}$ & $0.02183\pm0.00058$ & d& fit \\ 
+TTV$_\mathrm{c;2}$ & $0.00572\pm0.00060$ & d& fit \\ 
+TTV$_\mathrm{c;3}$ & $-0.00581\pm0.00056$ & d& fit \\ 
+TTV$_\mathrm{c;4}$ & $-0.00734_{-0.00052}^{+0.00054}$ & d& fit \\ 
+TTV$_\mathrm{c;5}$ & $-0.00803\pm0.00078$ & d& fit \\ 
+TTV$_\mathrm{c;6}$ & $-0.00413\pm0.00069$ & d& fit \\ 
+TTV$_\mathrm{c;7}$ & $0.00104\pm0.00071$ & d& fit \\ 
+TTV$_\mathrm{c;8}$ & $-0.00169_{-0.0010}^{+0.00095}$ & d& fit \\ 
+TTV$_\mathrm{c;9}$ & $-0.00977\pm0.00070$ & d& fit \\ 

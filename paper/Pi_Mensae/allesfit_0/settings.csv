@@ -9,18 +9,19 @@ inst_rv,AAT HARPS1 HARPS2
 fast_fit,TRUE
 fast_fit_width,0.3333333333333333
 multiprocess,True
-multiprocess_cores,all
+multiprocess_cores,5
+shift_epoch,True
 inst_for_b_epoch,AAT HARPS1 HARPS2
 inst_for_c_epoch,TESS
 use_stellar_density_prior,True
 #####################################,
 # MCMC settings,
 #####################################,
-mcmc_nwalkers,200
+mcmc_nwalkers,500
 mcmc_total_steps,10000
-mcmc_burn_steps,1000
-mcmc_thin_by,50
-mcmc_pre_run_loops,2
+mcmc_burn_steps,2000
+mcmc_thin_by,200
+mcmc_pre_run_loops,1
 mcmc_pre_run_steps,1000
 #####################################,
 # Nested Sampling settings,

@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy import constants as c
 import allesfitter
-from allesfitter.translator import translate
+from allesfitter.v2.translator import translate
 
 
 
@@ -42,6 +42,10 @@ from allesfitter.translator import translate
 ###############################################################################
 #::: run the fit
 ###############################################################################
-# allesfitter.show_initial_guess('allesfit_orbit')
-# allesfitter.mcmc_fit('allesfit_orbit')
-allesfitter.mcmc_output('allesfit_orbit')
+# allesfitter.show_initial_guess('allesfit_sine_physical')
+# allesfitter.mcmc_fit('allesfit_sine_physical')
+# allesfitter.mcmc_output('allesfit_sine_physical')
+
+# allesfitter.show_initial_guess('allesfit_sine_series')
+allesfitter.mcmc_fit('allesfit_sine_series')
+allesfitter.mcmc_output('allesfit_sine_series')

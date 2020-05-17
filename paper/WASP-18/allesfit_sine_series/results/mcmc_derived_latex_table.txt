@@ -1,0 +1,25 @@
+Parameter & Value & Source \\ 
+\hline 
+\multicolumn{3}{c}{\textit{Derived parameters}} \\ 
+\hline 
+Host radius over semi-major axis b; $R_\star/a_\mathrm{b}$ & $0.2832\pm0.0020$ & derived \\ 
+Semi-major axis b over host radius; $a_\mathrm{b}/R_\star$ & $3.532\pm0.025$ & derived \\ 
+Companion radius b over host semi-major axis b; $R_\mathrm{b}/a_\mathrm{b}$ & $0.02763\pm0.00023$ & derived \\ 
+Companion radius b; $R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$) & $13.41\pm0.43$ & derived \\ 
+Companion radius b; $R_\mathrm{b}$ ($\mathrm{R_{jup}}$) & $1.196\pm0.038$ & derived \\ 
+Semi-major axis b; $a_\mathrm{b}$ ($\mathrm{R_{\odot}}$) & $4.45\pm0.15$ & derived \\ 
+Semi-major axis b; $a_\mathrm{b}$ (AU) & $0.02070\pm0.00068$ & derived \\ 
+Inclination b; $i_\mathrm{b}$ (deg) & $84.40_{-0.34}^{+0.36}$ & derived \\ 
+Impact parameter b; $b_\mathrm{tra;b}$ & $0.348_{-0.020}^{+0.018}$ & derived \\ 
+Total transit duration b; $T_\mathrm{tot;b}$ (h) & $2.1823\pm0.0037$ & derived \\ 
+Full-transit duration b; $T_\mathrm{full;b}$ (h) & $1.7359\pm0.0042$ & derived \\ 
+Impact parameter occultation b; $b_\mathrm{occ;b}$ & $0.342_{-0.020}^{+0.018}$ & derived \\ 
+Host density from orbit b; $rho_\mathrm{\star;b}$ (cgs) & $0.940\pm0.020$ & derived \\ 
+Equilibrium temperature b; $T_\mathrm{eq;b}$ (K) & $2213\pm18$ & derived \\ 
+Transit depth (undil.) b; $\delta_\mathrm{tr; undil; b; TESS}$ (ppt) & $10.664\pm0.019$ & derived \\ 
+Transit depth (dil.) b; $\delta_\mathrm{tr; dil; b; TESS}$ (ppt) & $10.664\pm0.019$ & derived \\ 
+Occultation depth (undil.) b; $\delta_\mathrm{occ; undil; b; TESS}$ (ppt) & $0.342_{-0.015}^{+0.013}$ & derived \\ 
+Occultation depth (dil.) b; $\delta_\mathrm{occ; dil; b; TESS}$ (ppt) & $0.342_{-0.015}^{+0.013}$ & derived \\ 
+Nightside flux (undil.)b; $F_\mathrm{nightside; undil; b; TESS}$ (ppt) & $0.054\pm0.016$ & derived \\ 
+Nightside flux (dil.)b; $F_\mathrm{nightside; dil; b; TESS}$ (ppt) & $0.054\pm0.016$ & derived \\ 
+Median stellar density from orbits; $rho_\mathrm{\star; combined}$ (cgs) & $0.940\pm0.020$ & derived \\ 

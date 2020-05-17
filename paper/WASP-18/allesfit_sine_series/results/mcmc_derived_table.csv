@@ -1,0 +1,22 @@
+#property,value,lower_error,upper_error,source
+Host radius over semi-major axis b; $R_\star/a_\mathrm{b}$,0.28315357360743487,0.0019814196101062276,0.001945719829250847,derived
+Semi-major axis b over host radius; $a_\mathrm{b}/R_\star$,3.531652407772213,0.02410250139859249,0.024887547495453077,derived
+Companion radius b over host semi-major axis b; $R_\mathrm{b}/a_\mathrm{b}$,0.027626266726019224,0.00022709563839131558,0.00022195130418030742,derived
+Companion radius b; $R_\mathrm{b}$ ($\mathrm{R_{\oplus}}$),13.411057394550696,0.4307085319607147,0.4308508370815698,derived
+Companion radius b; $R_\mathrm{b}$ ($\mathrm{R_{jup}}$),1.1964564590189641,0.038425307554672106,0.0384380031890279,derived
+Semi-major axis b; $a_\mathrm{b}$ ($\mathrm{R_{\odot}}$),4.450884806462982,0.14465605249443847,0.14528123874315746,derived
+Semi-major axis b; $a_\mathrm{b}$ (AU),0.020698694074769985,0.00067271823622541,0.0006756256444070824,derived
+Inclination b; $i_\mathrm{b}$ (deg),84.39666101430835,0.335226034053008,0.3613639462523537,derived
+Impact parameter b; $b_\mathrm{tra;b}$,0.34796915735344436,0.020071287033483043,0.01823286729487672,derived
+Total transit duration b; $T_\mathrm{tot;b}$ (h),2.1822732726052063,0.0037210757404504413,0.0037355938399610267,derived
+Full-transit duration b; $T_\mathrm{full;b}$ (h),1.7359024947664263,0.004148686363074194,0.004183162863363066,derived
+Impact parameter occultation b; $b_\mathrm{occ;b}$,0.34169417686753645,0.019709338476260163,0.017904071239077668,derived
+Host density from orbit b; $rho_\mathrm{\star;b}$ (cgs),0.9401227486818451,0.019117129198732208,0.02001551842088478,derived
+Equilibrium temperature b; $T_\mathrm{eq;b}$ (K),2213.2307369534624,18.301100546650105,18.256152752807793,derived
+Transit depth (undil.) b; $\delta_\mathrm{tr; undil; b; TESS}$ (ppt),10.663849037268246,0.018630953388274918,0.018691164685892048,derived
+Transit depth (dil.) b; $\delta_\mathrm{tr; dil; b; TESS}$ (ppt),10.663849037268246,0.018630953388274918,0.018691164685892048,derived
+Occultation depth (undil.) b; $\delta_\mathrm{occ; undil; b; TESS}$ (ppt),0.342007623288787,0.015283671743249183,0.013475305137233828,derived
+Occultation depth (dil.) b; $\delta_\mathrm{occ; dil; b; TESS}$ (ppt),0.342007623288787,0.015283671743249183,0.013475305137233828,derived
+Nightside flux (undil.)b; $F_\mathrm{nightside; undil; b; TESS}$ (ppt),0.05415843854672531,0.015871480510853964,0.015210583204972039,derived
+Nightside flux (dil.)b; $F_\mathrm{nightside; dil; b; TESS}$ (ppt),0.05415843854672531,0.015871480510853964,0.015210583204972039,derived
+Median stellar density from orbits; $rho_\mathrm{\star; combined}$ (cgs),0.9401227486818451,0.019117129198732208,0.02001551842088478,derived

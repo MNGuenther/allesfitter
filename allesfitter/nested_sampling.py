@@ -131,7 +131,7 @@ def ns_fit(datadir):
             
         t1 = timer()
         timedynesty = (t1-t0)
-        logprint("\nTime taken to run 'dynesty' (in static mode) is {} hours".format(int(timedynesty/60./60.)))
+        logprint("\nTime taken to run 'dynesty' (in static mode) is {:.2f} hours".format(timedynesty/60./60.))
 
 
     elif config.BASEMENT.settings['ns_modus']=='dynamic':

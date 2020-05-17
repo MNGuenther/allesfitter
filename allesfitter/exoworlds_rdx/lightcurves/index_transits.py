@@ -93,6 +93,62 @@ def index_eclipses(time, epoch, period, width_1, width_2):
     
 
 
+def index_eclipses_smart(time, epoch, period, rr, rsuma, cosi, f_s, f_c, extra_factor=1.):
+    #--------------------------------------------------------------------------
+    #::: inputs
+    #--------------------------------------------------------------------------
+    R_star_over_a = rsuma / (1. + rr)
+    ecc = f_s**2 + f_c**2
+    esinw = f_s * np.sqrt(ecc)
+    ecosw = f_c * np.sqrt(ecc)
+    
+    
+    #--------------------------------------------------------------------------
+    #::: widths and impact parameters 
+    #--------------------------------------------------------------------------
+    eccentricity_correction_b_1 = ( (1. - ecc**2) / ( 1. + esinw ) )
+    b_1 = (1./R_star_over_a) * cosi * eccentricity_correction_b_1
+
+    eccentricity_correction_width_1 = ( np.sqrt(1. - ecc**2) / ( 1. + esinw ) )
+    width_1 = period/np.pi  \
+            * np.arcsin( R_star_over_a \
+                         * np.sqrt( (1. + rr)**2 - b_1**2  )\
+                         / np.sin(np.arccos(cosi)) ) \
+            * eccentricity_correction_width_1
+            
+    eccentricity_correction_b_2 = ( (1. - ecc**2) / ( 1. - esinw ) )
+    b_2 = (1./R_star_over_a) * cosi * eccentricity_correction_b_2
+    
+    width_2 = width_1 * (1. + esinw) / (1. - esinw)
+    print(width_1, width_2)
+    print(b_1, b_2)
+    
+    
+    #--------------------------------------------------------------------------
+    #::: timing
+    #--------------------------------------------------------------------------
+    time = np.sort(time)
+    epoch = get_first_epoch(time, epoch, period, width=2*width_1)
+    epoch_occ = epoch + period/2. * (1. + 4./np.pi * ecosw)
+    
+    N = int( 1. * ( time[-1] - epoch ) / period ) + 1
+        
+    tmid_ecl1 = np.array( [ epoch + i * period for i in range(N) ] )
+    tmid_ecl2 = np.array( [ epoch_occ + (i-1) * period for i in range(N+1) ] ) #(o-1) in case an occ happens before the first epoch
+    
+    _, ind_ecl1, mask_ecl1 = mask_ranges( time, tmid_ecl1 - width_1/2.*extra_factor, tmid_ecl1 + width_1/2.*extra_factor )           
+    _, ind_ecl2, mask_ecl2 = mask_ranges( time, tmid_ecl2 - width_2/2.*extra_factor, tmid_ecl2 + width_2/2.*extra_factor )
+        
+    ind_out = np.arange( len(time) )[ ~(mask_ecl1 | mask_ecl2) ]
+    
+    
+    #--------------------------------------------------------------------------
+    #::: return
+    #--------------------------------------------------------------------------
+    return ind_ecl1, ind_ecl2, ind_out
+
+
+
 def get_tmid_transits(time, epoch, period, width):
     '''
     get a list of only the transit midpoints that are actually covered by the data

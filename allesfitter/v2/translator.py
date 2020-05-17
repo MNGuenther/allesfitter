@@ -395,6 +395,6 @@ def translate(params=None, settings=None, quiet=False, **params_kwargs):
     
     
 
-if __name__ == '__main__':
-    translate(R_companion=1, M_companion=0., cosi=0.1, M_host=0.6, R_host=0.5, period=13.)
-    translate({'rr':0.177, 'a_over_R_host':8.2, 'incl':86, 'omega':346, 'ecc':0.113, 'period':8.360613})
+# if __name__ == '__main__':
+#     translate(R_companion=1, M_companion=0., cosi=0.1, M_host=0.6, R_host=0.5, period=13.)
+#     translate({'rr':0.177, 'a_over_R_host':8.2, 'incl':86, 'omega':346, 'ecc':0.113, 'period':8.360613})

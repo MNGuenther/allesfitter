@@ -1,0 +1,19 @@
+
+Shifting epochs into the data center:
+--------------------------
+
+Companion b
+	input epoch: 2446087.0
+	shifted epoch: 2456552.35
+	shifted by 5 periods
+Companion c
+	input epoch: 2458325.504
+	shifted epoch: 2458338.0398000004
+	shifted by 2 periods
+
+Running Static Nested Sampler...
+--------------------------
+
+Running on 5 CPUs.
+
+Time taken to run 'dynesty' (in static mode) is 5 hours

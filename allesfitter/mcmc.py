@@ -22,6 +22,7 @@ import os
 import emcee
 from multiprocessing import Pool
 from contextlib import closing
+from time import time as timer
 
 #::: warnings
 import warnings
@@ -155,7 +156,7 @@ def mcmc_fit(datadir):
             if b[0] == 'uniform':
                 p0[:,i] = np.clip(p0[:,i], b[1], b[2]) 
         
-        #::: if pre-runs are wished for, and we are not continuing and existing run
+        #::: if pre-runs are wished for, and if we are not continuing an existing run
         if continue_old_run==False:
             for i in range(config.BASEMENT.settings['mcmc_pre_run_loops']):
                 logprint("\nRunning pre-run loop",i+1,'/',config.BASEMENT.settings['mcmc_pre_run_loops'])
@@ -189,8 +190,9 @@ def mcmc_fit(datadir):
     #::: Run
     logprint("\nRunning MCMC...")
     logprint('--------------------------')
+    t0 = timer()
     if config.BASEMENT.settings['multiprocess']:
-         with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool: #multiprocessing
+        with closing(Pool(processes=(config.BASEMENT.settings['multiprocess_cores']))) as pool: #multiprocessing
 #        with closing(Pool(cpu_count()-1)) as pool: #pathos
             logprint('\nRunning on', config.BASEMENT.settings['multiprocess_cores'], 'CPUs.')
             sampler = emcee.EnsembleSampler(config.BASEMENT.settings['mcmc_nwalkers'], 
@@ -199,12 +201,19 @@ def mcmc_fit(datadir):
                                             pool=pool, 
                                             backend=backend)
             sampler = run_mcmc(sampler)
+        t1 = timer()
+        timemcmc = (t1-t0)
+        logprint("\nTime taken to run 'emcee' on", config.BASEMENT.settings['multiprocess_cores'], "cores is {:.2f} hours".format(timemcmc/60./60.))
+        
     else:
         sampler = emcee.EnsembleSampler(config.BASEMENT.settings['mcmc_nwalkers'],
                                         config.BASEMENT.ndim,
                                         mcmc_lnprob,
                                         backend=backend)
         sampler = run_mcmc(sampler)
+        t1 = timer()
+        timemcmc = (t1-t0)
+        logprint("\nTime taken to run 'emcee' on a single core is {:.2f} hours".format(timemcmc/60./60.))
     
 
     #::: Check performance and convergence

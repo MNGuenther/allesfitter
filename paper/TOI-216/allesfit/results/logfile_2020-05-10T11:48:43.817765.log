@@ -1,0 +1,176 @@
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['b', 'c']     
+companions_rv                  []             
+inst_phot                      ['TESS']       
+inst_rv                        []             
+multiprocess                   True           
+multiprocess_cores             19             
+fast_fit                       True           
+fast_fit_width                 0.5            
+shift_epoch                    False          
+mcmc_nwalkers                  500            
+mcmc_total_steps               20000          
+mcmc_burn_steps                5000           
+mcmc_thin_by                   250            
+mcmc_pre_run_loops             2              
+mcmc_pre_run_steps             1000           
+ns_modus                       dynamic        
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      rwalk          
+ns_tol                         0.01           
+host_ld_law_TESS               quad           
+baseline_flux_TESS             sample_GP_Matern32
+error_flux_TESS                sample         
+fit_ttvs                       True           
+host_grid_TESS                 very_sparse    
+b_grid_TESS                    very_sparse    
+c_grid_TESS                    very_sparse    
+
+automatically set:            
+companions_all                 ['b', 'c']     
+inst_all                       ['TESS']       
+print_progress                 True           
+inst_for_b_epoch               ['TESS']       
+inst_for_c_epoch               ['TESS']       
+phase_curve                    False          
+use_host_density_prior         True           
+secondary_eclipse              False          
+b_ld_law_TESS                  None           
+host_shape_TESS                sphere         
+b_shape_TESS                   sphere         
+c_ld_law_TESS                  None           
+c_shape_TESS                   sphere         
+exact_grav                     False          
+phase_curve_style              series         
+stellar_var_flux               none           
+stellar_var_rv                 none           
+color_plot                     False          
+b_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+c_color                        (0.8666666666666667, 0.5176470588235295, 0.3215686274509804)
+t_exp_TESS                     None           
+t_exp_n_int_TESS               None           
+host_N_spots_TESS              0              
+b_N_spots_TESS                 0              
+c_N_spots_TESS                 0              
+N_flares                       0              
+
+Parameters:
+--------------------------
+
+user-given:                   
+b_rr                           0.11            free  ['uniform', 0.0, 0.17]        
+b_rsuma                        0.03814432989690734 free  ['uniform', 0.0, 1.0]         
+b_cosi                         0.03489949670250108 free  ['uniform', 0.0, 1.0]         
+b_epoch                        2458496.1366    set  
+b_period                       17.0714         set  
+c_rr                           0.1236          free  ['uniform', 0.0, 1.0]         
+c_rsuma                        0.02088475836431273 free  ['uniform', 0.0, 1.0]         
+c_cosi                         0.0019198609978 free  ['uniform', 0.0, 1.0]         
+c_epoch                        2458504.0408    set  
+c_period                       34.5555         set  
+host_ldc_q1_TESS               0.5             free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_TESS               0.5             free  ['uniform', 0.0, 1.0]         
+log_err_flux_TESS              -6.000562315153353 free  ['normal', -6.000562315153353, 0.0017112378762709213]
+baseline_gp_matern32_lnsigma_flux_TESS -7.549512536421136 free  ['normal', -7.549512536421136, 0.04704844463781299]
+baseline_gp_matern32_lnrho_flux_TESS -0.23627798345297177 free  ['normal', -0.23627798345297177, 0.0722596744391529]
+b_ttv_transit_1                -0.1065         free  ['uniform', -0.1165, -0.0965] 
+b_ttv_transit_2                -0.0652         free  ['uniform', -0.0752, -0.0552] 
+b_ttv_transit_3                -0.0295         free  ['uniform', -0.0395, -0.0195] 
+b_ttv_transit_4                -0.0063         free  ['uniform', -0.0163, 0.0037]  
+b_ttv_transit_5                0.014           free  ['uniform', 0.004, 0.024]     
+b_ttv_transit_6                0.0             set  
+b_ttv_transit_7                0.0294          free  ['uniform', 0.0194, 0.0394]   
+b_ttv_transit_8                0.0343          free  ['uniform', 0.0243, 0.0443]   
+b_ttv_transit_9                0.0391          free  ['uniform', 0.0291, 0.0491]   
+b_ttv_transit_10               0.0314          free  ['uniform', 0.0214, 0.0414]   
+b_ttv_transit_11               0.0181          free  ['uniform', 0.0081, 0.0281]   
+b_ttv_transit_12               0.0145          free  ['uniform', 0.0045, 0.0245]   
+b_ttv_transit_13               -0.012          free  ['uniform', -0.022, -0.002]   
+b_ttv_transit_14               -0.021          free  ['uniform', -0.031, -0.011]   
+b_ttv_transit_15               -0.0338         free  ['uniform', -0.0438, -0.0238] 
+b_ttv_transit_16               -0.0286         free  ['uniform', -0.0386, -0.0186] 
+b_ttv_transit_17               -0.0235         free  ['uniform', -0.0335, -0.0135] 
+b_ttv_transit_18               -0.0002         free  ['uniform', -0.0102, 0.0098]  
+c_ttv_transit_1                0.0167          free  ['uniform', 0.0067, 0.0267]   
+c_ttv_transit_2                0.0005          free  ['uniform', -0.0095, 0.0105]  
+c_ttv_transit_3                -0.0077         free  ['uniform', -0.0177, 0.0023]  
+c_ttv_transit_4                -0.0105         free  ['uniform', -0.0205, -0.0005] 
+c_ttv_transit_5                -0.008          free  ['uniform', -0.018, 0.002]    
+c_ttv_transit_6                -0.0005         free  ['uniform', -0.0105, 0.0095]  
+c_ttv_transit_7                0.0064          free  ['uniform', -0.0036, 0.0164]  
+c_ttv_transit_8                0.0039          free  ['uniform', -0.0061, 0.0139]  
+c_ttv_transit_9                -0.0011         free  ['uniform', -0.0111, 0.0089]  
+
+automatically set:            
+dil_TESS                       0.0             set  
+b_sbratio_TESS                 0.0             set  
+b_a                            None            set  
+b_q                            1.0             set  
+b_K                            0.0             set  
+b_f_c                          0.0             set  
+b_f_s                          0.0             set  
+host_ldc_TESS                  None            set  
+b_ldc_TESS                     None            set  
+host_gdc_TESS                  None            set  
+b_gdc_TESS                     None            set  
+didt_TESS                      None            set  
+domdt_TESS                     None            set  
+host_rotfac_TESS               1.0             set  
+b_rotfac_TESS                  1.0             set  
+host_hf_TESS                   1.5             set  
+b_hf_TESS                      1.5             set  
+host_bfac_TESS                 None            set  
+b_bfac_TESS                    None            set  
+host_atmo_TESS                 None            set  
+b_atmo_TESS                    None            set  
+host_lambda_TESS               None            set  
+b_lambda_TESS                  None            set  
+host_vsini                     None            set  
+b_vsini                        None            set  
+host_spots_TESS                None            set  
+b_spots_TESS                   None            set  
+b_phase_curve_beaming_TESS     None            set  
+b_phase_curve_atmospheric_TESS None            set  
+b_phase_curve_atmospheric_shift_TESS 0.0             set  
+b_phase_curve_atmospheric_thermal_TESS None            set  
+b_phase_curve_atmospheric_thermal_shift_TESS 0.0             set  
+b_phase_curve_atmospheric_reflected_TESS None            set  
+b_phase_curve_atmospheric_reflected_shift_TESS 0.0             set  
+b_phase_curve_ellipsoidal_TESS None            set  
+b_phase_curve_ellipsoidal_2nd_TESS None            set  
+c_sbratio_TESS                 0.0             set  
+c_a                            None            set  
+c_q                            1.0             set  
+c_K                            0.0             set  
+c_f_c                          0.0             set  
+c_f_s                          0.0             set  
+c_ldc_TESS                     None            set  
+c_gdc_TESS                     None            set  
+c_rotfac_TESS                  1.0             set  
+c_hf_TESS                      1.5             set  
+c_bfac_TESS                    None            set  
+c_atmo_TESS                    None            set  
+c_lambda_TESS                  None            set  
+c_vsini                        None            set  
+c_spots_TESS                   None            set  
+c_phase_curve_beaming_TESS     None            set  
+c_phase_curve_atmospheric_TESS None            set  
+c_phase_curve_atmospheric_shift_TESS 0.0             set  
+c_phase_curve_atmospheric_thermal_TESS None            set  
+c_phase_curve_atmospheric_thermal_shift_TESS 0.0             set  
+c_phase_curve_atmospheric_reflected_TESS None            set  
+c_phase_curve_atmospheric_reflected_shift_TESS 0.0             set  
+c_phase_curve_ellipsoidal_TESS None            set  
+c_phase_curve_ellipsoidal_2nd_TESS None            set  
+
+External priors:
+--------------------------
+
+Stellar density prior (automatically set): ['normal', 10.25987486508227, 1.8972809024362824] (g cm^-3)
+
+ndim: 37

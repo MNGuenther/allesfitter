@@ -48,32 +48,10 @@ from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
                      
 ###############################################################################
 #::: print function that prints into console and logfile at the same time
-#::: colors did crash the old linux servers, so had to remove them again :(
 ############################################################################### 
-# class bcolors:
-#     HEADER = '\033[95m'
-#     OKBLUE = '\033[94m'
-#     OKGREEN = '\033[92m'
-#     WARNING = '\033[93m'
-#     FAIL = '\033[91m'
-#     ENDC = '\033[0m'
-#     BOLD = '\033[1m'
-#     UNDERLINE = '\033[4m'
-    
-def logprint(*text, typ='default'):
+def logprint(*text, outdir=None):
     if config.BASEMENT.settings['print_progress']:
         print(*text)
-        # if typ=='default':
-            # print(*text)
-        # elif typ=='success':
-        #     fulltext = ' '.join([str(t) for t in text])
-        #     print(bcolors.OKGREEN + fulltext + bcolors.ENDC)
-        # elif typ=='warning':
-        #     fulltext = ' '.join([str(t) for t in text])
-        #     print(bcolors.WARNING + fulltext + bcolors.ENDC)
-        # elif typ=='failure':
-        #     fulltext = ' '.join([str(t) for t in text])
-        #     print(bcolors.FAIL + fulltext + bcolors.ENDC)
     original = sys.stdout
     try:
         with open( os.path.join(config.BASEMENT.outdir,'logfile_'+config.BASEMENT.now+'.log'), 'a' ) as f:
@@ -277,45 +255,49 @@ def afplot(samples, companion):
         samples from the initial guess, or from the MCMC / Nested Sampling posteriors
     '''
 #    global config.BASEMENT
+    
+    if config.BASEMENT.settings['fit_ttvs'] is False:
       
-    N_inst = len(config.BASEMENT.settings['inst_all'])
+        N_inst = len(config.BASEMENT.settings['inst_all'])
+        
+        if 'do_not_phase_fold' in config.BASEMENT.settings and config.BASEMENT.settings['do_not_phase_fold']:
+            fig, axes = plt.subplots(N_inst,1,figsize=(6*1,4*N_inst))
+            styles = ['full']
+        elif config.BASEMENT.settings['phase_curve']:
+            fig, axes = plt.subplots(N_inst,5,figsize=(6*5,4*N_inst))
+            styles = ['full','phase','phase_curve','phasezoom','phasezoom_occ']
+        elif config.BASEMENT.settings['secondary_eclipse']:
+            fig, axes = plt.subplots(N_inst,4,figsize=(6*4,4*N_inst))
+            styles = ['full','phase','phasezoom','phasezoom_occ']
+        else:
+            fig, axes = plt.subplots(N_inst,3,figsize=(6*3,4*N_inst))
+            styles = ['full','phase','phasezoom']
+        axes = np.atleast_2d(axes)
+        
+        for i,inst in enumerate(config.BASEMENT.settings['inst_all']):
+            for j,style in enumerate(styles):
+    #            print(i,j,inst,style)
+                #::: don't phase-fold single day photometric follow-up
+    #            if (style=='phase') & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
+    #                axes[i,j].axis('off')
+                #::: don't zoom onto RV data
+                if ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
+                    axes[i,j].axis('off')
+                #::: don't plot if the companion is not covered by an instrument
+                elif (inst in config.BASEMENT.settings['inst_phot']) & (companion not in config.BASEMENT.settings['companions_phot']):
+                    axes[i,j].axis('off')
+                #::: don't plot if the companion is not covered by an instrument
+                elif (inst in config.BASEMENT.settings['inst_rv']) & (companion not in config.BASEMENT.settings['companions_rv']):
+                    axes[i,j].axis('off')
+                else:
+                    plot_1(axes[i,j], samples, inst, companion, style)
     
-    
-    if 'do_not_phase_fold' in config.BASEMENT.settings and config.BASEMENT.settings['do_not_phase_fold']:
-        fig, axes = plt.subplots(N_inst,1,figsize=(6*1,4*N_inst))
-        styles = ['full']
-    elif config.BASEMENT.settings['phase_curve']:
-        fig, axes = plt.subplots(N_inst,5,figsize=(6*5,4*N_inst))
-        styles = ['full','phase','phase_curve','phasezoom','phasezoom_occ']
-    elif config.BASEMENT.settings['secondary_eclipse']:
-        fig, axes = plt.subplots(N_inst,4,figsize=(6*4,4*N_inst))
-        styles = ['full','phase','phasezoom','phasezoom_occ']
+        plt.tight_layout()
+        return fig, axes
+
     else:
-        fig, axes = plt.subplots(N_inst,3,figsize=(6*3,4*N_inst))
-        styles = ['full','phase','phasezoom']
-    axes = np.atleast_2d(axes)
+        return None, None
     
-    for i,inst in enumerate(config.BASEMENT.settings['inst_all']):
-        for j,style in enumerate(styles):
-#            print(i,j,inst,style)
-            #::: don't phase-fold single day photometric follow-up
-#            if (style=='phase') & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
-#                axes[i,j].axis('off')
-            #::: don't zoom onto RV data
-            if ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
-                axes[i,j].axis('off')
-            #::: don't plot if the companion is not covered by an instrument
-            elif (inst in config.BASEMENT.settings['inst_phot']) & (companion not in config.BASEMENT.settings['companions_phot']):
-                axes[i,j].axis('off')
-            #::: don't plot if the companion is not covered by an instrument
-            elif (inst in config.BASEMENT.settings['inst_rv']) & (companion not in config.BASEMENT.settings['companions_rv']):
-                axes[i,j].axis('off')
-            else:
-                plot_1(axes[i,j], samples, inst, companion, style)
-
-    plt.tight_layout()
-    return fig, axes
-
 
 
 ###############################################################################
@@ -686,11 +668,35 @@ def plot_1(ax, samples, inst, companion, style,
 ###############################################################################
 #::: plot individual transits
 ###############################################################################
-def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, marker='.', linestyle='none', color='b', markersize=8):
+def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
         
-    if base==None:
-        base = config.BASEMENT
+    #==========================================================================
+    #::: input
+    #==========================================================================
+    if base==None: base = config.BASEMENT
+    if kwargs_dict is None: kwargs_dict = {}
+    if 'window' not in kwargs_dict: kwargs_dict['window'] = 8./24. # in days
+    if 'rasterized' not in kwargs_dict: kwargs_dict['rasterized'] = True
+    if 'marker' not in kwargs_dict: kwargs_dict['marker'] = '.'
+    if 'linestyle' not in kwargs_dict: kwargs_dict['linestyle'] = 'none'
+    if 'color' not in kwargs_dict: kwargs_dict['color'] = 'b'
+    if 'markersize' not in kwargs_dict: kwargs_dict['markersize'] = 8
+    
+    
+    #==========================================================================
+    #::: translate input
+    #==========================================================================
+    window = kwargs_dict['window']
+    rasterized = kwargs_dict['rasterized']
+    marker = kwargs_dict['marker']
+    linestyle = kwargs_dict['linestyle']
+    color = kwargs_dict['color']
+    markersize = kwargs_dict['markersize']
+    
         
+    #==========================================================================
+    #::: configurations
+    #==========================================================================
     if inst in base.settings['inst_phot']:
         key = 'flux'
         ylabel = 'Realtive Flux'
@@ -704,16 +710,19 @@ def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, mar
     else:
         alpha = 0.1
         
+        
+    #==========================================================================
+    #::: load data and models
+    #==========================================================================
     params_median, params_ll, params_ul = get_params_from_samples(samples)
-    width = 8./24.
     x = base.data[inst]['time']
     y = 1.*base.data[inst][key]
     yerr_w = calculate_yerr_w(params_median, inst, key)
     
-    tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], width)
+    tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], base.settings['fast_fit_width'])
     N_transits = len(tmid_observed_transits)
     
-    fig, axes = plt.subplots(N_transits,1,figsize=(6,4*N_transits),sharey=True)
+    fig, axes = plt.subplots(N_transits, 1, figsize=(6,4*N_transits), sharey=True, tight_layout=True)
     
     if N_transits>0:
         axes = np.atleast_1d(axes)
@@ -723,25 +732,33 @@ def afplot_per_transit(samples, inst, companion, base=None, rasterized=True, mar
             ax = axes[i]
             
             #::: mark data
-            ind = np.where((x >= (t - width/2.)) & (x <= (t + width/2.)))[0]
+            ind = np.where((x >= (t - window/2.)) & (x <= (t + window/2.)))[0]
             
             #::: plot model
-            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize, alpha=alpha,  capsize=0, rasterized=rasterized )  
-            ax.set(xlabel='Time (BJD)', ylabel=ylabel)
-            
+            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize, alpha=1, capsize=0, rasterized=rasterized)  
+
             #::: plot model + baseline, not phased
             dt = 2./24./60. 
             xx = np.arange(x[ind][0], x[ind][-1]+dt, dt)
-            for i in range(samples.shape[0]):
-                s = samples[i,:]
+            for j in range(samples.shape[0]):
+                s = samples[j,:]
                 p = update_params(s)
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
                 stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
                 ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-            ax.set(xlim=[t-4./24., t+4./24.])
-            ax.axvline(t,color='g',lw=2,ls='--')
+            ax.set(xlim=[t-window/2., t+window/2.])
+            ax.axvline(t,color='grey',lw=2,ls='--',label='linear prediction')
+            if base.settings['fit_ttvs']==True:
+                ax.axvline(t+params_median[companion+'_ttv_transit_'+str(i+1)],color='r',lw=2,ls='--',label='TTV midtime')
+            
+            #::: axes decoration
+            ax.set(xlabel='Time', ylabel=ylabel)
+            ax.text(0.95,0.95,'Transit '+str(i+1), va='top', ha='right', transform=ax.transAxes)
+            
+        if base.settings['fit_ttvs']==True:
+            axes[0].legend(loc='upper left')
             
     else:
         warnings.warn('No transit of companion '+companion+' for '+inst+'.')
@@ -838,15 +855,15 @@ def save_latex_table(samples, mode):
 ###############################################################################
 #::: show initial guess
 ###############################################################################
-def show_initial_guess(datadir, do_logprint=True, do_plot=True, return_figs=False):
+def show_initial_guess(datadir, quiet=False, do_logprint=True, do_plot=True, return_figs=False, kwargs_dict=None):
     #::: init
-    config.init(datadir)    
+    config.init(datadir, quiet=quiet)    
     
     #::: show initial guess
     if do_logprint: 
         logprint_initial_guess()
     if do_plot: 
-        return plot_initial_guess(return_figs=return_figs)
+        return plot_initial_guess(return_figs=return_figs, kwargs_dict=kwargs_dict)
     
     
 
@@ -902,20 +919,21 @@ def logprint_initial_guess():
 ###############################################################################
 #::: plot initial guess
 ###############################################################################
-def plot_initial_guess(return_figs=False):
+def plot_initial_guess(return_figs=False, kwargs_dict=None):
     
     samples = draw_initial_guess_samples()
     
     if return_figs==False:
         for companion in config.BASEMENT.settings['companions_all']:
             fig, axes = afplot(samples, companion)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
-            plt.close(fig)
+            if fig is not None:
+                fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
+                plt.close(fig)
             
         for companion in config.BASEMENT.settings['companions_phot']:
             for inst in config.BASEMENT.settings['inst_phot']:
                 try:
-                    fig, axes = afplot_per_transit(samples, inst, companion)
+                    fig, axes = afplot_per_transit(samples, inst, companion, kwargs_dict=kwargs_dict)
                     fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
                     plt.close(fig)
                 except:

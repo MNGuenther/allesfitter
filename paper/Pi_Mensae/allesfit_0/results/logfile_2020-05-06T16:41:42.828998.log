@@ -1,0 +1,58 @@
+
+Shifting epochs into the data center:
+--------------------------
+
+Companion b
+	input epoch: 2446087.0
+	shifted epoch: 2456552.35
+	shifted by 5 periods
+Companion c
+	input epoch: 2458325.504
+	shifted epoch: 2458338.0398000004
+	shifted by 2 periods
+
+Convergence check:
+--------------------------
+Total steps:         10000     
+Burn steps:          2000      
+Evaluation steps:    8000                
+Evaluation samples:  20000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 host_ldc_q1_TESS               314.031226427048     25.47517357118135   
+	 host_ldc_q2_TESS               312.3487445647767    25.61239684554235   
+	 b_epoch                        279.8402640119445    28.587737466037176  
+	 b_period                       267.27279421790905   29.931965291901555  
+	 b_K                            267.1926946608939    29.940938355942535  
+	 b_f_c                          275.8385493940807    29.00247270576632   
+	 b_f_s                          279.52825719347396   28.619646830419878  
+	 c_rsuma                        281.89832652767467   28.37902622034409   
+	 c_rr                           298.2559160219713    26.822602906594724  
+	 c_cosi                         301.9092956326563    26.498024789981564  
+	 c_epoch                        295.1810305742069    27.10201256645062   
+	 c_period                       303.1417784423696    26.390291833432926  
+	 c_K                            273.19908363203575   29.282675086769242  
+	 baseline_offset_flux_TESS      288.546631970085     27.725154666956563  
+	 baseline_offset_rv_AAT         267.3529517769274    29.922991112793095  
+	 baseline_offset_rv_HARPS1      275.2413899323146    29.065396021896646  
+	 baseline_offset_rv_HARPS2      273.9977618836977    29.197318784653852  
+	 log_err_flux_TESS              263.81862447925766   30.32386366122149   
+	 log_jitter_rv_AAT              293.1416641634139    27.290559405231264  
+	 log_jitter_rv_HARPS1           266.6353167468565    30.00352728065351   
+	 log_jitter_rv_HARPS2           284.612873089719     28.108356144095232  
+
+Not yet converged! Some chains are less than 30x the autocorrelation length. Please continue to run with longer chains, or start again with more walkers.
+
+
+TESS b: deriving eclipse depths and more from model curves...
+
+TESS c: deriving eclipse depths and more from model curves...
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.pdf
+
+Orbital plots could not be produced.
+
+Done. For all outputs, see allesfit_0/results 
+
