@@ -123,11 +123,7 @@ alles2.posterior_params_median['b_phase_curve_atmospheric_TESS'] = None
 alles2.posterior_params_median['b_phase_curve_ellipsoidal_TESS'] = None           
 # alles2.posterior_params_median['b_sbratio_TESS'] = 0
 model_flux_helper = alles2.get_posterior_median_model(inst, key, xx=model_time, settings=alles2.settings)
-# axes[0,1].plot(model_time, (model_flux_helper-1)*1e6, lw=2, color='r', ls=':')
 
-# ind_occ = np.where((time>0.4) & (time<0.6))[0]
-# null_level = np.min(model_flux_helper[ind_occ])
-# axes[0,1].plot(model_time, np.ones_like(model_time)*null_level, )    
     
 
 #==============================================================================
@@ -138,8 +134,6 @@ for ax, z in zip(axes[0,:],zoom):
     ax.plot(model_time, (model_flux-1)*z, 'r-', lw=2, label='Full Model')
     for i in range(len(model_fluxes)):
         ax.plot(model_time, (model_fluxes[i]-1)*z, 'r-', lw=1.5, alpha=0.1)
-        
-# axes[0,1].plot(model_time, np.zeros_like(model_time), 'k--', lw=1)
     
     
 
@@ -152,12 +146,3 @@ plt.tight_layout()
 fig.subplots_adjust(hspace=0)
 axes[0,1].legend(loc='best', ncol=5, bbox_to_anchor=[0.75,1.2])
 fig.savefig('WASP-18_fit.pdf', bbox_inches='tight')
-
-
-
-#==============================================================================
-#::: print
-#==============================================================================
-# ind_occ = np.where((time>0.4) & (time<0.6))[0]
-# print('\nNightside flux:', (np.min(model_flux_helper[ind_occ])-np.min(model_flux[ind_occ]))*1e6, 'ppm')
-

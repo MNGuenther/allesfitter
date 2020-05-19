@@ -24,6 +24,6 @@ flare_tpeak_3,2456519.816,1,uniform 2456519.81 2456519.82,$t_\mathrm{peak; flare
 flare_ampl_3,0.02,1,uniform 0. 0.05,$A_\mathrm{flare 2}$,$\mathrm{rel. flux.}$
 flare_fwhm_3,0.003,1,uniform 0.001 0.01,$FWHM_\mathrm{flare 2}$,$\mathrm{BJD}$
 #errors per instrument,,,,,
-log_err_flux_TESS,-6,1,uniform -7 -5.5,$\log{\sigma_\mathrm{TESS}}$,$\log{ \mathrm{rel. flux.} }$
+ln_err_flux_TESS,-6,1,uniform -7 -5.5,$\log{\sigma_\mathrm{TESS}}$,$\log{ \mathrm{rel. flux.} }$
 #baseline per instrument,,,,,
 baseline_offset_flux_TESS,0.01,1,uniform 0 0.025,offset (TESS),

@@ -2,7 +2,7 @@
 ###############################################################################,
 # General settings,
 ###############################################################################,
-companions_phot,b
+companions_phot,
 companions_rv,b
 inst_phot,
 inst_rv,Donatello Raphael

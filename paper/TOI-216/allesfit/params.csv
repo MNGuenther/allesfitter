@@ -15,7 +15,7 @@ c_period,34.5555,0,,$P_c$,d,,linear estimate
 host_ldc_q1_TESS,0.5,1,uniform 0 1,$q_{1; \mathrm{TESS}}$,,,
 host_ldc_q2_TESS,0.5,1,uniform 0 1,$q_{2; \mathrm{TESS}}$,,,
 #errors per instrument,,,,,,,
-log_err_flux_TESS,-6.000562315153353,1,normal -6.000562315153353 0.0017112378762709213,$\log{\sigma_\mathrm{TESS}}$,ln (rel. flux),,
+ln_err_flux_TESS,-6.000562315153353,1,normal -6.000562315153353 0.0017112378762709213,$\log{\sigma_\mathrm{TESS}}$,ln (rel. flux),,
 #baseline per instrument,,,,,,,
 baseline_gp_matern32_lnsigma_flux_TESS,-7.549512536421136,1,normal -7.549512536421136 0.04704844463781299,GP $\ln{\sigma}$ (TESS),ln (rel. flux),,
 baseline_gp_matern32_lnrho_flux_TESS,-0.23627798345297177,1,normal -0.23627798345297177 0.0722596744391529,GP $\ln{\rho}$ (TESS),ln (rel. flux),,

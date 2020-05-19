@@ -41,6 +41,7 @@ from . import config
 from .utils.latex_printer import round_tex
 from .general_output import logprint
 from .priors.simulate_PDF import simulate_PDF
+from .limb_darkening import LDC3
 from .computer import update_params, calculate_model, flux_fct, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves.index_transits import index_transits
 from .lightcurves.lightcurves import get_epoch_occ
@@ -393,10 +394,12 @@ def derive(samples, mode):
         
         
         #----------------------------------------------------------------------
-        #::: stellar density
+        #::: stellar density from orbit
         #----------------------------------------------------------------------
         if companion in config.BASEMENT.settings['companions_phot']:
-            derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
+            print(companion, get_params(companion+'_rr'))
+            if all(np.atleast_1d(get_params(companion+'_rr'))<0.215443469): #see computer.py; get_params could return np.nan (float) or array; all(np.atleast_1d(...)) takes care of that
+                derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
   
     
         #----------------------------------------------------------------------
@@ -442,7 +445,14 @@ def derive(samples, mode):
                 derived_samples['host_ldc_u2_'+inst] = np.sqrt(get_params('host_ldc_q1_'+inst)) * (1. - 2. * get_params('host_ldc_q2_'+inst))
                 
             elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
-                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+                derived_samples['host_ldc_u1_'+inst] = np.nan*np.empty(N_samples)
+                derived_samples['host_ldc_u2_'+inst] = np.nan*np.empty(N_samples)
+                derived_samples['host_ldc_u3_'+inst] = np.nan*np.empty(N_samples)
+                for i in range(N_samples):
+                    u1, u2, u3 = LDC3.forward([get_params('host_ldc_q1_'+inst)[i], get_params('host_ldc_q2_'+inst)[i], get_params('host_ldc_q3_'+inst)[i]])
+                    derived_samples['host_ldc_u1_'+inst][i] = u1
+                    derived_samples['host_ldc_u2_'+inst][i] = u2
+                    derived_samples['host_ldc_u3_'+inst][i] = u3
                 
             else:
                 print(config.BASEMENT.settings['host_ld_law_'+inst] )
@@ -454,8 +464,8 @@ def derive(samples, mode):
     #==========================================================================
     derived_samples['combined_host_density'] = []
     for companion in config.BASEMENT.settings['companions_phot']:
-        derived_samples['combined_host_density'] = np.append(derived_samples['combined_host_density'], derived_samples[companion+'_host_density'])
-    
+        try: derived_samples['combined_host_density'] = np.append(derived_samples['combined_host_density'], derived_samples[companion+'_host_density'])
+        except: pass
     
 
     
@@ -473,7 +483,7 @@ def derive(samples, mode):
         labels.append( 'Semi-major axis '+companion+' over host radius; $a_\mathrm{'+companion+'}/R_\star$' )
         
         names.append( companion+'_R_companion/a'  )
-        labels.append( 'Companion radius '+companion+' over host semi-major axis '+companion+'; $R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )
+        labels.append( 'Companion radius '+companion+' over semi-major axis '+companion+'; $R_\mathrm{'+companion+'}/a_\mathrm{'+companion+'}$' )
         
         names.append( companion+'_R_companion_(R_earth)' )
         labels.append( 'Companion radius '+companion+'; $R_\mathrm{'+companion+'}$ ($\mathrm{R_{\oplus}}$)' )
@@ -496,6 +506,9 @@ def derive(samples, mode):
         names.append( companion+'_w' )
         labels.append( 'Argument of periastron '+companion+'; $w_\mathrm{'+companion+'}$ (deg)' )
         
+        names.append( companion+'_q' )
+        labels.append( 'Mass ratio '+companion+'; $q_\mathrm{'+companion+'}$' )
+        
         names.append( companion+'_M_companion_(M_earth)' )
         labels.append( 'Companion mass '+companion+'; $M_\mathrm{'+companion+'}$ ($\mathrm{M_{\oplus}}$)' )
         
@@ -511,20 +524,20 @@ def derive(samples, mode):
         names.append( companion+'_T_tra_full' )
         labels.append( 'Full-transit duration '+companion+'; $T_\mathrm{full;'+companion+'}$ (h)' )
         
-        names.append( companion+'_b_occ'  )
-        labels.append( 'Impact parameter occultation '+companion+'; $b_\mathrm{occ;'+companion+'}$' )
-        
         names.append( companion+'_epoch_occ'  )
         labels.append( 'Epoch occultation '+companion+'; $T_\mathrm{0;occ;'+companion+'}$' )
         
+        names.append( companion+'_b_occ'  )
+        labels.append( 'Impact parameter occultation '+companion+'; $b_\mathrm{occ;'+companion+'}$' )
+        
         names.append( companion+'_host_density' )
-        labels.append( 'Host density from orbit '+companion+'; $rho_\mathrm{\star;'+companion+'}$ (cgs)' )
+        labels.append( 'Host density from orbit '+companion+'; $\\rho_\mathrm{\star;'+companion+'}$ (cgs)' )
     
         names.append( companion+'_density' )
-        labels.append( 'Companion density '+companion+'; $rho_\mathrm{'+companion+'}$ (cgs)' )
+        labels.append( 'Companion density '+companion+'; \\$rho_\mathrm{'+companion+'}$ (cgs)' )
         
         names.append( companion+'_surface_gravity')
-        labels.append( 'Companion surface gravity '+companion+'; $g_\mathrm{\star;'+companion+'}$ (cgs)' )
+        labels.append( 'Companion surface gravity '+companion+'; $g_\mathrm{'+companion+'}$ (cgs)' )
         
         names.append( companion+'_Teq' )
         labels.append( 'Equilibrium temperature '+companion+'; $T_\mathrm{eq;'+companion+'}$ (K)' )
@@ -575,7 +588,12 @@ def derive(samples, mode):
             labels.append( 'Limb darkening; $u_\mathrm{2; '+inst+'}$' )
             
         elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
-            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+            names.append( 'host_ldc_u1_'+inst )
+            labels.append( 'Limb darkening; $u_\mathrm{1; '+inst+'}$' )
+            names.append( 'host_ldc_u2_'+inst )
+            labels.append( 'Limb darkening; $u_\mathrm{2; '+inst+'}$' )
+            names.append( 'host_ldc_u3_'+inst )
+            labels.append( 'Limb darkening; $u_\mathrm{3; '+inst+'}$' )
             
         else:
             print(config.BASEMENT.settings['host_ld_law_'+inst] )
@@ -586,7 +604,7 @@ def derive(samples, mode):
         
         
     names.append( 'combined_host_density' )
-    labels.append( 'Median stellar density from orbits; $rho_\mathrm{\star; combined}$ (cgs)' )
+    labels.append( 'Combined host density from all orbits; $rho_\mathrm{\star; combined}$ (cgs)' )
         
             
     ###############################################################################

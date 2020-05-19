@@ -4,4 +4,4 @@ baseline_gp_sho_lnS0_flux_Kepler,-5,1,uniform -12 12,gp: $\ln S_\mathrm{0; Keple
 baseline_gp_sho_lnQ_flux_Kepler,-5,1,uniform -12 12,gp: $\ln Q_\mathrm{Kepler}$,rel. flux,
 baseline_gp_sho_lnomega0_flux_Kepler,-0.2855813606872647,1,uniform -12 12,gp: $\ln \omega_\mathrm{0; Kepler}$,rel. flux,
 #errors (overall scaling) per instrument,,,,,,
-log_err_flux_Kepler,-6.83,1,uniform -8 -6,$\ln \sigma_\mathrm{Kepler}$,rel. flux,
+ln_err_flux_Kepler,-6.83,1,uniform -8 -6,$\ln \sigma_\mathrm{Kepler}$,rel. flux,

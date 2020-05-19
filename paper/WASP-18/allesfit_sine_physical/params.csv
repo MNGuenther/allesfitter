@@ -19,4 +19,4 @@ b_phase_curve_ellipsoidal_TESS,0.381,1,uniform 0 1,$A_\mathrm{b; ellipsoidal; TE
 #baseline per instrument,,,,,,,
 baseline_offset_flux_TESS,0.0001,1,uniform -0.01 0.01,$\Delta F_\mathrm{TESS}$,,,
 #errors per instrument,,,,,,,
-log_err_flux_TESS,-9.16,1,uniform -10 -8,$\ln {\sigma_\mathrm{TESS}}$,$\ln{ \mathrm{rel. flux.} }$,,
+ln_err_flux_TESS,-9.16,1,uniform -10 -8,$\ln {\sigma_\mathrm{TESS}}$,$\ln{ \mathrm{rel. flux.} }$,,

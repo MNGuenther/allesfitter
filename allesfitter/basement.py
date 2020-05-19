@@ -30,7 +30,7 @@ import collections
 from datetime import datetime
 from multiprocessing import cpu_count
 import warnings
-warnings.formatwarning = lambda msg, *args, **kwargs: f'\n! WARNING: {msg}\ntype: {args[0]}, file: {args[1]}, line: {args[2]}\n'
+warnings.formatwarning = lambda msg, *args, **kwargs: f'\n! WARNING:\n {msg}\ntype: {args[0]}, file: {args[1]}, line: {args[2]}\n'
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 from scipy.special import ndtri
@@ -76,18 +76,18 @@ class Basement():
         
         self.quiet = quiet
         self.now = datetime.now().isoformat()
-        
         self.datadir = datadir
         self.outdir = os.path.join(datadir,'results') 
         if not os.path.exists( self.outdir ): os.makedirs( self.outdir )
         
-        self.load_settings()
-        self.load_params()
-        self.load_data()
-        
+        print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
         self.logprint('v1.1.1')
+        
+        self.load_settings()
+        self.load_params()
+        self.load_data()
         
         if self.settings['shift_epoch']:
             try:
@@ -147,88 +147,7 @@ class Basement():
     ###############################################################################
     def load_settings(self):
         '''
-        Below is a copy of a "complete" settings.csv file:
-            
-        ###############################################################################
-        # General settings
-        ###############################################################################
-        companions_phot 
-        companions_rv
-        inst_phot
-        inst_rv
-        ###############################################################################
-        # Fit performance settings
-        ###############################################################################
-        fast_fit                              : optional. Default is False.
-        fast_fit_width                        : optional. Default is 8./24.
-        secondary_eclipse                     : optional. Default is False.
-        multiprocess                          : optional. Default is False.
-        multiprocess_cores                    : optional. Default is cpu_count()-1.
-        ###############################################################################
-        # MCMC settings
-        ###############################################################################      
-        mcmc_pre_run_loops                    : optional. Default is 0.         
-        mcmc_pre_run_steps                    : optional. Default is 0. 
-        mcmc_nwalkers                         : optional. Default is 100.
-        mcmc_total_steps                      : optional. Default is 2000.
-        mcmc_burn_steps                       : optional. Default is 1000.
-        mcmc_thin_by                          : optional. Default is 1.
-        ###############################################################################
-        # Nested Sampling settings
-        ###############################################################################
-        ns_modus                              : optional. Default is static.
-        ns_nlive                              : optional. Default is 500.
-        ns_bound                              : optional. Default is single.
-        ns_sample                             : optional. Default is rwalk.
-        ns_tol                                : optional. Default is 0.01.
-        ###############################################################################
-        # Exposure settings for interpolation
-        # needs to be in the same units as the time series
-        # if not given the observing times will not be interpolated leading to biased results
-        ###############################################################################
-        t_exp_Leonardo                        : optional. Default is None.
-        t_exp_Michelangelo                    : optional. Default is None.
-        t_exp_Donatello                       : optional. Default is None.
-        t_exp_Raphael                         : optional. Default is None.
-        ###############################################################################
-        # Number of points for exposure interpolation
-        # Sample as fine as possible; generally at least with a 2 min sampling for photometry
-        # n_int=5 was found to be a good number of interpolation points for any short phot. cadence t_exp; 
-        # increase to n_int=10 for 30 min phot. cadence
-        # the impact on RV is not as drasctic and generally n_int=5 is fine enough
-        ###############################################################################
-        t_exp_n_int_Leonardo                  : optional. Default is None.
-        t_exp_n_int_Michelangelo              : optional. Default is None.
-        t_exp_n_int_Donatello                 : optional. Default is None.
-        t_exp_n_int_Raphael                   : optional. Default is None.
-        ###############################################################################
-        # Limb darkening law per instrument: lin / quad / sing
-        #if 'lin' one corresponding parameter called 'ldc_q1_inst' has to be given in params.csv
-        #if 'quad' two corresponding parameter called 'ldc_q1_inst' and 'ldc_q2_inst' have to be given in params.csv
-        #if 'sing' three corresponding parameter called 'ldc_q1_inst'; 'ldc_q2_inst' and 'ldc_q3_inst' have to be given in params.csv
-        ###############################################################################
-        ld_law_Leonardo                       : optional. Default is quad.
-        ld_law_Michelangelo                   : optional. Default is quad.
-        ###############################################################################
-        # Baseline settings
-        # baseline params per instrument: sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_pol_5 / hybrid_pol_6 / hybrid_spline / hybrid_GP
-        # if 'sample_offset' one corresponding parameter called 'baseline_offset_key_inst' has to be given in params.csv
-        # if 'sample_linear' two corresponding parameters called 'baseline_a_key_inst' and 'baseline_b_key_inst' have to be given in params.csv
-        ###############################################################################
-        baseline_flux_Leonardo                : optional. Default is 'hybrid_spline'.
-        baseline_flux_Michelangelo            : optional. Default is 'hybrid_spline'.
-        baseline_rv_Donatello                 : optional. Default is 'hybrid_offset'.
-        baseline_rv_Raphael                   : optional. Default is 'hybrid_offset'.
-        ###############################################################################
-        # Error settings
-        # errors (overall scaling) per instrument: sample / hybrid
-        # if 'sample' one corresponding parameter called 'inv_sigma2_key_inst' has to be given in params.csv (note this must be 1/sigma^2; not sigma)
-        ###############################################################################
-        error_flux_TESS                       : optional. Default is 'sample'.
-        error_rv_AAT                          : optional. Default is 'sample'.
-        error_rv_Coralie                      : optional. Default is 'sample'.
-        error_rv_FEROS                        : optional. Default is 'sample'.
-
+        For the full list of options see www.allesfitter.com
         '''
         
         
@@ -256,10 +175,10 @@ class Basement():
             name = row[0]
             if name[:7]=='planets':
                 rows[i][0] = 'companions'+name[7:]
-                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
             if name[:6]=='ld_law':
                 rows[i][0] = 'host_ld_law'+name[6:]
-                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                warnings.warn('You are using outdated keywords. Automatically renaming '+name+' ---> '+rows[i][0]+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                 
 #        self.settings = {r[0]:r[1] for r in rows}
         self.settings = collections.OrderedDict( [('user-given:','')]+[ (r[0],r[1] ) for r in rows ]+[('automatically set:','')] )
@@ -279,7 +198,12 @@ class Basement():
         self.settings['companions_all']  = list(np.unique(self.settings['companions_phot']+self.settings['companions_rv'])) #sorted by b, c, d...
         self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
     
-    
+        if len(self.settings['inst_phot'])==0 and len(self.settings['companions_phot'])>0:
+            raise ValueError('No photometric instrument is selected, but photometric companions are given.')
+        if len(self.settings['inst_rv'])==0 and len(self.settings['companions_rv'])>0:
+           raise ValueError('No RV instrument is selected, but RV companions are given.')
+            
+            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: General settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -530,7 +454,7 @@ class Basement():
                     self.settings['baseline_'+key+'_'+inst] = 'none'
 
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
         for inst in self.settings['inst_rv']:
@@ -539,7 +463,7 @@ class Basement():
                     self.settings['baseline_'+key+'_'+inst] = 'none'
                     
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
+                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
                 
@@ -634,91 +558,50 @@ class Basement():
     ###############################################################################
     def load_params(self):
         '''
-        #name	value	fit	bounds	label	unit
-        #b_: companion name; _key : flux/rv/centd; _inst : instrument name					
-        #dilution per instrument					
-        dil_TESS	0	0	none	$D_\mathrm{TESS}$	
-        dil_HATS	0.14	1	trunc_normal 0 1 0.14 0.1	$D_\mathrm{HATS}$	
-        dil_FTS_i	0	0	none	$D_\mathrm{FTS_i}$	
-        dil_GROND_g	0	0	none	$D_\mathrm{GROND_g}$	
-        dil_GROND_r	0	0	none	$D_\mathrm{GROND_r}$	
-        dil_GROND_i	0	0	none	$D_\mathrm{GROND_i}$	
-        dil_GROND_z	0	0	none	$D_\mathrm{GROND_i}$	
-        #limb darkening coefficients per instrument					
-        ldc_q1_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
-        ldc_q2_TESS	0.5	1	uniform 0 1	$q_{1;\mathrm{TESS}}$	
-        ldc_q1_HATS	0.5	1	uniform 0 1	$q_{1;\mathrm{HATS}}$	
-        ldc_q2_HATS	0.5	1	uniform 0 1	$q_{2;\mathrm{HATS}}$	
-        ldc_q1_FTS_i	0.5	1	uniform 0 1	$q_{1;\mathrm{FTS_i}}$	
-        ldc_q2_FTS_i	0.5	1	uniform 0 1	$q_{2;\mathrm{FTS_i}}$	
-        ldc_q1_GROND_g	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_g}}$	
-        ldc_q2_GROND_g	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_g}}$	
-        ldc_q1_GROND_r	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_r}}$	
-        ldc_q2_GROND_r	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_r}}$	
-        ldc_q1_GROND_i	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_i}}$	
-        ldc_q2_GROND_i	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_i}}$	
-        ldc_q1_GROND_z	0.5	1	uniform 0 1	$q_{1;\mathrm{GROND_z}}$	
-        ldc_q2_GROND_z	0.5	1	uniform 0 1	$q_{2;\mathrm{GROND_z}}$	
-        #brightness per instrument per companion					
-        b_sbratio_TESS	0	0	none	$J_{b;\mathrm{TESS}}$	
-        b_sbratio_HATS	0	0	none	$J_{b;\mathrm{HATS}}$	
-        b_sbratio_FTS_i	0	0	none	$J_{b;\mathrm{FTS_i}}$	
-        b_sbratio_GROND_g	0	0	none	$J_{b;\mathrm{GROND_g}}$	
-        b_sbratio_GROND_r	0	0	none	$J_{b;\mathrm{GROND_r}}$	
-        b_sbratio_GROND_i	0	0	none	$J_{b;\mathrm{GROND_i}}$	
-        b_sbratio_GROND_z	0	0	none	$J_{b;\mathrm{GROND_z}}$	
-        #companion b astrophysical params					
-        b_rsuma	0.178	1	trunc_normal 0 1 0.178 0.066	$(R_\star + R_b) / a_b$	
-        b_rr	0.1011	1	trunc_normal 0 1 0.1011 0.0018	$R_b / R_\star$	
-        b_cosi	0.099	1	trunc_normal 0 1 0.099 0.105	$\cos{i_b}$	
-        b_epoch	2456155.967	1	trunc_normal 0 1e12 2456155.96734 0.00042 	$T_{0;b}$	$\mathrm{BJD}$
-        b_period	3.547851	1	trunc_normal 0 1e12 3.547851 1.5e-5	$P_b$	$\mathrm{d}$
-        b_K	0.1257	1	trunc_normal 0 1 0.1257 0.0471	$K_b$	$\mathrm{km/s}$
-        b_q	1	0	none	$M_b / M_\star$	
-        b_f_c	0	0	none	$\sqrt{e_b} \cos{\omega_b}$	
-        b_f_s	0	0	none	$\sqrt{e_b} \sin{\omega_b}$	
-        #TTVs					
-        ...
-        #Period changes					
-        b_pv_TESS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{TESS}$	$\mathrm{d}$
-        b_pv_HATS	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{HATS}$	$\mathrm{d}$
-        b_pv_FTS_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{FTS_i}$	$\mathrm{d}$
-        b_pv_GROND_g	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_g}$	$\mathrm{d}$
-        b_pv_GROND_r	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_r}$	$\mathrm{d}$
-        b_pv_GROND_i	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_i}$	$\mathrm{d}$
-        b_pv_GROND_z	0	0	trunc_normal -0.04 0.04 0 0.0007	$PV_\mathrm{GROND_i}$	$\mathrm{d}$
-        #errors (overall scaling) per instrument					
-        log_err_flux_TESS	-5.993	1	trunc_normal -23 0 -5.993 0.086	$\log{\sigma} (F_\mathrm{TESS})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_HATS	-4.972	1	trunc_normal -23 0 -4.972 0.099	$\log{\sigma} (F_\mathrm{HATS})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_FTS_i	-6	1	trunc_normal -23 0 -6.0 0.19	$\log{\sigma} (F_\mathrm{FTS_i})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_GROND_g	-7.2	1	trunc_normal -23 0 -7.20 0.26	$\log{\sigma} (F_\mathrm{GROND_g})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_GROND_r	-7.49	1	trunc_normal -23 0 -7.49 0.26	$\log{\sigma} (F_\mathrm{GROND_r})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_GROND_i	-7.47	1	trunc_normal -23 0 -7.47 0.28	$\log{\sigma} (F_\mathrm{GROND_i})$	$\log{\mathrm{(rel. flux)}}$
-        log_err_flux_GROND_z	-7.09	1	trunc_normal -23 0 -7.09 0.27	$\log{\sigma} (F_\mathrm{GROND_z})$	$\log{\mathrm{(rel. flux)}}$
-        log_jitter_rv_AAT	-2.7	1	trunc_normal -23 0 -2.7 1.8	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{AAT})$	$\log{\mathrm{km/s}}$
-        log_jitter_rv_Coralie	-2.7	1	trunc_normal -23 0 -2.7 1.5	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{Coralie})$	$\log{\mathrm{km/s}}$
-        log_jitter_rv_FEROS	-5	1	trunc_normal -23 0 -5 15	$\log{\sigma_\mathrm{jitter}} (RV_\mathrm{FEROS})$	$\log{\mathrm{km/s}}$
+        For the full list of options see www.allesfitter.com
         '''
-        
-        
     
+        #==========================================================================
+        #::: load params.csv
+        #==========================================================================   
         buf = np.genfromtxt(os.path.join(self.datadir,'params.csv'), delimiter=',',comments='#',dtype=None,encoding='utf-8',names=True)
-        
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: make backwards compatible --> THIS IS NOW DOWN BELOW
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        # for i, name in enumerate(np.atleast_1d(buf['name'])):
-        #     if name[:7]=='light_3':
-        #         buf['name'][i] = 'dil_'+name[8:]
-        
-        # for i, name in enumerate(np.atleast_1d(buf['name'])):
-        #     if name[:3]=='ldc':
-        #         buf['name'][i] = 'host_'+name
-        
+            
+           
+        #==========================================================================
+        #::: function to assure backwards compability
+        #==========================================================================
+        def backwards_compability(key_new, key_deprecated):
+            if key_deprecated in np.atleast_1d(buf['name']):
+                warnings.warn('You are using outdated keywords. Automatically renaming '+key_deprecated+' ---> '+key_new+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
+                ind = np.where(buf['name'] == key_deprecated)[0]
+                np.atleast_1d(buf['name'])[ind] = key_new
                 
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: proceed...      
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::              
+                
+        #==========================================================================
+        #::: luser-proof: backwards compability 
+        # (has to happend first thing and right inside buf['name'])
+        #==========================================================================
+        for inst in self.settings['inst_all']:
+            backwards_compability(key_new='host_ldc_q1_'+inst, key_deprecated='ldc_q1_'+inst)
+            backwards_compability(key_new='host_ldc_q2_'+inst, key_deprecated='ldc_q2_'+inst)
+            backwards_compability(key_new='host_ldc_q3_'+inst, key_deprecated='ldc_q3_'+inst)
+            backwards_compability(key_new='ln_err_flux_'+inst, key_deprecated='log_err_flux_'+inst)
+            backwards_compability(key_new='ln_jitter_rv_'+inst, key_deprecated='log_jitter_rv_'+inst)
+            backwards_compability(key_new='baseline_gp_matern32_lnsigma_flux_'+inst, key_deprecated='baseline_gp1_flux_'+inst)
+            backwards_compability(key_new='baseline_gp_matern32_lnrho_flux_'+inst, key_deprecated='baseline_gp2_flux_'+inst)
+            backwards_compability(key_new='baseline_gp_matern32_lnsigma_rv_'+inst, key_deprecated='baseline_gp1_rv_'+inst)
+            backwards_compability(key_new='baseline_gp_matern32_lnrho_rv_'+inst, key_deprecated='baseline_gp2_rv_'+inst)
+                   
+                    
+        #==========================================================================
+        #::: luser-proof: check for allowed keys to catch typos etc.
+        #==========================================================================  
+        #TODO
+                
+                
+        #==========================================================================
+        #::: set up stuff   
+        #==========================================================================          
         self.allkeys = np.atleast_1d(buf['name']) #len(all rows in params.csv)
         self.labels = np.atleast_1d(buf['label']) #len(all rows in params.csv)
         self.units = np.atleast_1d(buf['unit'])   #len(all rows in params.csv)
@@ -726,7 +609,6 @@ class Basement():
             self.truths = np.atleast_1d(buf['truth']) #len(all rows in params.csv)
         else:
             self.truths = np.nan * np.ones(len(self.allkeys))
-            
             
         self.params = collections.OrderedDict()                                #len(all rows in params.csv)
         self.params['user-given:'] = ''                                        #just for printing
@@ -739,9 +621,9 @@ class Basement():
                 self.params[key] = np.atleast_1d(buf['value'])[i]
                 
                 
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: automatically set default params if they were not given
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
+        #::: function to automatically set default params if they were not given
+        #==========================================================================
         def validate(key, default, default_min, default_max):
             if (key in self.params) and (self.params[key] is not None):
                 if (self.params[key] < default_min) or (self.params[key] > default_max):
@@ -749,8 +631,10 @@ class Basement():
             if (key not in self.params):
                 self.params[key] = default
             
-        
-        
+            
+        #==========================================================================
+        #::: go through all params
+        #==========================================================================
         self.params['automatically set:'] = ''                                 #just for printing
         for companion in self.settings['companions_all']:
             for inst in self.settings['inst_all']:
@@ -762,6 +646,7 @@ class Basement():
                 #::: frequently used parameters
                 validate(companion+'_rr', None, 0., np.inf)
                 validate(companion+'_rsuma', None, 0., np.inf)
+                validate(companion+'_cosi', 0., 0., 1.)
                 validate(companion+'_epoch', 0., -np.inf, np.inf)
                 validate(companion+'_period', 0., 0., np.inf)
                 validate(companion+'_sbratio_'+inst, 0., 0., np.inf)
@@ -769,8 +654,14 @@ class Basement():
                 validate(companion+'_f_s', 0., -1, 1)
                 validate(companion+'_f_c', 0., -1, 1)
                 validate('dil_'+inst, 0., -np.inf, np.inf)
-                validate('host_ldc_'+inst, None, 0, 1)
-                validate(companion+'_ldc_'+inst, None, 0, 1)
+                
+                #::: limb darkenings
+                validate('host_ldc_q1_'+inst, None, 0, 1)
+                validate('host_ldc_q2_'+inst, None, 0, 1)
+                validate('host_ldc_q3_'+inst, None, 0, 1)
+                validate(companion+'_ldc_q1_'+inst, None, 0, 1)
+                validate(companion+'_ldc_q2_'+inst, None, 0, 1)
+                validate(companion+'_ldc_q3_'+inst, None, 0, 1)
                 
                 #::: catch exceptions
                 if self.params[companion+'_period'] is None:
@@ -799,12 +690,24 @@ class Basement():
                 validate(companion+'_lambda_'+inst, None, -np.inf, np.inf)
                 validate(companion+'_vsini', None, -np.inf, np.inf)
         
-                #::: packaged parameters
+                #::: special parameters (list type)
                 if 'host_spots_'+inst not in self.params:
                     self.params['host_spots_'+inst] = None
                 if companion+'_spots_'+inst not in self.params:
                     self.params[companion+'_spots_'+inst] = None
                     
+                
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: errors and jitters
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #TODO: add validations for all errors / jitters
+                    
+                
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #::: baselines (and backwards compability)
+                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                #TODO: add validations for all baseline params
+                
                     
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: phase curve style: sine_series
@@ -814,15 +717,16 @@ class Basement():
                 # B2 (ellipsoidal)
                 # B3 (ellipsoidal 2nd order)
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                validate(companion+'_phase_curve_A1_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_B1_'+inst, None, -np.inf, 0.)
-                validate(companion+'_phase_curve_B1_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_B1t_'+inst, None, -np.inf, 0.)
-                validate(companion+'_phase_curve_B1t_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_B1r_'+inst, None, -np.inf, 0.)
-                validate(companion+'_phase_curve_B1r_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_B2_'+inst, None, -np.inf, 0.)
-                validate(companion+'_phase_curve_B3_'+inst, None, -np.inf, 0.)
+                if (self.settings['phase_curve_style'] == 'sine_series') and (inst in self.settings['companions_phot']):
+                    validate(companion+'_phase_curve_A1_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_B1_'+inst, None, -np.inf, 0.)
+                    validate(companion+'_phase_curve_B1_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_B1t_'+inst, None, -np.inf, 0.)
+                    validate(companion+'_phase_curve_B1t_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_B1r_'+inst, None, -np.inf, 0.)
+                    validate(companion+'_phase_curve_B1r_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_B2_'+inst, None, -np.inf, 0.)
+                    validate(companion+'_phase_curve_B3_'+inst, None, -np.inf, 0.)
 
                                        
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -832,31 +736,18 @@ class Basement():
                 # B2 (ellipsoidal)
                 # B3 (ellipsoidal 2nd order)  
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                validate(companion+'_phase_curve_beaming_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_atmospheric_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_atmospheric_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_atmospheric_thermal_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_atmospheric_thermal_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_atmospheric_reflected_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_atmospheric_reflected_shift_'+inst, 0., -np.inf, np.inf)
-                validate(companion+'_phase_curve_ellipsoidal_'+inst, None, 0., np.inf)
-                validate(companion+'_phase_curve_ellipsoidal_2nd_'+inst, None, 0., np.inf)
+                if (self.settings['phase_curve_style'] == 'sine_physical') and (inst in self.settings['companions_phot']):
+                    validate(companion+'_phase_curve_beaming_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_atmospheric_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_atmospheric_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_atmospheric_thermal_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_atmospheric_thermal_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_atmospheric_reflected_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_atmospheric_reflected_shift_'+inst, 0., -np.inf, np.inf)
+                    validate(companion+'_phase_curve_ellipsoidal_'+inst, None, 0., np.inf)
+                    validate(companion+'_phase_curve_ellipsoidal_2nd_'+inst, None, 0., np.inf)
                 
-                    
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                #::: calculate number of spots
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#                self.settings['host_N_spots_'+inst] = int( sum('host_spot_'+inst in s for s in self.params.keys())/4. )
-#                self.settings[companion+'_N_spots_'+inst] = int( sum(companion+'_spots_'+inst in s for s in self.params.keys())/4. )
-                    
                 
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                #::: ttvs
-                #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#                if 'ttv_'+inst not in self.params:
-#                    self.params['ttv_'+inst] = 0.
-                    
-                    
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: to avoid a bug/feature in ellc, if either property is >0, set the other to 1-15 (not 0):
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -870,69 +761,42 @@ class Basement():
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: luser proof: avoid conflicting/degenerate phase curve commands
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                phase_curve_model_1 = (self.params[companion+'_phase_curve_B1_'+inst] is not None)
-                phase_curve_model_2 = ((self.params[companion+'_phase_curve_B1t_'+inst] is not None) or (self.params[companion+'_phase_curve_B1r_'+inst] is not None))
-                phase_curve_model_3 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)
-                phase_curve_model_4 = ((self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None) or (self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None))
-                phase_curve_model_5 = ((self.params['host_bfac_'+inst] is not None) or (self.params['host_heat_'+inst] is not None) or \
-                                       (self.params['host_gdc_'+inst] is not None) or (self.settings['host_shape_'+inst]!='sphere') or \
-                                       (self.params[companion+'_bfac_'+inst] is not None) or (self.params[companion+'_heat_'+inst] is not None) or \
-                                       (self.params[companion+'_gdc_'+inst] is not None) or (self.settings[companion+'_shape_'+inst]!='sphere'))
-                if (phase_curve_model_1 + phase_curve_model_2 + phase_curve_model_3 + phase_curve_model_4 + phase_curve_model_5) > 1:
-                    raise ValueError('You can use either\n'\
-                                     +'1) the sine_series phase curve model with "*_phase_curve_B1_*",\n'\
-                                     +'2) the sine_series phase curve model with "*_phase_curve_B1t_*" and "*_phase_curve_B1r_*", or\n'\
-                                     +'3) the sine_physical phase curve model with "*_phase_curve_atmospheric_*",\n'\
-                                     +'4) the sine_physical phase curve model with "*_phase_curve_atmospheric_thermal_*" and "*_phase_curve_atmospheric_reflected_*", or\n'\
-                                     +'5) the ellc_physical phase curve model with "*_bfac_*", "*_heat_*", "*_gdc_*" etc.\n'\
-                                     +'but you shall not pass with a mix&match.')
+                if (self.settings['phase_curve'] == True):
+                    phase_curve_model_1 = (self.params[companion+'_phase_curve_B1_'+inst] is not None)
+                    phase_curve_model_2 = ((self.params[companion+'_phase_curve_B1t_'+inst] is not None) or (self.params[companion+'_phase_curve_B1r_'+inst] is not None))
+                    phase_curve_model_3 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)
+                    phase_curve_model_4 = ((self.params[companion+'_phase_curve_atmospheric_thermal_'+inst] is not None) or (self.params[companion+'_phase_curve_atmospheric_reflected_'+inst] is not None))
+                    phase_curve_model_5 = ((self.params['host_bfac_'+inst] is not None) or (self.params['host_heat_'+inst] is not None) or \
+                                           (self.params['host_gdc_'+inst] is not None) or (self.settings['host_shape_'+inst]!='sphere') or \
+                                           (self.params[companion+'_bfac_'+inst] is not None) or (self.params[companion+'_heat_'+inst] is not None) or \
+                                           (self.params[companion+'_gdc_'+inst] is not None) or (self.settings[companion+'_shape_'+inst]!='sphere'))
+                    if (phase_curve_model_1 + phase_curve_model_2 + phase_curve_model_3 + phase_curve_model_4 + phase_curve_model_5) > 1:
+                        raise ValueError('You can use either\n'\
+                                         +'1) the sine_series phase curve model with "*_phase_curve_B1_*",\n'\
+                                         +'2) the sine_series phase curve model with "*_phase_curve_B1t_*" and "*_phase_curve_B1r_*", or\n'\
+                                         +'3) the sine_physical phase curve model with "*_phase_curve_atmospheric_*",\n'\
+                                         +'4) the sine_physical phase curve model with "*_phase_curve_atmospheric_thermal_*" and "*_phase_curve_atmospheric_reflected_*", or\n'\
+                                         +'5) the ellc_physical phase curve model with "*_bfac_*", "*_heat_*", "*_gdc_*" etc.\n'\
+                                         +'but you shall not pass with a mix&match.')
                     
-       
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: luser proof: backwards compatability
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for inst in self.settings['inst_all']: 
-            if inst in self.settings['inst_phot']: kkey='flux'
-            elif inst in self.settings['inst_rv']: kkey='rv'
-            
-            if 'baseline_gp1_'+kkey+'_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+'baseline_gp1_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnsigma_'+kkey+'_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['baseline_gp_matern32_lnsigma_'+kkey+'_'+inst] = 1.*self.params['baseline_gp1_'+kkey+'_'+inst]
-
-            if 'baseline_gp2_'+kkey+'_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming '+'baseline_gp2_'+kkey+'_'+inst+' ---> '+'baseline_gp_matern32_lnrho_'+kkey+'_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['baseline_gp_matern32_lnrho_'+kkey+'_'+inst]   = 1.*self.params['baseline_gp2_'+kkey+'_'+inst]
-
-            if 'ldc_q1_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming ldc_q1_'+inst+' ---> host_ldc_q1_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['host_ldc_q1_'+inst] = self.params['ldc_q1_'+inst]
-                    
-            if 'ldc_q2_'+inst in self.params:
-                warnings.warn('You are using outdated keywords. Automatically renaming ldc_q2_'+inst+' ---> host_ldc_q2_'+inst+'. Please fix this before the Duolingo owl comes to get you.', category=DeprecationWarning)
-                self.params['host_ldc_q2_'+inst] = self.params['ldc_q2_'+inst]
-                
-        
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                        
+        #==========================================================================
         #::: coupled params
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
         if 'coupled_with' in buf.dtype.names:
             self.coupled_with = buf['coupled_with']
         else:
             self.coupled_with = [None]*len(self.allkeys)
             
-            
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #::: deal with coupled params
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         for i, key in enumerate(self.allkeys):
             if isinstance(self.coupled_with[i], str) and (len(self.coupled_with[i])>0):
                 self.params[key] = self.params[self.coupled_with[i]]           #luser proof: automatically set the values of the params coupled to another param
                 buf['fit'][i] = 0                                              #luser proof: automatically set fit=0 for the params coupled to another param
         
         
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
         #::: mark to be fitted params
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
         self.ind_fit = (buf['fit']==1)                  #len(all rows in params.csv)
         
         self.fitkeys = buf['name'][ self.ind_fit ]      #len(ndim)
@@ -958,9 +822,10 @@ class Basement():
         self.ndim = len(self.theta_0)                   #len(ndim)
 
     
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
         #::: luser proof: check if all initial guesses lie within their bounds
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #==========================================================================
+        #TODO: make this part of the validate() function
         for th, b, key in zip(self.theta_0, self.bounds, self.fitkeys):
                   
             #:::: test bounds
@@ -991,7 +856,6 @@ class Basement():
                     raise ValueError('User aborted the run.')
             
             
-    
 
     ###############################################################################
     #::: load data
@@ -1081,7 +945,7 @@ class Basement():
     ###############################################################################
     #::: change epoch
     ###############################################################################
-    
+
     def my_truncnorm_isf(q,a,b,mean,std):
         a_scipy = 1.*(a - mean) / std
         b_scipy = 1.*(b - mean) / std
@@ -1303,7 +1167,6 @@ class Basement():
             
                 
                 
-            
     ###############################################################################
     #::: stellar priors
     ###############################################################################

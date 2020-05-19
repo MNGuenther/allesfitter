@@ -39,7 +39,8 @@ from .utils import latex_printer
 from .computer import update_params,\
                      calculate_model, rv_fct, flux_fct,\
                      calculate_baseline,calculate_stellar_var,\
-                     calculate_yerr_w
+                     calculate_yerr_w,\
+                     flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves import lightcurve_tools as lct
 from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
                     
@@ -653,13 +654,22 @@ def plot_1(ax, samples, inst, companion, style,
                 ax.set( xlim=[xlower, xupper], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         
         
-        #::: y-zoom onto phase variations
-        elif style in ['phasezoom_occ']:
-                ax.set( ylim=[0.999,1.0005] )
+        #::: y-zoom onto occultation and phase variations
+        if style in ['phasezoom_occ']:
+                # try:
+            buf = phase_y[phase_time>0.25] #TODO: replace with proper eclipse indexing
+            def nanptp(arr): return np.nanmax(arr)-np.nanmin(arr)
+            ax.set( ylim=[np.nanmin(buf)-0.1*nanptp(buf), np.nanmax(buf)+0.1*nanptp(buf)] )
+                # except:
+                #     ax.set( ylim=[0.999,1.0005] )
        
         if style in ['phase_curve', 
                      'phase_curve_residuals']:
-                ax.set( ylim=[0.999,1.001] )
+                try:
+                    phase_curve_no_dips = flux_subfct_sinusoidal_phase_curves(params_median, inst, companion, np.ones_like(xx), xx=xx)
+                    ax.set(ylim=[np.min(phase_curve_no_dips)-0.1*np.ptp(phase_curve_no_dips), np.max(phase_curve_no_dips)+0.1*np.ptp(phase_curve_no_dips)])
+                except:
+                    ax.set( ylim=[0.999,1.001] )
 
 
 

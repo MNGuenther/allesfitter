@@ -40,8 +40,9 @@ except ImportError:
 
 #allesfitter modules
 from . import config
+from .limb_darkening import LDC3
 from .flares.aflare import aflare1
-from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
+# from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 
 
 '''
@@ -146,11 +147,10 @@ def update_params(theta):
             params['host_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
             
         elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
-            raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
-            
+            params['host_ldc_'+inst] = LDC3.forward([params['host_ldc_q1_'+inst], params['host_ldc_q2_'+inst], params['host_ldc_q3_'+inst]])
+
         else:
-            print(config.BASEMENT.settings['host_ld_law_'+inst] )
-            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported, but "+config.BASEMENT.settings['host_ld_law_'+inst]+" was input.")
     
     
         #---------------------------------------------------------------------
@@ -170,11 +170,10 @@ def update_params(theta):
                 params[companion+'_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
                 
             elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'sing':
-                raise ValueError("Sorry, I have not yet implemented the Sing limb darkening law.")
+                params[companion+'_ldc_'+inst] = LDC3.forward([params[companion+'_ldc_q1_'+inst], params[companion+'_ldc_q2_'+inst], params[companion+'_ldc_q3_'+inst]])
                 
             else:
-                print(config.BASEMENT.settings[companion+'_ld_law_'+inst] )
-                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
+                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported, but "+config.BASEMENT.settings[companion+'_ld_law_'+inst]+" was input.")
     
     
     #=========================================================================
@@ -182,7 +181,7 @@ def update_params(theta):
     #=========================================================================
     for inst in config.BASEMENT.settings['inst_phot']:
         key='flux'
-        params['err_'+key+'_'+inst] = np.exp( params['log_err_'+key+'_'+inst] )
+        params['err_'+key+'_'+inst] = np.exp( params['ln_err_'+key+'_'+inst] )
         
         
     #=========================================================================
@@ -190,7 +189,7 @@ def update_params(theta):
     #=========================================================================
     for inst in config.BASEMENT.settings['inst_rv']:
         key='rv'
-        params['jitter_'+key+'_'+inst] = np.exp( params['log_jitter_'+key+'_'+inst] )
+        params['jitter_'+key+'_'+inst] = np.exp( params['ln_jitter_'+key+'_'+inst] )
         
         
     #=========================================================================
@@ -995,13 +994,15 @@ def calculate_external_priors(params):
             lnp = -np.inf
         
         #::: avoid collisions
-        if not (params[companion+'_ecc'] < (1. - params[companion+'_rsuma'])): 
+        if (params[companion+'_rsuma'] is not None) \
+            and not ((params[companion+'_ecc'] < (1. - params[companion+'_rsuma']))): 
             lnp = -np.inf
             
         # ::: avoid tidal circularizaion
-        if config.BASEMENT.settings['use_tidal_eccentricity_prior'] is True:
-            if not (params[companion+'_ecc'] < (1. - 3*params[companion+'_radius_1'])): 
-                lnp = -np.inf
+        if (params[companion+'_radius_1'] is not None) \
+            and (config.BASEMENT.settings['use_tidal_eccentricity_prior'] is True) \
+            and not (params[companion+'_ecc'] < (1. - 3*params[companion+'_radius_1'])): 
+            lnp = -np.inf
             
     #::: constrain dilution to avoid ellc crashes
     for inst in config.BASEMENT.settings['inst_all']:
