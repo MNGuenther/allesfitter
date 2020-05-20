@@ -378,10 +378,10 @@ def derive(samples, mode):
         #----------------------------------------------------------------------
         for inst in config.BASEMENT.settings['inst_phot']:
             dil = get_params('dil_'+inst)
-            if np.isnan(dil): dil = 0
+            if all(np.atleast_1d(np.isnan(dil))): dil = 0
             derived_samples[companion+'_depth_tr_undil_'+inst] = derived_samples[companion+'_depth_tr_dil_'+inst] / (1. - dil) #in ppt
-            derived_samples[companion+'_depth_occ_undil_'+inst] = derived_samples[companion+'_depth_occ_dil_'+inst] / (1. - dil) #in ppm
-            derived_samples[companion+'_nightside_flux_undil_'+inst] = derived_samples[companion+'_nightside_flux_dil_'+inst] / (1. - dil) #in ppm
+            derived_samples[companion+'_depth_occ_undil_'+inst] = derived_samples[companion+'_depth_occ_dil_'+inst] / (1. - dil) #in ppt
+            derived_samples[companion+'_nightside_flux_undil_'+inst] = derived_samples[companion+'_nightside_flux_dil_'+inst] / (1. - dil) #in ppt
 
         
         #----------------------------------------------------------------------
@@ -397,7 +397,6 @@ def derive(samples, mode):
         #::: stellar density from orbit
         #----------------------------------------------------------------------
         if companion in config.BASEMENT.settings['companions_phot']:
-            print(companion, get_params(companion+'_rr'))
             if all(np.atleast_1d(get_params(companion+'_rr'))<0.215443469): #see computer.py; get_params could return np.nan (float) or array; all(np.atleast_1d(...)) takes care of that
                 derived_samples[companion+'_host_density'] = 3. * np.pi * (1./derived_samples[companion+'_R_star/a'])**3. / (get_params(companion+'_period')*86400.)**2 / 6.67408e-8 #in cgs
   
@@ -455,7 +454,6 @@ def derive(samples, mode):
                     derived_samples['host_ldc_u3_'+inst][i] = u3
                 
             else:
-                print(config.BASEMENT.settings['host_ld_law_'+inst] )
                 raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
             
         
@@ -596,12 +594,8 @@ def derive(samples, mode):
             labels.append( 'Limb darkening; $u_\mathrm{3; '+inst+'}$' )
             
         else:
-            print(config.BASEMENT.settings['host_ld_law_'+inst] )
             raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported.")
                 
-        names.append( companion+'_ampl_gdc_diluted_'+inst )
-        labels.append( 'Gravity darkening; $A_\mathrm{grav. dark.; dil; '+inst+'}$ (ppm)' )
-        
         
     names.append( 'combined_host_density' )
     labels.append( 'Combined host density from all orbits; $rho_\mathrm{\star; combined}$ (cgs)' )

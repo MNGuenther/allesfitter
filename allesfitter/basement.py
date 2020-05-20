@@ -83,7 +83,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
-        self.logprint('v1.1.1')
+        self.logprint('v1.1.1b')
         
         self.load_settings()
         self.load_params()
@@ -717,7 +717,8 @@ class Basement():
                 # B2 (ellipsoidal)
                 # B3 (ellipsoidal 2nd order)
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if (self.settings['phase_curve_style'] == 'sine_series') and (inst in self.settings['companions_phot']):
+                # if (self.settings['phase_curve_style'] == 'sine_series') and (inst in self.settings['inst_phot']):
+                if (inst in self.settings['inst_phot']):
                     validate(companion+'_phase_curve_A1_'+inst, None, 0., np.inf)
                     validate(companion+'_phase_curve_B1_'+inst, None, -np.inf, 0.)
                     validate(companion+'_phase_curve_B1_shift_'+inst, 0., -np.inf, np.inf)
@@ -736,7 +737,8 @@ class Basement():
                 # B2 (ellipsoidal)
                 # B3 (ellipsoidal 2nd order)  
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if (self.settings['phase_curve_style'] == 'sine_physical') and (inst in self.settings['companions_phot']):
+                # if (self.settings['phase_curve_style'] == 'sine_physical') and (inst in self.settings['inst_phot']):
+                if (inst in self.settings['inst_phot']):
                     validate(companion+'_phase_curve_beaming_'+inst, None, 0., np.inf)
                     validate(companion+'_phase_curve_atmospheric_'+inst, None, 0., np.inf)
                     validate(companion+'_phase_curve_atmospheric_shift_'+inst, 0., -np.inf, np.inf)
