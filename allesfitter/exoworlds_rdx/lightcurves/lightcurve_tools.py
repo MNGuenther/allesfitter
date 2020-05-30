@@ -178,10 +178,34 @@ def calc_phase(hjd, P, Tprim):
     
     
     
-def phase_fold(time, flux, P, Tprim, dt = 0.02, ferr_type='medsig', ferr_style='std', sigmaclip=False):
-    phi = calc_phase( time, P, Tprim )
-    phi[ phi>0.75 ] -= 1.
+def phase_fold(time, flux, P, Tprim, dt = 0.02, ferr_type='medsig', ferr_style='std', phase_range='[-0.25,0.75]', sigmaclip=False):
+    phi = calc_phase( time, P, Tprim ) 
+    phi[ phi>0.75 ] -= 1.   
     phase, phaseflux, phaseflux_err, N = rebin_err( phi, flux, None, dt=dt, phasefolded=True, ferr_type=ferr_type, ferr_style=ferr_style, sigmaclip=sigmaclip )    
+    
+    if phase_range=='[-0.25,0.75]':     
+        pass       
+    
+    elif phase_range=='[0,1]':
+        phase[ phase<0. ] += 1.   
+        ind = np.argsort(phase)
+        phase = phase[ind]
+        phaseflux = phaseflux[ind]
+        phaseflux_err = phaseflux_err[ind]
+        
+    elif phase_range=='[0,2]':
+        phase[ phase<0. ] += 1.   
+        phase = np.append(phase, phase+1)
+        phaseflux = np.append(phaseflux, phaseflux) 
+        phaseflux_err = np.append(phaseflux_err, phaseflux_err) 
+        ind = np.argsort(phase)
+        phase = phase[ind]
+        phaseflux = phaseflux[ind]
+        phaseflux_err = phaseflux_err[ind]
+        
+    else:
+        raise ValueError('phase_range not recognized.')
+    
     return phase, phaseflux, phaseflux_err, N, phi
     
 

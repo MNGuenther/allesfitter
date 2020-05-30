@@ -327,7 +327,10 @@ def mcmc_output(datadir, quiet=False):
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)
-    fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
+    try: #some matplotlib versions cannot handle jpg
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.jpg'), bbox_inches='tight' )
+    except:
+        fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_chains.png'), bbox_inches='tight' )
     plt.close(fig)
 
 

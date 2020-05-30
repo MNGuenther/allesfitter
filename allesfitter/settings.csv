@@ -1,0 +1,96 @@
+#name,value
+###############################################################################,
+# General settings,
+###############################################################################,
+companions_phot,B
+companions_rv,
+inst_phot,Leonardo
+inst_rv,
+###############################################################################,
+# Fit performance settings,
+###############################################################################,
+multiprocess,True
+multiprocess_cores,12
+fast_fit,False
+fast_fit_width,
+secondary_eclipse,True
+phase_curve,True
+shift_epoch,True
+inst_for_B_epoch,all
+###############################################################################,
+# MCMC settings,
+###############################################################################,
+mcmc_nwalkers,100
+mcmc_total_steps,2000
+mcmc_burn_steps,1000
+mcmc_thin_by,1
+###############################################################################,
+# Nested Sampling settings,
+###############################################################################,
+ns_modus,dynamic
+ns_nlive,500
+ns_bound,single
+ns_sample,rwalk
+ns_tol,0.01
+###############################################################################,
+# Limb darkening law per object and instrument,
+# if 'lin' one corresponding parameter called 'ldc_q1_inst' has to be given in params.csv,
+# if 'quad' two corresponding parameter called 'ldc_q1_inst' and 'ldc_q2_inst' have to be given in params.csv,
+# if 'sing' three corresponding parameter called 'ldc_q1_inst'; 'ldc_q2_inst' and 'ldc_q3_inst' have to be given in params.csv,
+###############################################################################,
+host_ld_law_Leonardo,quad
+B_ld_law_Leonardo,quad
+###############################################################################,
+# Baseline settings per instrument,
+# baseline params per instrument: sample_offset / sample_linear / sample_GP / hybrid_offset / hybrid_poly_1 / hybrid_poly_2 / hybrid_poly_3 / hybrid_pol_4 / hybrid_spline / hybrid_GP,
+# if 'sample_offset' one corresponding parameter called 'baseline_offset_key_inst' has to be given in params.csv,
+# if 'sample_linear' two corresponding parameters called 'baseline_a_key_inst' and 'baseline_b_key_inst' have to be given in params.csv,
+# if 'sample_GP' two corresponding parameters called 'baseline_gp1_key_inst' and 'baseline_gp2_key_inst' have to be given in params.csv,
+###############################################################################,
+baseline_flux_Leonardo,hybrid_offset
+###############################################################################,
+# Error settings per instrument,
+# errors (overall scaling) per instrument: sample / hybrid,
+# if 'sample' one corresponding parameter called 'ln_err_key_inst' (photometry) or 'ln_jitter_key_inst' (RV) has to be given in params.csv,
+###############################################################################,
+error_flux_Leonardo,sample
+###############################################################################,
+# Exposure times for interpolation,
+# needs to be in the same units as the time series,
+# if not given the observing times will not be interpolated leading to biased results,
+###############################################################################,
+t_exp_Leonardo,
+###############################################################################,
+# Number of points for exposure interpolation,
+# Sample as fine as possible; generally at least with a 2 min sampling for photometry,
+# n_int=5 was found to be a good number of interpolation points for any short photometric cadence t_exp;,
+# increase to at least n_int=10 for 30 min phot. cadence,
+# the impact on RV is not as drastic and generally n_int=5 is fine enough,
+###############################################################################,
+t_exp_n_int_Leonardo,
+###############################################################################,
+# Number of spots per object and instrument,
+###############################################################################,
+host_N_spots_Leonardo,1
+###############################################################################,
+# Number of flares (in total),
+###############################################################################,
+N_flares,
+###############################################################################,
+# TTVs,
+###############################################################################,
+fit_ttvs,False
+###############################################################################,
+# Stellar grid per object and instrument,
+###############################################################################,
+host_grid_Leonardo,default
+B_grid_Leonardo,default
+###############################################################################,
+# Stellar shape per object and instrument,
+###############################################################################,
+host_shape_Leonardo,sphere
+B_shape_Leonardo,sphere
+###############################################################################,
+# Flux weighted RVs per object and instrument,
+# ("Yes" for Rossiter-McLaughlin effect),
+###############################################################################,

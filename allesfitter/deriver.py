@@ -646,7 +646,7 @@ def derive(samples, mode):
                 f.write( label + ' & $' + value + '$ & derived \\\\ \n' )
                 
                 simplename = name.replace("_", "").replace("/", "over").replace("(", "").replace(")", "").replace("1", "one").replace("2", "two")
-                f_cmd.write('\\newcommand{\\'+simplename+'}{$'+value+'$} %'+label+' = '+value+'\n')
+                f_cmd.write('\\newcommand{\\'+simplename+'}{$'+value+'$} %'+label+' = $'+value+'$\n')
                 
         logprint('\nSaved '+mode+'_derived_results.csv, '+mode+'_derived_latex_table.txt, and '+mode+'_derived_latex_cmd.txt')
         
@@ -696,7 +696,10 @@ def derive(samples, mode):
                 caxes.yaxis.set_label_coords(-0.5, 0.5)
         
         dpi = np.max(( 100. - len(names), 50 ))
-        fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=dpi, bbox_inches='tight' )
+        try: #some matplitlib versions cannot handle jpg
+            fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.jpg'), dpi=dpi, bbox_inches='tight' )
+        except:
+            fig.savefig( os.path.join(config.BASEMENT.outdir,mode+'_derived_corner.png'), bbox_inches='tight' )
         plt.close(fig)
         
         

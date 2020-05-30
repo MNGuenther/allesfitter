@@ -83,7 +83,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
-        self.logprint('v1.1.1b')
+        self.logprint('v1.1.1c')
         
         self.load_settings()
         self.load_params()
@@ -429,11 +429,11 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         if is_empty_or_none('phase_curve_style'):
             self.settings['phase_curve_style'] = None
-        if self.settings['phase_curve_style'] not in [None, 'sine_series', 'sine_physical', 'ellc_physical']:
-            raise ValueError("The setting 'phase_curve_style' must be one of [None, 'sine_series', 'sine_physical', 'ellc_physical'], but was '"+str(self.settings['phase_curve_style'])+"'.")
+        if self.settings['phase_curve_style'] not in [None, 'sine_series', 'sine_physical', 'ellc_physical', 'GP']:
+            raise ValueError("The setting 'phase_curve_style' must be one of [None, 'sine_series', 'sine_physical', 'ellc_physical', 'GP'], but was '"+str(self.settings['phase_curve_style'])+"'.")
         if (self.settings['phase_curve'] is True) and (self.settings['phase_curve_style'] is None):
-            raise ValueError("You chose 'phase_curve=True' but did not select a 'phase_curve_style'; please select one of ['sine_series', 'sine_physical', 'ellc_physical'].")
-        if (self.settings['phase_curve'] is False) and (self.settings['phase_curve_style'] in ['sine_series', 'sine_physical', 'ellc_physical']):
+            raise ValueError("You chose 'phase_curve=True' but did not select a 'phase_curve_style'; please select one of ['sine_series', 'sine_physical', 'ellc_physical', 'GP'].")
+        if (self.settings['phase_curve'] is False) and (self.settings['phase_curve_style'] in ['sine_series', 'sine_physical', 'ellc_physical', 'GP']):
            raise ValueError("You chose 'phase_curve=False' but also selected a 'phase_curve_style'; please double check and set 'phase_curve_style=None' (or remove it).")
                                
             

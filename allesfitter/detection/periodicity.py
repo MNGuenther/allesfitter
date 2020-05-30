@@ -40,7 +40,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 ###############################################################################
 #::: run a periodogram via astropy to get the dominant period and FAP
 ###############################################################################
-def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=None, options=None):
+def estimate_period(time, flux, flux_err, periodogram_kwargs=None, astropy_kwargs=None, wotan_kwargs=None, options=None):
     
     #==========================================================================
     #::: handle inputs
@@ -51,11 +51,8 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=
     if 'minperiod' not in periodogram_kwargs: periodogram_kwargs['minperiod'] = 10. * cadence
     if 'maxperiod' not in periodogram_kwargs: periodogram_kwargs['maxperiod'] = time[-1]-time[0]
     
-    if options is None: options = {}
-    if 'show_plot' not in options: options['show_plot'] = False
-    if 'save_plot' not in options: options['save_plot'] = False
-    if 'fname_plot' not in options: options['fname_plot'] = 'periodogram'
-    if 'outdir' not in options: options['outdir'] = '.'
+    if astropy_kwargs is None: astropy_kwargs = {}
+    if 'sigma' not in astropy_kwargs: astropy_kwargs['sigma'] = 5
     
     if wotan_kwargs is None: wotan_kwargs = {}
     if 'slide_clip' not in wotan_kwargs: wotan_kwargs['slide_clip'] = {}
@@ -63,6 +60,12 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=
     if 'low' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['low'] = 5
     if 'high' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['high'] = 5
 
+    if options is None: options = {}
+    if 'show_plot' not in options: options['show_plot'] = False
+    if 'save_plot' not in options: options['save_plot'] = False
+    if 'fname_plot' not in options: options['fname_plot'] = 'periodogram'
+    if 'outdir' not in options: options['outdir'] = '.'
+    
     minfreq = 1./periodogram_kwargs['maxperiod']
     maxfreq = 1./periodogram_kwargs['minperiod']
     
@@ -70,15 +73,18 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=
     #==========================================================================
     #::: first, a global 5 sigma clip
     #==========================================================================
-    ff = sigma_clip(flux, sigma=5)
+    ff = sigma_clip(flux, sigma=astropy_kwargs['sigma'])
     # ff /= np.ma.median(ff)
     
     
     #==========================================================================
     #::: slide clip (1 day, 5 sigma)
     #==========================================================================
-    ff = slide_clip(time, ff, **wotan_kwargs['slide_clip'])
-    # ff /= np.nanmedian(ff)
+    try:
+        ff = slide_clip(time, ff, **wotan_kwargs['slide_clip'])
+        # ff /= np.nanmedian(ff)
+    except:
+        print('Wotan failed and was skipped.')
         
     
     #==========================================================================
@@ -105,12 +111,12 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=
         axes = np.atleast_1d(axes)
         
         ax = axes[0]       
-        ax.plot(time, flux, 'r.')
-        ax.plot(time, ff, 'b.')
+        ax.plot(time, flux, 'r.', rasterized=True)
+        ax.plot(time, ff, 'b.', rasterized=True)
         ax.set(xlabel='Time (BJD)', ylabel='Flux')
         
         ax = axes[1]       
-        ax.plot(time, ff, 'b.')
+        ax.plot(time, ff, 'b.', rasterized=True)
         ax.set(xlabel='Time (BJD)', ylabel='Flux (clipped)')
         
         ax = axes[2]        
@@ -135,6 +141,7 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, wotan_kwargs=
         ax.set(ylabel='Flux (clipped; y-zoom)')
         
         if options['save_plot']:
+            if not os.path.exists(options['outdir']): os.makedirs(options['outdir'])
             fig.savefig(os.path.join(options['outdir'],options['fname_plot']+'.pdf'), bbox_inches='tight')
         if options['show_plot']:
             plt.show(fig)

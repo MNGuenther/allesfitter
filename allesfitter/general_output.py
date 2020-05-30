@@ -837,9 +837,6 @@ def save_latex_table(samples, mode):
     '''
     
     params_median, params_ll, params_ul = get_params_from_samples(samples)
-    label = 'none'
-    
-#    derived_samples['a_AU'] = derived_samples['a']*0.00465047 #from Rsun to AU
         
     with open(os.path.join(config.BASEMENT.outdir,mode+'_latex_table.txt'),'w') as f,\
          open(os.path.join(config.BASEMENT.outdir,mode+'_latex_cmd.txt'),'w') as f_cmd:
@@ -853,12 +850,20 @@ def save_latex_table(samples, mode):
             if key not in config.BASEMENT.fitkeys:                
                 value = str(params_median[key])
                 f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & '  + config.BASEMENT.units[i] + '& fixed \\\\ \n')            
-                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$'+value+'$} %'+label+' = '+value+'\n')
+                simplename = key.replace("_", "").replace("/", "over").replace("(", "").replace(")", "").replace("1", "one").replace("2", "two").replace("3", "three")
+                comment = config.BASEMENT.labels[i] + '$=' + value + '$ ' + config.BASEMENT.units[i]
+                comment = comment.replace("$$","")
+                f_cmd.write('\\newcommand{\\'+simplename+'}{$'+value+'$} %'+comment+'\n')
+                # f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$'+value+'$} %'+label+' = '+value+'\n')
 
             else:            
                 value = latex_printer.round_tex(params_median[key], params_ll[key], params_ul[key])
                 f.write(config.BASEMENT.labels[i] + ' & $' + value + '$ & ' + config.BASEMENT.units[i] + '& fit \\\\ \n' )
-                f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$='+value+'$} %'+label+' = '+value+'\n')
+                simplename = key.replace("_", "").replace("/", "over").replace("(", "").replace(")", "").replace("1", "one").replace("2", "two").replace("3", "three")
+                comment = config.BASEMENT.labels[i] + '$=' + value + '$ ' + config.BASEMENT.units[i]
+                comment = comment.replace("$$","")
+                f_cmd.write('\\newcommand{\\'+simplename+'}{$'+value+'$} %'+comment+'\n')
+                 # f_cmd.write('\\newcommand{\\'+key.replace("_", "")+'}{$='+value+'$} %'+label+' = '+value+'\n')
 
 
     
