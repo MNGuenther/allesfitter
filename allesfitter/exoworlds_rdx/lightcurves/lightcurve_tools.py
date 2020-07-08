@@ -237,7 +237,8 @@ def plot_phase_folded_lightcurve(time, flux, period, epoch, ax=None, xlim=[-0.25
         ax.set_ylabel( 'Flux' )
         ax.set_xlabel( 'Phase' )
         ax.set_xlim(xlim)
-        ax.set_ylim([ np.nanmin(phaseflux-2*phaseflux_err), np.nanmax(phaseflux+2*phaseflux_err) ])
+        try: ax.set_ylim([ np.nanmin(phaseflux-2*phaseflux_err), np.nanmax(phaseflux+2*phaseflux_err) ])
+        except: pass
 #        ax.axvline(0,color='k')
 #        ax.axvline(0.5,color='k')
     

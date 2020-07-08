@@ -165,11 +165,11 @@ def fill_params(params=None, settings=None):
             if companion+'_bfac_'+inst not in params:
                 params[companion+'_bfac_'+inst] = None
                 
-            if 'host_atmo_'+inst not in params:
-                params['host_atmo_'+inst] = None
+            if 'host_heat_'+inst not in params:
+                params['host_heat_'+inst] = None
                 
-            if companion+'_atmo_'+inst not in params:
-                params[companion+'_atmo_'+inst] = None
+            if companion+'_heat_'+inst not in params:
+                params[companion+'_heat_'+inst] = None
                 
             if 'host_lambda_'+inst not in params:
                 params['host_lambda_'+inst] = None
@@ -236,6 +236,12 @@ def fill_settings(settings=None):
         
     if 'inst_rv' not in settings:
         settings['inst_rv'] = []
+        
+    if 'phase_curve' not in settings:
+        settings['phase_curve'] = False
+        
+    if 'phase_curve_style' not in settings:
+        settings['phase_curve_style'] = None
         
     if 'fit_ttvs' not in settings:
         settings['fit_ttvs'] = False

@@ -521,7 +521,6 @@ def plot_1(ax, samples, inst, companion, style,
         x = 1.*base.data[inst]['time']
         baseline_median = calculate_baseline(params_median, inst, key) #evaluated on x (!)
         stellar_var_median = calculate_stellar_var(params_median, 'all', key, xx=x) #evaluated on x (!)
-        
         y = base.data[inst][key] - baseline_median - stellar_var_median
         yerr_w = calculate_yerr_w(params_median, inst, key)
         

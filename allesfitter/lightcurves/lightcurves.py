@@ -127,7 +127,7 @@ def impact_parameters_smart(rr, rsuma, cosi, f_s, f_c):
 
     
 
-def eclipse_width_smart(period, rr, rsuma, cosi, f_s, f_c, extra_factor=1.):
+def eclipse_width_smart(period, rr, rsuma, cosi, f_s, f_c):
     #--------------------------------------------------------------------------
     #::: inputs
     #--------------------------------------------------------------------------
@@ -162,6 +162,39 @@ def eclipse_width_smart(period, rr, rsuma, cosi, f_s, f_c, extra_factor=1.):
     
 
 def index_eclipses_smart(time, epoch, period, rr, rsuma, cosi, f_s, f_c, extra_factor=1.):
+    '''
+    
+    Parameters
+    ----------
+    time : array
+        must be sorted
+    epoch : float
+        must be first_epoch in the data set
+    period : float
+        DESCRIPTION.
+    rr : float
+        DESCRIPTION.
+    rsuma : float
+        DESCRIPTION.
+    cosi : float
+        DESCRIPTION.
+    f_s : float
+        DESCRIPTION.
+    f_c : float
+        DESCRIPTION.
+    extra_factor : float, optional
+        DESCRIPTION. The default is 1..
+
+    Returns
+    -------
+    ind_ecl1 : array
+        DESCRIPTION.
+    ind_ecl2 : array
+        DESCRIPTION.
+    ind_out : array
+        DESCRIPTION.
+
+    '''
     #--------------------------------------------------------------------------
     #::: inputs
     #--------------------------------------------------------------------------
@@ -171,14 +204,14 @@ def index_eclipses_smart(time, epoch, period, rr, rsuma, cosi, f_s, f_c, extra_f
     #--------------------------------------------------------------------------
     #::: widths
     #--------------------------------------------------------------------------
-    width_1, width_2 = eclipse_width_smart(time, epoch, period, rr, rsuma, cosi, f_s, f_c, extra_factor=1.)
+    width_1, width_2 = eclipse_width_smart(period, rr, rsuma, cosi, f_s, f_c)
     
     
     #--------------------------------------------------------------------------
     #::: timing
     #--------------------------------------------------------------------------
-    time = np.sort(time)
-    epoch = get_first_epoch(time, epoch, period, width=2*width_1)
+    # time = np.sort(time)
+    # epoch = get_first_epoch(time, epoch, period, width=2*width_1)
     epoch_occ = epoch + period/2. * (1. + 4./np.pi * ecosw)
     
     N = int( 1. * ( time[-1] - epoch ) / period ) + 1

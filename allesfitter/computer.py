@@ -1373,7 +1373,6 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     y = config.BASEMENT.data[inst][key] - model
     if xx is None:  
         xx = 1.*x
-    
     '''
     x : array of float
         time stamps of the data

@@ -23,11 +23,13 @@ import matplotlib.pyplot as plt
 import warnings
 from astropy.stats import sigma_clip
 from astropy.timeseries import LombScargle
-from wotan import flatten, slide_clip
+from wotan import flatten#, slide_clip
+from time import time as timer
 
 #::: my modules
 from ..exoworlds_rdx.lightcurves.lightcurve_tools import plot_phase_folded_lightcurve                                                                                   
-                                                                                      
+from .fast_slide_clip import fast_slide_clip
+                                                                               
 #::: plotting settings
 import seaborn as sns
 sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
@@ -41,7 +43,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: run a periodogram via astropy to get the dominant period and FAP
 ###############################################################################
 def estimate_period(time, flux, flux_err, periodogram_kwargs=None, astropy_kwargs=None, wotan_kwargs=None, options=None):
-    
+        
     #==========================================================================
     #::: handle inputs
     #==========================================================================
@@ -73,29 +75,26 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, astropy_kwarg
     #==========================================================================
     #::: first, a global 5 sigma clip
     #==========================================================================
-    ff = sigma_clip(flux, sigma=astropy_kwargs['sigma'])
-    # ff /= np.ma.median(ff)
+    ff = sigma_clip(np.ma.masked_invalid(flux), sigma=astropy_kwargs['sigma']) #astropy wants masked arrays
+    ff = np.array(ff.filled(np.nan)) #use NaN instead of masked arrays, because masked arrays drive me crazy
     
     
     #==========================================================================
-    #::: slide clip (1 day, 5 sigma)
+    #::: fast slide clip (1 day, 5 sigma) [replaces Wotan's slow slide clip]
     #==========================================================================
-    try:
-        ff = slide_clip(time, ff, **wotan_kwargs['slide_clip'])
-        # ff /= np.nanmedian(ff)
-    except:
-        print('Wotan failed and was skipped.')
-        
+    try: ff = fast_slide_clip(time, ff, **wotan_kwargs['slide_clip'])
+    except: print('Fast slide clip failed and was skipped.')     
+    
     
     #==========================================================================
     #::: now do the periodogram
     #==========================================================================
-    ind_notnan = np.where(~np.isnan(ff))
+    ind_notnan = np.where(~np.isnan(time*ff*flux_err))
     ls = LombScargle(time[ind_notnan], ff[ind_notnan])  #Analyze our dates and s-index data using the AstroPy Lomb Scargle module
     frequency, power = ls.autopower(minimum_frequency=minfreq, maximum_frequency=maxfreq)  #Determine the LS periodogram
     best_power = np.nanmax(power)
     best_frequency = frequency[np.argmax(power)]
-    FAP=ls.false_alarm_probability(best_power)                  #Calculate the FAP for the highest peak in the power array
+    FAP=ls.false_alarm_probability(best_power)                  #Calculate the FAP for the highest peak in the power array  
     
     
     #==========================================================================
@@ -110,8 +109,9 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, astropy_kwarg
         fig, axes = plt.subplots(5,1,figsize=[10,15], tight_layout=True)  
         axes = np.atleast_1d(axes)
         
-        ax = axes[0]       
-        ax.plot(time, flux, 'r.', rasterized=True)
+        ax = axes[0]   
+        ind_clipped = np.where(np.isnan(ff))[0]
+        ax.plot(time[ind_clipped], flux[ind_clipped], 'r.', rasterized=True)
         ax.plot(time, ff, 'b.', rasterized=True)
         ax.set(xlabel='Time (BJD)', ylabel='Flux')
         
@@ -147,7 +147,7 @@ def estimate_period(time, flux, flux_err, periodogram_kwargs=None, astropy_kwarg
             plt.show(fig)
         else:
             plt.close(fig)
-            
+    
             
     return 1./best_frequency, FAP  
 

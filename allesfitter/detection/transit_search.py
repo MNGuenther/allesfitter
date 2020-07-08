@@ -16,16 +16,11 @@ Web: www.mnguenther.com
 
 from __future__ import print_function, division, absolute_import
 
-#::: plotting settings
-import seaborn as sns
-sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
-sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
-sns.set_context(rc={'lines.markeredgewidth': 1})
-
 #::: modules
 import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
 from pprint import pprint
 from datetime import datetime
 from astropy.stats import sigma_clip
@@ -33,18 +28,26 @@ from wotan import flatten, slide_clip
 from transitleastsquares import transitleastsquares as tls
 from transitleastsquares import transit_mask, cleaned_array, catalog_info
 from ..exoworlds_rdx.lightcurves.index_transits import index_transits
+import time as timer
+import contextlib
 
 #::: my modules
 try:
     from exoworlds.tess import tessio
 except:
     pass
+from .fast_slide_clip import fast_slide_clip
 
+#::: plotting settings
+import seaborn as sns
+sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
+sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
+sns.set_context(rc={'lines.markeredgewidth': 1})
 
     
 
 ###############################################################################
-#::: logprint
+#::: print to logfile
 ###############################################################################
 def logprint(*text, options=None):
     original = sys.stdout
@@ -58,6 +61,9 @@ def logprint(*text, options=None):
     
     
     
+###############################################################################
+#::: pretty-print to logfile
+###############################################################################
 def logpprint(*text, options=None):
     original = sys.stdout
     try:
@@ -68,13 +74,11 @@ def logpprint(*text, options=None):
         pass #For unknown reasons, the combination of open() and os.path.join() does not work on some Windows versions
     sys.stdout = original
 
-    
-    
-###############################################################################
-#::: helper functiomns
-###############################################################################
 
+    
+###############################################################################
 #::: apply a mask (if wished so)
+###############################################################################
 def mask(time, flux, flux_err, period, duration, T0):
     intransit = transit_mask(time, period, duration, T0)
     time = time[~intransit]
@@ -86,6 +90,39 @@ def mask(time, flux, flux_err, period, duration, T0):
         time, flux = cleaned_array(time, flux)
     return time, flux, flux_err
     
+
+
+###############################################################################
+#::: apply a mask (if wished so)
+###############################################################################
+def is_multiple_of(a, b, tolerance=0.05):
+    a = np.float(a)
+    b = np.float(b) 
+    result = a % b
+    return (abs(result/b) <= tolerance) or (abs((b-result)/b) <= tolerance)
+
+
+
+###############################################################################
+#::: get TLS kwargs from TICv8
+###############################################################################
+def get_tls_kwargs_by_tic(tic_id, sigma=3, tls_kwargs=None):
+    #mass comes first, radius comes second in the TLS source code for catalog_info()
+    u, M_star, M_star_lerr, M_star_uerr, R_star, R_star_lerr, R_star_uerr = catalog_info(TIC_ID=int(tic_id))
+    print('TICv8 info:')
+    print('Quadratic limb darkening u_0, u_1', u[0], u[1])
+    print('Stellar radius', R_star, '+', R_star_lerr, '-', R_star_uerr)
+    print('Stellar mass', M_star, '+', M_star_lerr, '-', M_star_uerr)
+    if tls_kwargs is None: tls_kwargs = {}
+    tls_kwargs['R_star']=float(R_star)
+    tls_kwargs['R_star_min']=R_star-sigma*R_star_lerr
+    tls_kwargs['R_star_max']=R_star+sigma*R_star_uerr
+    tls_kwargs['M_star']=float(M_star)
+    tls_kwargs['M_star_min']=M_star-sigma*M_star_lerr
+    tls_kwargs['M_star_max']=M_star+sigma*M_star_uerr
+    tls_kwargs['u']=u    
+    return tls_kwargs
+
 
 
 ###############################################################################
@@ -110,9 +147,18 @@ def tls_search(time, flux, flux_err,
     flux_err : array of flaot
         error of normalized flux
         
-        
     Optional Inputs:
     ----------------
+    known_transits : None or dict
+        can be used to mask known transits before running TLS
+        if dict and one transit is already known: 
+            known_transits = {'period':[1.3], 'duration':[2.1], 'epoch':[245800.0]}
+        if dict and multiple transits are already known: 
+            known_transits = {'name':['b','c'], 'period':[1.3, 21.0], 'duration':[2.1, 4.1], 'epoch':[245800.0, 245801.0]}
+        'period' is the period of the transit
+        'duration' must be the total duration, i.e. from first ingress point to last egrees point, in days
+        'epoch' is the epoch of the transit
+        
     tls_kwargs : None or dict, keywords:
         R_star : float
             radius of the star (e.g. median)
@@ -136,25 +182,43 @@ def tls_search(time, flux, flux_err,
             quadratic limb darkening parameters
             default [0.4804, 0.1867]
         ...
+        SNR_threshold : float
+            the SNR threshold at which to stop the TLS search
+        SDE_threshold : float
+            the SDE threshold at which to stop the TLS search
+        FAP_threshold : float
+            the False Alarm Probability threshold at which to stop the TLS search
+        
+    wotan_kwargs : None, str, or dict, keywords:
+        if None, no detrending will run
+        if str, it must be 'default' and will be filled with default values
+        if dict, it must have two subdicts:
+        wotan_kwargs['slide_clip'] : dict
+            dict containing all slide clip arguments
+            window_length : float
+                slide clip window length, default 1
+            low : float
+                slide clip lower sigma, default 20
+            high : float
+                slide clip upper sigma, default 3
+        wotan_kwargs['flatten'] : dict
+            dict containing all slide clip arguments
+            method : str
+                detrending method, default 'biweight'
+            window_length : float
+                detrending window length, default 1         
             
-    SNR_threshold : float
-        the SNR threshold at which to stop the TLS search
-        
-    known_transits : None or dict
-        if dict and one transit is already known: 
-            known_transits = {'period':[1.3], 'duration':[2.1], 'epoch':[245800.0]}
-        if dict and multiple transits are already known: 
-            known_transits = {'name':['b','c'], 'period':[1.3, 21.0], 'duration':[2.1, 4.1], 'epoch':[245800.0, 245801.0]}
-        'period' is the period of the transit
-        'duration' must be the total duration, i.e. from first ingress point to last egrees point, in days
-        'epoch' is the epoch of the transit
-        
     options : None or dict, keywords:
         show_plot : bool
             show a plot of each phase-folded transit candidate and TLS model in the terminal 
             default is False
-        save_plot : bool
+        save_plot : bool or str
             save a plot of each phase-folded transit candidate and TLS model into outdir
+            if True, will be set to '123'
+            if str, then: '1': detrended plot, '2': TLS plot, '3': all TLS plots, and any combinations thereof
+            default is False
+        save_csv : bool
+            save a csv of the detrended lightcurve
             default is False
         outdir : string
             if None, use the current working directory
@@ -187,29 +251,37 @@ def tls_search(time, flux, flux_err,
         detrend = False
     else:
         detrend = True
+        if type(wotan_kwargs)==str and wotan_kwargs=='default': wotan_kwargs={} 
         
         if 'slide_clip' not in wotan_kwargs: wotan_kwargs['slide_clip'] = {}
-        if 'window_length' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['window_length'] = 1.
-        if 'low' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['low'] = 20.
-        if 'high' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['high'] = 3.
+        if wotan_kwargs['slide_clip'] is not None:
+            if 'window_length' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['window_length'] = 1.
+            if 'low' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['low'] = 20.
+            if 'high' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['high'] = 3.
         
         if 'flatten' not in wotan_kwargs: wotan_kwargs['flatten'] = {}
-        if 'method' not in wotan_kwargs['flatten']: wotan_kwargs['flatten']['method'] = 'biweight'
-        if 'window_length' not in wotan_kwargs['flatten']: wotan_kwargs['flatten']['window_length'] = 1.
+        if wotan_kwargs['flatten'] is not None:
+            if 'method' not in wotan_kwargs['flatten']: wotan_kwargs['flatten']['method'] = 'biweight'
+            if 'window_length' not in wotan_kwargs['flatten']: wotan_kwargs['flatten']['window_length'] = 1.
         #the rest is filled automatically by Wotan
         
     if tls_kwargs is None: tls_kwargs = {}
     if 'show_progress_bar' not in tls_kwargs: tls_kwargs['show_progress_bar'] = False
     if 'SNR_threshold' not in tls_kwargs: tls_kwargs['SNR_threshold'] = 5.
-    if 'SDE_threshold' not in tls_kwargs: tls_kwargs['SDE_threshold'] = 5.
-    if 'FAP_threshold' not in tls_kwargs: tls_kwargs['FAP_threshold'] = 0.05
+    if 'SDE_threshold' not in tls_kwargs: tls_kwargs['SDE_threshold'] = -np.inf #don't trust SDE
+    if 'FAP_threshold' not in tls_kwargs: tls_kwargs['FAP_threshold'] = np.inf #don't trust FAP 
     tls_kwargs_original = {key: tls_kwargs[key] for key in tls_kwargs.keys() if key not in ['SNR_threshold','SDE_threshold','FAP_threshold']} #for the original tls
     #the rest is filled automatically by TLS
     
     if options is None: options = {}
     if 'show_plot' not in options: options['show_plot'] = False
     if 'save_plot' not in options: options['save_plot'] = False
+    if type(options['save_plot'])==bool and (options['save_plot'] is True): options['save_plot']='123' #1: detrended plot, 2: TLS plot, 3: all TLS plots
+    if type(options['save_plot'])==bool and (options['save_plot'] is False): options['save_plot']='' #1: detrended plot, 2: TLS plot, 3: all TLS plots
+    if 'save_csv' not in options: options['save_csv'] = False
     if 'outdir' not in options: options['outdir'] = ''
+    if 'quiet' not in options: options['quiet'] = False
+    if 'inj_period' not in options: options['inj_period'] = np.nan
     
     
     #::: init
@@ -231,7 +303,9 @@ def tls_search(time, flux, flux_err,
     logprint('\nOptions:', options=options)
     logpprint(options, options=options)
     
-    
+    # timer1 = timer.time()
+    # print('t1', timer1 - timer0)
+            
     #::: apply a mask (if wished so)
     if known_transits is not None:
         for period, duration, T0 in zip(known_transits['period'], known_transits['duration'], known_transits['epoch']):
@@ -241,39 +315,82 @@ def tls_search(time, flux, flux_err,
     #::: global sigma clipping
     flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)
     
+    # timer2 = timer.time()
+    # print('t2', timer2 - timer0)
     
     #::: detrend (if wished so)
     if detrend:
-        flux = slide_clip(time, flux, **wotan_kwargs['slide_clip'])
-        flux, trend = flatten(time, flux, return_trend=True, **wotan_kwargs['flatten'])
         
-        if options['show_plot'] or options['save_plot']:
+        #::: slide clipping (super slow)
+        # if wotan_kwargs['slide_clip'] is not None: flux = slide_clip(time, flux, **wotan_kwargs['slide_clip']) #slide_clip is super slow (10 seconds for a TESS 2 min lightcurve for a single Sector)
+        # timer3a = timer.time()
+        # print('t3a', timer3a - timer0)   
+    
+        #::: fast slide clipping (super fast)
+        if wotan_kwargs['slide_clip'] is not None: flux = fast_slide_clip(time, flux, **wotan_kwargs['slide_clip']) #slide_clip is super fast (<1 seconds for a TESS 2 min lightcurve for a single Sector)
+        # timer3a = timer.time()
+        # print('t3a', timer3a - timer0)   
+        
+        #::: detrending (super fast)
+        if wotan_kwargs['flatten'] is not None: flux, trend = flatten(time, flux, return_trend=True, **wotan_kwargs['flatten']) #flatten is super fast, (<1 second for a TESS 2 min lightcurve for a single Sector)
+        # timer3b = timer.time()
+        # print('t3b', timer3b - timer0)   
+        
+        #::: global sigma clipping on the flattened flux (super fast)
+        flux = sigma_clip(flux, sigma_upper=3, sigma_lower=20)
+        # timer3c = timer.time()
+        # print('t3c', timer3c - timer0)   
+        
+        if options['show_plot'] or ('1' in options['save_plot']):
             fig, axes = plt.subplots(2,1, figsize=(40,8))
             axes[0].plot(time, flux_input, 'b.', rasterized=True)
             axes[0].plot(time, trend, 'r-', lw=2)
             axes[0].set(ylabel='Flux (input)', xticklabels=[])
             axes[1].plot(time, flux, 'b.', rasterized=True)
             axes[1].set(ylabel='Flux (detrended)', xlabel='Time (BJD)')
-        if options['save_plot']:
-            fig.savefig(os.path.join(options['outdir'],'flux_'+wotan_kwargs['flatten']['method']+'.pdf'), bbox_inches='tight')
+        if ('1' in options['save_plot']):
+            try: fig.savefig(os.path.join(options['outdir'],'flux_'+wotan_kwargs['flatten']['method']+'.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
+            except: fig.savefig(os.path.join(options['outdir'],'flux_'+wotan_kwargs['flatten']['method']+'.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...
             if options['show_plot']:
                 plt.show(fig)
             else:
                 plt.close(fig)
                 
-        X = np.column_stack((time, flux, flux_err, trend))
-        np.savetxt(os.path.join(options['outdir'],'flux_'+wotan_kwargs['flatten']['method']+'.csv'), X, delimiter=',', header='time,flux_detrended,flux_err,trend')
+        if options['save_csv']:
+            X = np.column_stack((time, flux, flux_err, trend))
+            np.savetxt(os.path.join(options['outdir'],'flux_'+wotan_kwargs['flatten']['method']+'.csv'), X, delimiter=',', header='time,flux_detrended,flux_err,trend')
         
-        time_detrended = 1.*time
-        flux_detrended = 1.*flux #for plotting
+        time_detrended = 1.*time #just for plotting
+        flux_detrended = 1.*flux #just for plotting
+        
+    # timer3d = timer.time()
+    # print('t3d', timer3d - timer0)    
     
-    #::: search for the rest
+    
+    #::: search for transits
     i = 0
     ind_trs = []
     while (SNR >= tls_kwargs['SNR_threshold']) and (SDE >= tls_kwargs['SDE_threshold']) and (FAP <= tls_kwargs['FAP_threshold']) and (FOUND_SIGNAL==False):
         
-        model = tls(time, flux, flux_err)
-        results = model.power(**tls_kwargs_original)
+        if options['quiet']:
+            with open(os.devnull, 'w') as devnull:
+                with contextlib.redirect_stdout(devnull):
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        model = tls(time, flux, flux_err)
+                        results = model.power(**tls_kwargs_original)
+        else:
+            model = tls(time, flux, flux_err)
+            results = model.power(**tls_kwargs_original)
+            
+        # timer4 = timer.time()
+        # print('t4', timer4 - timer0)  
+        
+        # plt.figure()
+        # plt.plot(time, flux, 'b.')
+        # pprint(tls_kwargs_original)
+        # pprint(results)
+        # err
         
         if (results.snr >= tls_kwargs['SNR_threshold']) and (results.SDE >= tls_kwargs['SDE_threshold']) and (results.FAP <= tls_kwargs['FAP_threshold']):
             
@@ -294,8 +411,11 @@ def tls_search(time, flux, flux_err,
             with open(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.txt'), 'wt') as out:
                 pprint(results, stream=out)
     
+            # timer5 = timer.time()
+            # print('t5', timer5 - timer0)  
+    
             #::: individual TLS plots
-            if options['show_plot'] or options['save_plot']:
+            if options['show_plot'] or ('2' in options['save_plot']):
                 fig = plt.figure(figsize=(20,8), tight_layout=True)
                 gs = fig.add_gridspec(2,3)
                 
@@ -323,20 +443,27 @@ def tls_search(time, flux, flux_err,
                 ax.text( .02, 0.45, 'SDE = ' + np.format_float_positional(results['SDE'],4), ha='left', va='center', transform=ax.transAxes )
                 ax.text( .02, 0.35, 'FAP = ' + np.format_float_scientific(results['FAP'],4), ha='left', va='center', transform=ax.transAxes )
                 ax.set_axis_off()
-                if options['save_plot']:
-                    fig.savefig(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.pdf'), bbox_inches='tight')
+                if ('2' in options['save_plot']):
+                    try: fig.savefig(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
+                    except: fig.savefig(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...
                 if options['show_plot']:
                     plt.show(fig)
                 else:
                     plt.close(fig)
                     
+            # timer6 = timer.time()
+            # print('t6', timer6 - timer0)  
+            
         SNR = results.snr
         SDE = results.SDE
         FAP = results.FAP
+        if is_multiple_of(results['period'],options['inj_period']): SNR = -np.inf #if run as part of an inejction-recovery test, then abort if it matches the injected period
         i+=1
         
+        
+        
     #::: full lightcurve plot
-    if options['show_plot'] or options['save_plot']:
+    if options['show_plot'] or ('3' in options['save_plot']):
         
         if detrend:
             fig, axes = plt.subplots(2,1, figsize=(40,8), tight_layout=True)
@@ -364,13 +491,15 @@ def tls_search(time, flux, flux_err,
                 ax.plot(time_input[ind_tr], flux_input[ind_tr], marker='.', linestyle='none', label='signal '+str(number))
             ax.legend()
         
-        if options['save_plot']:
-            fig.savefig(os.path.join(options['outdir'],'tls_signal_all.pdf'), bbox_inches='tight')
+        if ('3' in options['save_plot']):
+            try: fig.savefig(os.path.join(options['outdir'],'tls_signal_all.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
+            except: fig.savefig(os.path.join(options['outdir'],'tls_signal_all.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...
         if options['show_plot']:
             plt.show(fig)
         else:
             plt.close(fig)                    
                 
+            
     return results_all
 
 
@@ -378,23 +507,6 @@ def tls_search(time, flux, flux_err,
 ###############################################################################
 #::: TLS search using tessio
 ###############################################################################
-def get_tls_kwargs_by_tic(tic_id, tls_kwargs=None):
-    u, R_star, R_star_lerr, R_star_uerr, M_star, M_star_lerr, M_star_uerr = catalog_info(TIC_ID=int(tic_id))
-    print('TICv8 info:')
-    print('Quadratic limb darkening u_0, u_1', u[0], u[1])
-    print('Stellar radius', R_star, '+', R_star_lerr, '-', R_star_uerr)
-    print('Stellar mass', M_star, '+', M_star_lerr, '-', M_star_uerr)
-    if tls_kwargs is None: tls_kwargs = {}
-    tls_kwargs['R_star']=float(R_star)
-    tls_kwargs['R_star_min']=R_star-3*R_star_lerr
-    tls_kwargs['R_star_max']=R_star+3*R_star_uerr
-    tls_kwargs['M_star']=float(M_star)
-    tls_kwargs['M_star_min']=M_star-3*M_star_lerr
-    tls_kwargs['M_star_max']=M_star+3*M_star_uerr
-    tls_kwargs['u']=u    
-    return tls_kwargs
-
-
 def tls_search_by_tic(tic_id,
                       tls_kwargs=None, SNR_threshold=5., known_transits=None,
                       options=None):

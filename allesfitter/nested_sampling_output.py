@@ -177,10 +177,15 @@ def ns_output(datadir):
     #::: cornerplot
     # ndim = results2['samples'].shape[1]
     fontsize = np.min(( 24. + 0.5*config.BASEMENT.ndim, 40 ))
-    cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(config.BASEMENT.ndim)], quantiles=[0.16, 0.5, 0.84], truths=fittruths2, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
-                                    label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'})
-
-
+    try:
+        cfig, caxes = dyplot.cornerplot(results2, labels=labels, span=[0.997 for i in range(config.BASEMENT.ndim)], quantiles=[0.16, 0.5, 0.84], truths=fittruths2, hist_kwargs={'alpha':0.25,'linewidth':0,'histtype':'stepfilled'}, 
+                                        label_kwargs={"fontsize":fontsize, "rotation":45, "horizontalalignment":'right'})
+    except:
+        logprint('! WARNING')
+        logprint('Dynesty corner plot could not be created. Please contact maxgue@mit.edu.')
+        cfig, caxes = plt.subplots(config.BASEMENT.ndim,config.BASEMENT.ndim,figsize=(2*config.BASEMENT.ndim,2*config.BASEMENT.ndim))
+        
+        
     #::: runplot
 #    rfig, raxes = dyplot.runplot(results)
 #    rfig.savefig( os.path.join(config.BASEMENT.outdir,'ns_run.jpg'), dpi=100, bbox_inches='tight' )
