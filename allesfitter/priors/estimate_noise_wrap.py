@@ -87,10 +87,10 @@ def estimate_noise_wrap(pathdata):
         for key in priors2.dtype.names:
             priors[key] = np.atleast_1d(priors2[key])
     
-        median = priors['log_yerr_median'][i]
-        err = 5.*np.max([ float(priors['log_yerr_ll'][i]), float(priors['log_yerr_ul'][i]) ])
+        median = priors['ln_yerr_median'][i]
+        err = 5.*np.max([ float(priors['ln_yerr_ll'][i]), float(priors['ln_yerr_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite('log_err_flux_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{'+inst+'}}$,')
+        fwrite('ln_err_flux_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{'+inst+'}}$,')
     
     for i, inst in enumerate(config.BASEMENT.settings['inst_rv']):   
         #::: read in the summary file
@@ -100,10 +100,10 @@ def estimate_noise_wrap(pathdata):
         for key in priors2.dtype.names:
             priors[key] = np.atleast_1d(priors2[key])
     
-        median = priors['log_yerr_median'][i]
-        err = 5.*np.max([ float(priors['log_yerr_ll'][i]), float(priors['log_yerr_ul'][i]) ])
+        median = priors['ln_yerr_median'][i]
+        err = 5.*np.max([ float(priors['ln_yerr_ll'][i]), float(priors['ln_yerr_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
-        fwrite('log_jitter_rv_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{jitter; '+inst+'}}$,')
+        fwrite('ln_jitter_rv_'+inst+','+median+',1,trunc_normal -23 0 '+median+' '+err+',$\log{\sigma_\mathrm{jitter; '+inst+'}}$,')
     
     
     #::: write new rows into params.csv
@@ -118,13 +118,13 @@ def estimate_noise_wrap(pathdata):
         for key in priors2.dtype.names:
             priors[key] = np.atleast_1d(priors2[key])
     
-        median = priors['gp_log_sigma_median'][i]
-        err = 5.*np.max([ float(priors['gp_log_sigma_ll'][i]), float(priors['gp_log_sigma_ul'][i]) ])
+        median = priors['gp_ln_sigma_median'][i]
+        err = 5.*np.max([ float(priors['gp_ln_sigma_ll'][i]), float(priors['gp_ln_sigma_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
         fwrite('baseline_gp1_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\sigma} ('+inst+')}$,')
     
-        median = priors['gp_log_rho_median'][i]
-        err = 5.*np.max([ float(priors['gp_log_rho_ll'][i]), float(priors['gp_log_rho_ul'][i]) ])
+        median = priors['gp_ln_rho_median'][i]
+        err = 5.*np.max([ float(priors['gp_ln_rho_ll'][i]), float(priors['gp_ln_rho_ul'][i]) ])
         median, err, _ = round_txt_separately(median,err,err)
         fwrite('baseline_gp2_flux_'+inst+','+median+',1,trunc_normal -23 23 '+median+' '+err+',$\mathrm{gp: \log{\\rho} ('+inst+')}$,')
 

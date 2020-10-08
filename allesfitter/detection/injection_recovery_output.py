@@ -86,6 +86,10 @@ def irplot(fname, SNR_threshold, period_bins=None, rplanet_bins=None, options=No
     results = np.genfromtxt(fname, delimiter=',', dtype=None, names=True)
     inj_periods = np.atleast_1d(results['inj_period'])
     inj_rplanets = np.atleast_1d(results['inj_rplanet'])
+    try: 
+        inj_depths = np.atleast_1d(results['inj_depth'])
+    except:
+        inj_depths = np.nan*inj_rplanets
     # tls_periods = np.atleast_1d(results['tls_period'])
     # tls_SNRs = np.atleast_1d(results['tls_SNR'])
     detected = is_detected_list(results, SNR_threshold)
@@ -96,6 +100,7 @@ def irplot(fname, SNR_threshold, period_bins=None, rplanet_bins=None, options=No
     # rplanet = np.unique(inj_rplanets)
     period = []
     rplanet = []
+    depth = []
     found = []
     for p in np.unique(inj_periods):
         for r in np.unique(inj_rplanets):
@@ -104,33 +109,55 @@ def irplot(fname, SNR_threshold, period_bins=None, rplanet_bins=None, options=No
             ind = np.where( (inj_periods==p) & (inj_rplanets==r) )[0]
             f = any( detected[ind] )
             found.append(f)
+            depth.append(inj_depths[ind][0])
             # print(p,r,ind,f)
     period = np.array(period)
     rplanet = np.array(rplanet)
+    depth = np.array(depth)
     found = np.array(found)
     
     
     
     ###############################################################################
+    #::: match
+    ###############################################################################
+    def get_inj_depth_from_inj_rplanet(r):
+        plt.figure()
+        plt.plot(np.sort(rplanet), np.sort(depth))
+        return np.interp( r, np.sort(rplanet), np.sort(depth) )
+    
+    
+    def get_inj_rplanet_from_inj_depth(d):
+        d = np.array(d)
+        d[ d>np.nanmax(depth) ] = np.nan
+        d[ d<np.nanmin(depth) ] = np.nan
+        plt.figure()
+        plt.plot(np.sort(rplanet), np.sort(depth))
+        return np.interp( d, np.sort(depth), np.sort(rplanet) )
+        
+    
+    
+    ###############################################################################
     #::: scatter plot
     ###############################################################################
-    fig, ax = plt.subplots(figsize=(5,5))
-    ax.scatter(period, rplanet, c=found, s=100, cmap=options['cmap'], edgecolors='b')
-    ax.set(xlabel='Period (days)', ylabel='Radius '+r'$(R_\oplus)$')
-    ax.text(0.5,1.05,'SNR>'+str(SNR_threshold)+' | blue: not recovered | white: recovered',ha='center',va='center',transform=ax.transAxes)
-    try: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_scatter.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
-    except: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_scatter.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...
-    plt.close(fig)
-    # err
+    if ( len(np.unique(inj_periods)) * len(np.unique(inj_periods)) ) < 100:
+        print('\nCreating scatter plot (too few sampled for 2D histogram plot).\n')
+        fig, ax = plt.subplots(figsize=(5,5))
+        ax.scatter(period, rplanet, c=found, s=100/np.log10(len(period)), cmap=options['cmap'], edgecolors='b')
+        ax.set(xlabel='Period (days)', ylabel='Radius '+r'$(R_\oplus)$')
+        ax.text(0.5,1.05,'SNR>'+str(SNR_threshold)+' | blue: not recovered | white: recovered',ha='center',va='center',transform=ax.transAxes)
+        try: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_scatter.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
+        except: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_scatter.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...
+        plt.close(fig)
+        # err
     
     
     
     ###############################################################################
     #::: histogram (normed)
     ###############################################################################
-    if ( len(np.unique(inj_periods)) * len(np.unique(inj_periods)) ) < 100:
-        print('\n!-- WARNING: not enough samples to create a 2D histogram plot. --!\n')
-    else:
+    if ( len(np.unique(inj_periods)) * len(np.unique(inj_periods)) ) >= 100:
+        print('\nCreating 2D histogram plot (too many samples for scatter plot).\n')
         if (period_bins is not None) and (rplanet_bins is not None):
             bins = [period_bins, rplanet_bins]
         else:
@@ -139,13 +166,23 @@ def irplot(fname, SNR_threshold, period_bins=None, rplanet_bins=None, options=No
         h2,x,y = np.histogram2d(period[found==0], rplanet[found==0], bins=bins)
         normed_hist = (100.*h1/(h1+h2))
         
-        fig, ax = plt.subplots(figsize=(6.5,5))
+        fig, ax = plt.subplots(figsize=(6.8,5))
         X, Y = np.meshgrid(x, y)
         im = ax.pcolormesh(X, Y, normed_hist.T, cmap=options['cmap'], vmin=0, vmax=100);
         # im = plt.imshow(normed_hist.T, origin='lower', extent=(x[0], x[-1], y[0], y[-1]), interpolation='none', aspect='auto', cmap='jet', vmin=0, vmax=100, rasterized=True)
-        plt.colorbar(im, label='Recovery rate (%)')
+        plt.colorbar(im, label='Recovery rate (%)', pad=0.12)
         ax.set(xlabel='Injected period (days)', ylabel=r'Injected radius (R$_\oplus$)', title='SNR>'+str(SNR_threshold))
         # change_font(ax)
+        
+        ax1 = ax.twinx()
+        y0, y1 = ax.get_ylim()
+        ax1.set(ylabel = 'Observed depth (ppt)',
+                # ylim = get_inj_depth_from_inj_rplanet(ax.get_ylim()))
+                ylim = ax.get_ylim(), #in Rearth
+                yticks = get_inj_rplanet_from_inj_depth([0.1,0.5,1,2,5,10,15,20,50,100]), #tick positions in rearth
+                yticklabels = [0.1,0.5,1,2,5,10,15,20,50,100]) #labels in ppt
+                # yticks = [0,0.25,0.5,0.75,1],
+                # yticklabels = [ np.format_float_positional( get_inj_depth_from_inj_rplanet(y0+(y1-y0)*item), 1 ) for item in [0,0.25,0.5,0.75,1]])
         
         try: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_hist.pdf'), bbox_inches='tight') #some matplotlib versions crash when saving pdf...
         except: fig.savefig( os.path.join(options['outdir'],options['logfname'].split('.')[0]+'_snr'+str(SNR_threshold)+'_hist.jpg'), bbox_inches='tight') #some matplotlib versions need pillow for jpg (conda install pillow)...   

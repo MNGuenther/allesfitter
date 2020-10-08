@@ -47,7 +47,7 @@ def print_priors(datadir, typ='uniform', scaling=5):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,uniform ' + str( np.max( [-1, results['median'][i] - scaling*results['lower_error'][i]] ) ) + ' ' + str( np.min( [1, results['median'][i] + scaling*results['upper_error'][i]] ) )  + ',' + results['label'][i] + ',' + results['unit'][i])
             elif ('baseline_gp' in results['name'][i]):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,uniform ' + str( np.max( [-15, results['median'][i] - scaling*results['lower_error'][i]] ) ) + ' ' + str( np.min( [15, results['median'][i] + scaling*results['upper_error'][i]] ) )  + ',' + results['label'][i] + ',' + results['unit'][i])
-            elif ('log_err' in results['name'][i]) or ('log_jitter' in results['name'][i]):
+            elif ('ln_err' in results['name'][i]) or ('ln_jitter' in results['name'][i]):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,uniform ' + str( np.max( [-15, results['median'][i] - scaling*results['lower_error'][i]] ) ) + ' ' + str( np.min( [0, results['median'][i] + scaling*results['upper_error'][i]] ) )  + ',' + results['label'][i] + ',' + results['unit'][i])
             else:
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,uniform ' + str( np.max( [0, results['median'][i] - scaling*results['lower_error'][i]] ) ) + ' ' + str( np.min( [1, results['median'][i] + scaling*results['upper_error'][i]] ) )  + ',' + results['label'][i] + ',' + results['unit'][i])
@@ -62,7 +62,7 @@ def print_priors(datadir, typ='uniform', scaling=5):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,trunc_normal -1 1 ' + str(results['median'][i]) + ' ' + scaling*str(np.max([results['lower_error'][i],results['upper_error'][i]])) + ',' + results['label'][i] + ',' + results['unit'][i])
             elif ('baseline_gp' in results['name'][i]):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,trunc_normal -15 15 ' + str(results['median'][i]) + ' ' + scaling*str(np.max([results['lower_error'][i],results['upper_error'][i]])) + ',' + results['label'][i] + ',' + results['unit'][i])
-            elif ('log_err' in results['name'][i]) or ('log_jitter' in results['name'][i]):
+            elif ('ln_err' in results['name'][i]) or ('ln_jitter' in results['name'][i]):
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,trunc_normal -15 0 ' + str(results['median'][i]) + ' ' + scaling*str(np.max([results['lower_error'][i],results['upper_error'][i]])) + ',' + results['label'][i] + ',' + results['unit'][i])
             else:
                 print(str(results['name'][i]) + ',' + str(results['median'][i]) + ',1,trunc_normal 0 1 ' + str(results['median'][i]) + ' ' + scaling*str(np.max([results['lower_error'][i],results['upper_error'][i]])) + ',' + results['label'][i] + ',' + results['unit'][i])

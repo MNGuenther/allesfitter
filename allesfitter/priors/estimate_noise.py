@@ -61,7 +61,7 @@ def estimate_noise(datadir):
     #::: set up phot summary file
     fname_summary = os.path.join(datadir,'priors','summary_phot.csv')
     with open( fname_summary, 'w+' ) as f:
-        f.write('#name,gp_log_sigma_median,gp_log_sigma_ll,gp_log_sigma_ul,gp_log_rho_median,gp_log_rho_ll,gp_log_rho_ul,log_yerr_median,log_yerr_ll,log_yerr_ul\n')
+        f.write('#name,gp_ln_sigma_median,gp_ln_sigma_ll,gp_ln_sigma_ul,gp_ln_rho_median,gp_ln_rho_ll,gp_ln_rho_ul,ln_yerr_median,ln_yerr_ll,ln_yerr_ul\n')
                   
     #::: run               
     for inst in config.BASEMENT.settings['inst_phot']:
@@ -87,7 +87,7 @@ def estimate_noise(datadir):
     #::: set up rv summary file
     fname_summary = os.path.join(datadir,'priors','summary_rv.csv')
     with open( fname_summary, 'w+' ) as f:
-        f.write('#name,log_yerr_median,log_yerr_ll,log_yerr_ul\n')
+        f.write('#name,ln_yerr_median,ln_yerr_ll,ln_yerr_ul\n')
                 
     #::: run
     for inst in config.BASEMENT.settings['inst_rv']:
@@ -129,7 +129,7 @@ def estimate_noise_out_of_transit(datadir, inst=None, **kwargs):
     #::: set up phot summary file
     fname_summary = os.path.join(datadir,'priors','summary_phot.csv')
     with open( fname_summary, 'w+' ) as f:
-        f.write('#name,gp_log_sigma_median,gp_log_sigma_ll,gp_log_sigma_ul,gp_log_rho_median,gp_log_rho_ll,gp_log_rho_ul,log_yerr_median,log_yerr_ll,log_yerr_ul\n')
+        f.write('#name,gp_ln_sigma_median,gp_ln_sigma_ll,gp_ln_sigma_ul,gp_ln_rho_median,gp_ln_rho_ll,gp_ln_rho_ul,ln_yerr_median,ln_yerr_ll,ln_yerr_ul\n')
                   
     if inst is None:
         instruments = config.BASEMENT.settings['inst_phot']

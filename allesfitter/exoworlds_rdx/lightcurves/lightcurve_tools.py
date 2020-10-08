@@ -185,8 +185,9 @@ def phase_fold(time, flux, P, Tprim, dt = 0.02, ferr_type='medsig', ferr_style='
     
     if phase_range=='[-0.25,0.75]':     
         pass       
-    
+        
     elif phase_range=='[0,1]':
+        phi[ phi<0. ] += 1.
         phase[ phase<0. ] += 1.   
         ind = np.argsort(phase)
         phase = phase[ind]
@@ -194,7 +195,9 @@ def phase_fold(time, flux, P, Tprim, dt = 0.02, ferr_type='medsig', ferr_style='
         phaseflux_err = phaseflux_err[ind]
         
     elif phase_range=='[0,2]':
+        phi[ phi<0. ] += 1.
         phase[ phase<0. ] += 1.   
+        phi = np.append(phi, phi+1)
         phase = np.append(phase, phase+1)
         phaseflux = np.append(phaseflux, phaseflux) 
         phaseflux_err = np.append(phaseflux_err, phaseflux_err) 

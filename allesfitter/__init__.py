@@ -69,6 +69,23 @@ def GUI():
     os.system( 'jupyter notebook "' + os.path.join(allesfitter_path,'GUI.ipynb') + '"')
 
 
+
+def read_csv(fname):
+    return np.genfromtxt(fname, delimiter=',', comments='#', encoding='utf-8', unpack=True)
+    
+
+
+def plot_csv(fname):
+    time, y, y_err = read_csv(fname)
+    fig, ax = plt.subplots()
+    if len(y)>100:
+        ax.plot(time, y, 'b.')
+    else:
+        ax.errorbar(time, y, yerr=y_err, ls='none')
+    return fig, ax
+        
+
+
 class allesclass():
     def __init__(self,datadir,quiet=True):
         config.init(datadir,quiet=quiet)
@@ -122,7 +139,7 @@ class allesclass():
     
     def plot(self, inst, companion, style, 
              fig=None, ax=None, mode='posterior', Nsamples=20, samples=None, dt=None, 
-             zoomwindow=8.,
+             zoomwindow=8., force_binning=False,
              kwargs_data=None, kwargs_model=None, kwargs_ax=None):
         '''
         Required input:
@@ -163,7 +180,7 @@ class allesclass():
                 samples = self.initial_guess_samples
             else:
                 raise ValueError('Variable "mode" has to be "posterior" or "initial_guess".')
-        general_output.plot_1(ax, samples, inst, companion, style, base=self, dt=dt, zoomwindow=zoomwindow, kwargs_data=kwargs_data, kwargs_ax=kwargs_ax)
+        general_output.plot_1(ax, samples, inst, companion, style, base=self, dt=dt, zoomwindow=zoomwindow, force_binning=force_binning, kwargs_data=kwargs_data, kwargs_ax=kwargs_ax)
         return fig, ax
         
         
@@ -233,7 +250,7 @@ class allesclass():
             elif phased==True:
                 p = update_params(self.posterior_params[k][sample_id], phased=True)
                 buf[k] = p
-        return calculate_model(buf, inst, key, xx=xx), calculate_baseline(buf, inst, key, xx=xx), calculate_stellar_var(buf, key, xx=xx)
+        return calculate_model(buf, inst, key, xx=xx), calculate_baseline(buf, inst, key, xx=xx), calculate_stellar_var(buf, inst, key, xx=xx)
     
     def get_one_posterior_model(self, inst, key, xx=None, sample_id=None, phased=False):
         if sample_id is None:
@@ -274,4 +291,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.1.1c'
+__version__ = '1.1.2'

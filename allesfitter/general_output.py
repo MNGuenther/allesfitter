@@ -306,7 +306,7 @@ def afplot(samples, companion):
 ###############################################################################
 def plot_1(ax, samples, inst, companion, style, 
            base=None, dt=None,
-           zoomwindow=8.,
+           zoomwindow=8., force_binning=False,
            kwargs_data=None,
            kwargs_model=None,
            kwargs_ax=None):
@@ -360,6 +360,7 @@ def plot_1(ax, samples, inst, companion, style,
         params_median, params_ll, params_ul = get_params_from_samples(samples)
     
     if kwargs_data is None: kwargs_data = {}
+    if 'label' not in kwargs_data: kwargs_data['label'] = inst
     if 'marker' not in kwargs_data: kwargs_data['marker'] = '.'
     if 'markersize' not in kwargs_data: kwargs_data['markersize'] = 8.
     if 'linestyle' not in kwargs_data: kwargs_data['linestyle'] = 'none'
@@ -397,20 +398,24 @@ def plot_1(ax, samples, inst, companion, style,
         key='flux'
         baseline_plus = 1.
         if style in ['full']:
-            ylabel='Relative Flux'
+            ylabel = 'Relative Flux'
+        elif style in ['full_minus_offset']:
+            ylabel = 'Relative Flux - Offset'
         elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
-            ylabel='Relative Flux - Baseline'
+            ylabel = 'Relative Flux - Baseline'
         elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
-            ylabel='Residuals'
+            ylabel = 'Residuals'
     elif inst in base.settings['inst_rv']:
         key='rv'
         baseline_plus = 0.
         if style in ['full']:
-            ylabel='RV (km/s)'
+            ylabel = 'RV (km/s)'
+        elif style in ['full_minus_offset']:
+            ylabel = 'RV (km/s) - Offset'
         elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
-            ylabel='RV (km/s) - Baseline'
+            ylabel = 'RV (km/s) - Baseline'
         elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
-            ylabel='Residuals'
+            ylabel = 'Residuals'
         
     else:
         raise ValueError('inst should be listed in inst_phot or inst_rv...')
@@ -428,7 +433,7 @@ def plot_1(ax, samples, inst, companion, style,
     # plot the 'undetrended' data
     # plot each sampled model + its baseline 
     #==========================================================================
-    if style in ['full', 'full_residuals']:
+    if style in ['full', 'full_minus_offset', 'full_residuals']:
         
         #::: set it up
         x = base.data[inst]['time']
@@ -443,6 +448,12 @@ def plot_1(ax, samples, inst, companion, style,
         yerr_w = calculate_yerr_w(params_median, inst, key)
         
         
+        #::: remove offset only (if wished)
+        if style in ['full_minus_offset']:
+            baseline = calculate_baseline(params_median, inst, key)
+            y -= np.median(baseline)
+            
+            
         #::: calculate residuals (if wished)
         if style in ['full_residuals']:
             model = calculate_model(params_median, inst, key)
@@ -453,7 +464,8 @@ def plot_1(ax, samples, inst, companion, style,
             
         #::: plot data, not phase        
 #        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
-        ax.errorbar(x, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'] )  
+        # ax.errorbar(x, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'] )  
+        ax.errorbar(x, y, yerr=yerr_w, capsize=0, **kwargs_data)  
         if base.settings['color_plot']:
             ax.scatter(x, y, c=x, marker='o', rasterized=kwargs_data['rasterized'], cmap='inferno', zorder=11 ) 
             
@@ -464,7 +476,7 @@ def plot_1(ax, samples, inst, companion, style,
             
             
         #::: plot model + baseline, not phased
-        if (style in ['full']) and (samples is not None):
+        if (style in ['full','full_minus_offset']) and (samples is not None):
             
             #if <1 day of photometric data: plot with 2 min resolution
             if dt is None:
@@ -485,6 +497,8 @@ def plot_1(ax, samples, inst, companion, style,
                             p = update_params(s)
                             model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                             baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                            if style in ['full_minus_offset']:
+                                baseline -= np.median(baseline)
                             stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
                             ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
                             ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
@@ -495,6 +509,8 @@ def plot_1(ax, samples, inst, companion, style,
                     p = update_params(s)
                     model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                     baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                    if style in ['full_minus_offset']:
+                        baseline -= np.median(baseline)                    
                     stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
                     ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
                     ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
@@ -553,11 +569,11 @@ def plot_1(ax, samples, inst, companion, style,
                 
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(x) > 500:
-                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=kwargs_data['rasterized'] )
-                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err,  marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )
+            if (len(x) > 500) or force_binning:
+                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=kwargs_data['rasterized'] ) #don't allow any other kwargs_data here
+                ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, capsize=0, zorder=11, **kwargs_data )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w,  marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )            
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, capsize=0, zorder=11, **kwargs_data )      
             ax.set(xlabel='Phase', ylabel=ylabel, title=set_title(inst+', companion '+companion+' only'))
     
     
@@ -603,15 +619,15 @@ def plot_1(ax, samples, inst, companion, style,
                 dt = 15./60./24. / params_median[companion+'_period']
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if len(x) > 500:
+            if (len(x) > 500) or force_binning:
                 if style in ['phase_curve', 
                              'phase_curve_residuals']:
                     ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=kwargs_data['color'], rasterized=kwargs_data['rasterized'], zorder=11 )                    
                 else: 
                     ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=kwargs_data['rasterized'], )
-                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )
+                    ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, capsize=0, zorder=11, **kwargs_data )
             else:
-                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'], zorder=11 )  
+                ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, capsize=0, zorder=11, **kwargs_data )
                 if base.settings['color_plot']:
                     ax.scatter( phi*zoomfactor, y, c=x, marker='o', rasterized=kwargs_data['rasterized'], cmap='inferno', zorder=11 )          
             ax.set(xlabel='Phase', ylabel=ylabel, title=set_title(inst+', companion '+companion))

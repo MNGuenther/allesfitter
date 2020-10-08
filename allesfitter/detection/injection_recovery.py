@@ -89,7 +89,7 @@ def setup_logfile(options):
         if response == '1':   
             print('Overwriting log file...')
             with open(f,'w') as f: 
-                f.write('inj_period,inj_rplanet,inj_epoch,tls_period,tls_depth,tls_duration,tls_epoch,tls_SNR,tls_SDE,tls_FAP\n')
+                f.write('inj_period,inj_rplanet,inj_depth,inj_epoch,tls_period,tls_depth,tls_duration,tls_epoch,tls_SNR,tls_SDE,tls_FAP\n')
             return None
         elif response == '2': 
             print('Appending missing rows to log file...')
@@ -99,7 +99,7 @@ def setup_logfile(options):
             raise ValueError('User aborted. Response was: "'+str(response)+'"')
     else:
         with open(f,'w') as f: 
-            f.write('inj_period,inj_rplanet,inj_epoch,tls_period,tls_depth,tls_duration,tls_epoch,tls_SNR,tls_SDE,tls_FAP\n')
+            f.write('inj_period,inj_rplanet,inj_depth,inj_epoch,tls_period,tls_depth,tls_duration,tls_epoch,tls_SNR,tls_SDE,tls_FAP\n')
         return None
                 
 
@@ -155,7 +155,7 @@ def to_do_or_not_to_do_that_is_the_question(ex, period, rplanet):
 
 
 # ::: a fast injection for a simple, circular, and small planet
-def inject(time, flux, flux_err, epoch, period, r_companion_earth, r_host=1, m_host=1, ldc=[0.5,0.5], window=None):
+def inject(time, flux, flux_err, epoch, period, r_companion_earth, r_host=1, m_host=1, ldc=[0.5,0.5], dil=0, return_depth=False, window=None):
     a = ( (G/(4*np.pi**2) * (period*u.d)**2 * (m_host*u.Msun))**(1./3.) ).to(u.AU).value  #in AU 
     r_host_over_a = ((r_host*u.Rsun)/(a*u.AU)).decompose().value #unitless
     r_companion_over_a = ((r_companion_earth*u.Rearth)/(a*u.AU)).decompose().value #unitless
@@ -175,11 +175,29 @@ def inject(time, flux, flux_err, epoch, period, r_companion_earth, r_host=1, m_h
                                       period = period,
                                       ldc_1 = ldc,
                                       ld_1 = 'quad',
+                                      light_3 = dil / (1. - dil),
                                       verbose = False
                                       )
     inj_flux = model_flux + flux - 1
     
-    return time, inj_flux, flux_err
+    if return_depth == True:
+        depth = 1. - ellc.lc(
+                            t_obs = [epoch], 
+                            radius_1 = r_host_over_a, 
+                            radius_2 = r_companion_over_a, 
+                            sbratio = 0., 
+                            incl = 90., 
+                            t_zero = epoch,
+                            period = period,
+                            ldc_1 = ldc,
+                            ld_1 = 'quad',
+                            light_3 = dil / (1. - dil),
+                            verbose = False
+                            )[0]
+        return time, inj_flux, flux_err, depth
+    
+    else:
+        return time, inj_flux, flux_err
     
     # if window in ['transit', 'eclipse']:
     #     ind_ecl1, ind_ecl2, ind_out = index_eclipses_smart(time, epoch, period, rr, rsuma, 0., 0., 0., extra_factor=10)
@@ -195,7 +213,8 @@ def inject(time, flux, flux_err, epoch, period, r_companion_earth, r_host=1, m_h
 #::: Inject an ellc transit and TLS search on an input lightcurve
 ###############################################################################
 def inject_and_tls_search(time, flux, flux_err, 
-                          period_grid, r_companion_earth_grid, 
+                          period_grid, r_companion_earth_grid,
+                          dil=0.,
                           known_transits=None, 
                           tls_kwargs=None,
                           wotan_kwargs=None,
@@ -275,7 +294,8 @@ def inject_and_tls_search(time, flux, flux_err,
     
     #::: def execution function (for multiprocessing)
     def executer(arg1):
-        period, r_companion_earth = arg1
+        seed, period, r_companion_earth = arg1
+        np.random.seed(seed) #need a fresh seed for every multiprocess
         
         #::: check if it already exists; if not, proceed
         if to_do_or_not_to_do_that_is_the_question(ex, period, r_companion_earth):
@@ -284,7 +304,7 @@ def inject_and_tls_search(time, flux, flux_err,
             epoch = time[0] + np.random.random()*period
             
             #::: inject transit
-            time2, flux2, flux_err2 = inject(time, flux, flux_err, epoch, period, r_companion_earth, tls_kwargs['R_star'], tls_kwargs['M_star'], tls_kwargs['u'], window=None)
+            time2, flux2, flux_err2, depth = inject(time, flux, flux_err, epoch, period, r_companion_earth, tls_kwargs['R_star'], tls_kwargs['M_star'], tls_kwargs['u'], dil, return_depth=True, window=None)
             
             #::: pick tight period_min and period_max for TLS, to speed things up
             tls_periods = tls_period_grid(R_star=tls_kwargs['R_star'], M_star=tls_kwargs['M_star'], time_span=time[-1]-time[0])
@@ -310,6 +330,7 @@ def inject_and_tls_search(time, flux, flux_err,
                     with open(os.path.join(options['outdir'],options['logfname']),'a') as f:
                         f.write(format(period, '.5f')+','+
                                 format(r_companion_earth, '.5f')+','+
+                                format(depth*1e3, '.5f')+','+ #in ppt
                                 format(epoch, '.5f')+','+
                                 format(r.period, '.5f')+','+
                                 format(r.depth, '.5f')+','+
@@ -322,7 +343,8 @@ def inject_and_tls_search(time, flux, flux_err,
                 with open(os.path.join(options['outdir'],options['logfname']),'a') as f:
                     f.write(format(period, '.5f')+','+
                             format(r_companion_earth, '.5f')+','+
-                            'nan'+','+
+                            format(depth*1e3, '.5f')+','+ #in ppt
+                            format(epoch, '.5f')+','+
                             'nan'+','+
                             'nan'+','+
                             'nan'+','+
@@ -337,9 +359,11 @@ def inject_and_tls_search(time, flux, flux_err,
         
     #::: store all args
     arg_all = []
+    seed = 42
     for period, r_companion_earth in itertools.product(period_grid, r_companion_earth_grid): #combining the two for loops
-        arg1 = (period, r_companion_earth)
+        arg1 = (seed, period, r_companion_earth)
         arg_all.append( arg1 )
+        seed += 1
             
         
     #::: cycle through all periods and rplanets
@@ -354,10 +378,8 @@ def inject_and_tls_search(time, flux, flux_err,
         print('Running on '+str(options['multiprocess_cores'])+' cores.')
         with closing( Pool(processes=options['multiprocess_cores']) ) as p:
             r = list( tqdm( p.imap(executer, arg_all), total=len(arg_all) ) )
-            p.close() #needed for pathos, despite closing()
-            p.join() #needed for pathos, despite closing()
-            p.clear() #needed for pathos, despite closing()
-            del p
+            p.close(); p.join(); p.clear() #needed for pathos, despite closing()
+        del p #needed for pathos, despite closing()
                  
         
     #::: finish
