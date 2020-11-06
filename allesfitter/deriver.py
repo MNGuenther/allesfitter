@@ -532,7 +532,7 @@ def derive(samples, mode):
         labels.append( 'Host density from orbit '+companion+'; $\\rho_\mathrm{\star;'+companion+'}$ (cgs)' )
     
         names.append( companion+'_density' )
-        labels.append( 'Companion density '+companion+'; \\$rho_\mathrm{'+companion+'}$ (cgs)' )
+        labels.append( 'Companion density '+companion+'; $\\rho_\mathrm{'+companion+'}$ (cgs)' )
         
         names.append( companion+'_surface_gravity')
         labels.append( 'Companion surface gravity '+companion+'; $g_\mathrm{'+companion+'}$ (cgs)' )

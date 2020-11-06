@@ -63,26 +63,16 @@ from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
 from .postprocessing.plot_histograms import plot_histograms
 
+from .utils.plotter import fullplot, fullplot_csv, brokenplot, brokenplot_csv, tessplot, tessplot_csv
+from .utils.reader import read_csv
+
+
+
 
 def GUI():
     allesfitter_path = os.path.dirname( os.path.realpath(__file__) )
     os.system( 'jupyter notebook "' + os.path.join(allesfitter_path,'GUI.ipynb') + '"')
 
-
-
-def read_csv(fname):
-    return np.genfromtxt(fname, delimiter=',', comments='#', encoding='utf-8', unpack=True)
-    
-
-
-def plot_csv(fname):
-    time, y, y_err = read_csv(fname)
-    fig, ax = plt.subplots()
-    if len(y)>100:
-        ax.plot(time, y, 'b.')
-    else:
-        ax.errorbar(time, y, yerr=y_err, ls='none')
-    return fig, ax
         
 
 
@@ -291,4 +281,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.1.2'
+__version__ = '1.1.3'

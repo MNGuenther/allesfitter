@@ -83,7 +83,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
-        self.logprint('v1.1.2')
+        self.logprint('v1.1.3')
         
         self.load_settings()
         self.load_params()
@@ -456,6 +456,12 @@ class Basement():
                 elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
                      warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+                     
+                if 'baseline_'+key+'_'+inst+'_against' not in self.setting:
+                    self.settings['baseline_'+key+'_'+inst+'_against'] = 'time'
+                if self.settings['baseline_'+key+'_'+inst+'_against'] not in ['time','custom_series']:
+                    raise ValueError("The setting 'baseline_'+key+'_'+inst+'_against' must be one of ['time', custom_series'], but was '" + self.settings['baseline_'+key+'_'+inst+'_against'] + "'.")
+                     
                      
         for inst in self.settings['inst_rv']:
             for key in ['rv']:
@@ -873,9 +879,17 @@ class Basement():
         '''
         self.fulldata = {}
         self.data = {}
+        
+        #======================================================================
+        #::: photometry
+        #======================================================================
         for inst in self.settings['inst_phot']:
-            time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]     
-            if any(np.isnan(time)) or any(np.isnan(flux)) or any(np.isnan(flux_err)):
+            try:
+                time, flux, flux_err, custom_series = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:4]     
+            except:
+                time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]     
+                custom_series = np.zeros_like(time)
+            if any(np.isnan(time*flux*flux_err*custom_series)):
                 raise ValueError('There are NaN values in "'+inst+'.csv". Please exclude these rows from the file and restart.')
             if not all(np.diff(time)>=0):
                 raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
@@ -893,24 +907,34 @@ class Basement():
             self.fulldata[inst] = {
                           'time':time,
                           'flux':flux,
-                          'err_scales_flux':flux_err/np.nanmean(flux_err)
+                          'err_scales_flux':flux_err/np.nanmean(flux_err),
+                          'custom_series':custom_series
                          }
             if (self.settings['fast_fit']) and (len(self.settings['inst_phot'])>0): 
-                time, flux, flux_err = self.reduce_phot_data(time, flux, flux_err, inst=inst)
+                time, flux, flux_err, custom_series = self.reduce_phot_data(time, flux, flux_err, custom_series=custom_series, inst=inst)
             self.data[inst] = {
                           'time':time,
                           'flux':flux,
-                          'err_scales_flux':flux_err/np.nanmean(flux_err)
+                          'err_scales_flux':flux_err/np.nanmean(flux_err),
+                          'custom_series':custom_series
                          }
             
+        #======================================================================
+        #::: RV
+        #======================================================================
         for inst in self.settings['inst_rv']:
-            time, rv, rv_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)         
+            try:
+                time, rv, rv_err, custom_series = np.genfromtxt( os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:4]       
+            except:
+                time, rv, rv_err = np.genfromtxt( os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]              
+                custom_series = np.zeros_like(time)
             if not all(np.diff(time)>0):
                 raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             self.data[inst] = {
                           'time':time,
                           'rv':rv,
-                          'white_noise_rv':rv_err
+                          'white_noise_rv':rv_err,
+                          'custom_series':custom_series
                          }
         
         #::: also save the combined time series
@@ -1080,7 +1104,7 @@ class Basement():
     ###############################################################################
     #::: reduce_phot_data
     ###############################################################################
-    def reduce_phot_data(self, time, flux, flux_err, inst=None):
+    def reduce_phot_data(self, time, flux, flux_err, custom_series=None, inst=None):
         ind_in = []
               
         for companion in self.settings['companions_phot']:
@@ -1110,7 +1134,11 @@ class Basement():
         time = time[ind_in]
         flux = flux[ind_in]
         flux_err = flux_err[ind_in]
-        return time, flux, flux_err
+        if custom_series is None: 
+            return time, flux, flux_err
+        else:
+            custom_series = custom_series[ind_in]
+            return time, flux, flux_err, custom_series
     
     
     

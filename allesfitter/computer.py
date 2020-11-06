@@ -1367,10 +1367,19 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     
     if model is None: 
         model = calculate_model(params, inst, key, xx=None) #the model has to be evaluated on the time grid
+        
     if yerr_w is None: 
         yerr_w = calculate_yerr_w(params, inst, key)
-    x = config.BASEMENT.data[inst]['time']
+        
+    if config.BASEMENT.settings['baseline_'+key+'_'+inst+'_against'] == 'time':
+        x = config.BASEMENT.data[inst]['time']
+    elif config.BASEMENT.settings['baseline_'+key+'_'+inst+'_against'] == 'custom_series':
+        x = config.BASEMENT.data[inst]['custom_series']
+    else:
+        raise KeyError("The setting 'baseline_'+key+'_'+inst+'_against must be one of ['time','custom_series'].")
+        
     y = config.BASEMENT.data[inst][key] - model
+    
     if xx is None:  
         xx = 1.*x
     '''
