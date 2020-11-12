@@ -39,7 +39,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 
 
-def fast_slide_clip(time, flux, window_length=1, low=5, high=5):
+def fast_slide_clip(time, flux, window_length=1, low=5, high=5, return_mask=False):
     """
     A much faster alternative to Wotan's build-in slide clip
 
@@ -51,4 +51,13 @@ def fast_slide_clip(time, flux, window_length=1, low=5, high=5):
     flux_flat = flatten(time, flux, method='biweight', window_length=window_length)
     flux_flat = sigma_clip(np.ma.masked_invalid(flux_flat), sigma_lower=low, sigma_upper=high) #astropy wants masked arrays
     flux2[flux_flat.mask] = np.nan #use NaN instead of masked arrays, because masked arrays drive me crazy
-    return flux2
+    
+    if not return_mask:
+        return flux2
+    
+    else: 
+        with np.testing.suppress_warnings() as sup:
+            sup.filter(UserWarning)
+            mask_upper = (flux_flat > np.median(flux_flat)) * flux_flat.mask
+            mask_lower = (flux_flat < np.median(flux_flat)) * flux_flat.mask
+        return flux2, flux_flat.mask, mask_upper, mask_lower

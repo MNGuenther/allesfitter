@@ -83,7 +83,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
-        self.logprint('v1.1.3')
+        self.logprint('v1.1.4')
         
         self.load_settings()
         self.load_params()
@@ -457,7 +457,7 @@ class Basement():
                      warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                      self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
-                if 'baseline_'+key+'_'+inst+'_against' not in self.setting:
+                if 'baseline_'+key+'_'+inst+'_against' not in self.settings:
                     self.settings['baseline_'+key+'_'+inst+'_against'] = 'time'
                 if self.settings['baseline_'+key+'_'+inst+'_against'] not in ['time','custom_series']:
                     raise ValueError("The setting 'baseline_'+key+'_'+inst+'_against' must be one of ['time', custom_series'], but was '" + self.settings['baseline_'+key+'_'+inst+'_against'] + "'.")

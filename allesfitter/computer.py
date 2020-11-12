@@ -1357,7 +1357,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     xx : array of float (optional; default=None)
         if given, evaluate the baseline fit on the xx values 
         (e.g. a finer time grid for plotting)
-        else, it's the same as data[inst]['time']
+        else, it's the same as data[inst]['time'] or data[inst]['custom_series']
         
     Returns: 
     --------
@@ -1441,18 +1441,20 @@ def baseline_hybrid_spline(*args):
     weights = 1./yerr_weights
     ind = np.isfinite(y) #mask NaN
     spl = UnivariateSpline(x[ind],y[ind],w=weights[ind],s=np.sum(weights[ind]))
-    baseline = spl(xx)
+    baseline = spl(xx) #evaluate on xx (!)
     
 #    if any(np.isnan(baseline)):
-#        import matplotlib.pyplot as plt
-#        print(x[ind])
-#        print(y[ind])
-#        print(weights[ind])
-#        plt.figure()
-#        plt.plot(x,y,'k.', color='grey')
-#        plt.plot(xx,baseline,'r-', lw=2)
-#        plt.show()
-#        input('press enter to continue')
+    import matplotlib.pyplot as plt
+    print('x:\n', x[0:5], '\n in range:', np.min(x), np.median(x), np.max(x), '\n Nall=', len(x), ' Nvalid=', len(np.isfinite(x)))
+    print('xx:\n', xx[0:5], '\n in range:', np.min(xx), np.median(xx), np.max(xx), '\n Nall=', len(xx), ' Nvalid=', len(np.isfinite(xx)))
+    print('y:\n', y[0:5], '\n in range:', np.min(y), np.median(y), np.max(y), '\n Nall=', len(y), ' Nvalid=', len(np.isfinite(y)))
+    print('weights:\n', weights[0:5], '\n in range:', np.min(weights), np.median(weights), np.max(weights), '\n Nall=', len(weights), ' Nvalid=', len(np.isfinite(weights)))
+    print('baseline:\n', baseline[0:5], '\n in range:', np.min(baseline), np.median(baseline), np.max(baseline), '\n Nall=', len(baseline), ' Nvalid=', len(np.isfinite(baseline)))
+    plt.figure()
+    plt.plot(x,y,'k.', color='grey')
+    plt.plot(xx,baseline,'r-', lw=2)
+    plt.show()
+    input('press enter to continue')
     
     return baseline   
 
