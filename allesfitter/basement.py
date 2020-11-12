@@ -83,7 +83,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('--------------------------\n')
-        self.logprint('v1.1.4')
+        self.logprint('v1.1.5')
         
         self.load_settings()
         self.load_params()
@@ -448,43 +448,59 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Baselines
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for inst in self.settings['inst_phot']:
-            for key in ['flux']:
-                if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'none'
+        for inst in self.settings['inst_all']:
+            if inst in self.settings['inst_phot']: key='flux'
+            elif inst in self.settings['inst_rv']: key='rv'
+            
+            if 'baseline_'+key+'_'+inst not in self.settings: 
+                self.settings['baseline_'+key+'_'+inst] = 'none'
 
-                elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
-                     self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+            elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
+                 warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
+                 self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+                 
+            if 'baseline_'+key+'_'+inst+'_against' not in self.settings:
+                self.settings['baseline_'+key+'_'+inst+'_against'] = 'time'
+            if self.settings['baseline_'+key+'_'+inst+'_against'] not in ['time','custom_series']:
+                raise ValueError("The setting 'baseline_'+key+'_'+inst+'_against' must be one of ['time', custom_series'], but was '" + self.settings['baseline_'+key+'_'+inst+'_against'] + "'.")
                      
-                if 'baseline_'+key+'_'+inst+'_against' not in self.settings:
-                    self.settings['baseline_'+key+'_'+inst+'_against'] = 'time'
-                if self.settings['baseline_'+key+'_'+inst+'_against'] not in ['time','custom_series']:
-                    raise ValueError("The setting 'baseline_'+key+'_'+inst+'_against' must be one of ['time', custom_series'], but was '" + self.settings['baseline_'+key+'_'+inst+'_against'] + "'.")
-                     
-                     
-        for inst in self.settings['inst_rv']:
-            for key in ['rv']:
-                if 'baseline_'+key+'_'+inst not in self.settings: 
-                    self.settings['baseline_'+key+'_'+inst] = 'none'
+        # for inst in self.settings['inst_phot']:
+        #     for key in ['flux']:
+        #         if 'baseline_'+key+'_'+inst not in self.settings: 
+        #             self.settings['baseline_'+key+'_'+inst] = 'none'
                     
-                elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                     warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
-                     self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+        #         elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
+        #              warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
+        #              self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
+                     
+        # for inst in self.settings['inst_rv']:
+        #     for key in ['rv']:
+        #         if 'baseline_'+key+'_'+inst not in self.settings: 
+        #             self.settings['baseline_'+key+'_'+inst] = 'none'
+                    
+        #         elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
+        #              warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
+        #              self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Errors
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for inst in self.settings['inst_phot']:
-            for key in ['flux']:
-                if 'error_'+key+'_'+inst not in self.settings: 
-                    self.settings['error_'+key+'_'+inst] = 'sample'
+        for inst in self.settings['inst_all']:
+            if inst in self.settings['inst_phot']: key='flux'
+            elif inst in self.settings['inst_rv']: key='rv'
+            if 'error_'+key+'_'+inst not in self.settings: 
+                self.settings['error_'+key+'_'+inst] = 'sample'
+            
+        # for inst in self.settings['inst_phot']:
+        #     for key in ['flux']:
+        #         if 'error_'+key+'_'+inst not in self.settings: 
+        #             self.settings['error_'+key+'_'+inst] = 'sample'
 
-        for inst in self.settings['inst_rv']:
-            for key in ['rv']:
-                if 'error_'+key+'_'+inst not in self.settings: 
-                    self.settings['error_'+key+'_'+inst] = 'sample'
+        # for inst in self.settings['inst_rv']:
+        #     for key in ['rv']:
+        #         if 'error_'+key+'_'+inst not in self.settings: 
+        #             self.settings['error_'+key+'_'+inst] = 'sample'
                     
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
