@@ -22,13 +22,13 @@ import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
 import itertools
-import wotan
+# import wotan
 from transitleastsquares import period_grid as tls_period_grid
 # from transitleastsquares import catalog_info
 from astropy.constants import G
 from astropy import units as u
 import ellc
-import time as timer
+# import time as timer
 import multiprocessing
 multiprocessing.set_start_method('forkserver', force=True)
 from multiprocessing import cpu_count
@@ -36,15 +36,15 @@ from pathos.multiprocessing import ProcessingPool as Pool
 from contextlib import closing
 
 #::: my modules
-from ..lightcurves.lightcurves import index_eclipses_smart
+from ..lightcurves import index_eclipses_smart
 from .transit_search import get_tls_kwargs_by_tic, tls_search
 from .injection_recovery_output import irplot
 try:
     from exoworlds.tess import tessio
 except:
     pass
-from ..v2.classes import allesclass2
-from ..v2.translator import translate
+# from ..v2.classes import allesclass2
+# from ..v2.translator import translate
 
 #::: plotting settings
 import seaborn as sns

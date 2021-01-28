@@ -43,7 +43,8 @@ from . import config
 from .limb_darkening import LDC3
 from .flares.aflare import aflare1
 # from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
-
+from .lightcurves import translate_limb_darkening_from_q_to_u as q_to_u
+from .lightcurves import translate_limb_darkening_from_u_to_q as u_to_q
 
 '''
 README
@@ -131,50 +132,67 @@ def update_params(theta):
     #::: limb darkening, per instrument
     #=========================================================================
     for inst in config.BASEMENT.settings['inst_all']:
+        for obj in ['host']+config.BASEMENT.settings['companions_all']:
         
-        #---------------------------------------------------------------------
-        #::: host
-        #---------------------------------------------------------------------
-        if config.BASEMENT.settings['host_ld_law_'+inst] is None:
-            params['host_ldc_'+inst] = None
             
-        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'lin':
-            params['host_ldc_'+inst] = params['host_ldc_q1_'+inst]
-            
-        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'quad':
-            ldc_u1 = 2.*np.sqrt(params['host_ldc_q1_'+inst]) * params['host_ldc_q2_'+inst]
-            ldc_u2 = np.sqrt(params['host_ldc_q1_'+inst]) * (1. - 2.*params['host_ldc_q2_'+inst])
-            params['host_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
-            
-        elif config.BASEMENT.settings['host_ld_law_'+inst] == 'sing':
-            params['host_ldc_'+inst] = LDC3.forward([params['host_ldc_q1_'+inst], params['host_ldc_q2_'+inst], params['host_ldc_q3_'+inst]])
-
-        else:
-            raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported, but "+config.BASEMENT.settings['host_ld_law_'+inst]+" was input.")
+            #::: if we sampled in q-space, convert the params to u-space for ellc
+            if config.BASEMENT.settings[obj+'_ld_space_'+inst] == 'q': 
+                
+                if config.BASEMENT.settings[obj+'_ld_law_'+inst] is None:
+                    params[obj+'_ldc_'+inst] = None
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'lin':
+                    params[obj+'_ldc_'+inst] = params[obj+'_ldc_q1_'+inst]
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'quad':
+                    params[obj+'_ldc_'+inst] = q_to_u([params[obj+'_ldc_q1_'+inst],
+                                                       params[obj+'_ldc_q2_'+inst]], 
+                                                      law='quad')
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'sing':
+                    params[obj+'_ldc_'+inst] = q_to_u([params[obj+'_ldc_q1_'+inst], 
+                                                       params[obj+'_ldc_q2_'+inst], 
+                                                       params[obj+'_ldc_q3_'+inst]],
+                                                      law='sing')
+        
+                else:
+                    raise ValueError("You are sampling the limb darkening in q-space,"+\
+                                     "where only the options 'none', 'lin', 'quad' and 'sing'"+\
+                                     "are supported. However, your input was:"+\
+                                     config.BASEMENT.settings[obj+'_ld_law_'+inst]+".")
     
     
-        #---------------------------------------------------------------------
-        #::: companion
-        #---------------------------------------------------------------------
-        for companion in config.BASEMENT.settings['companions_all']:
-            
-            if config.BASEMENT.settings[companion+'_ld_law_'+inst] is None:
-                params[companion+'_ldc_'+inst] = None
+            #::: if we sampled in u-space, just stack them into a list for ellc
+            elif config.BASEMENT.settings[obj+'_ld_space_'+inst] == 'u':
                 
-            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'lin':
-                params[companion+'_ldc_'+inst] = params[companion+'_ldc_q1_'+inst]
-                
-            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'quad':
-                ldc_u1 = 2.*np.sqrt(params[companion+'_ldc_q1_'+inst]) * params[companion+'_ldc_q2_'+inst]
-                ldc_u2 = np.sqrt(params[companion+'_ldc_q1_'+inst]) * (1. - 2.*params[companion+'_ldc_q2_'+inst])
-                params[companion+'_ldc_'+inst] = [ ldc_u1, ldc_u2 ]
-                
-            elif config.BASEMENT.settings[companion+'_ld_law_'+inst] == 'sing':
-                params[companion+'_ldc_'+inst] = LDC3.forward([params[companion+'_ldc_q1_'+inst], params[companion+'_ldc_q2_'+inst], params[companion+'_ldc_q3_'+inst]])
-                
-            else:
-                raise ValueError("Currently only 'none', 'lin', 'quad' and 'sing' limb darkening are supported, but "+config.BASEMENT.settings[companion+'_ld_law_'+inst]+" was input.")
+                if config.BASEMENT.settings[obj+'_ld_law_'+inst] is None:
+                    params[obj+'_ldc_'+inst] = None
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'lin':
+                    params[obj+'_ldc_'+inst] = params[obj+'_ldc_u1_'+inst]
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] in ('quad','sqrt','exp','log'):
+                    params[obj+'_ldc_'+inst] = [ params[obj+'_ldc_u1_'+inst], 
+                                                 params[obj+'_ldc_u2_'+inst] ]
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'sing':
+                    params[obj+'_ldc_'+inst] = [ params[obj+'_ldc_u1_'+inst], 
+                                                 params[obj+'_ldc_u2_'+inst], 
+                                                 params[obj+'_ldc_u3_'+inst] ]
+                    
+                elif config.BASEMENT.settings[obj+'_ld_law_'+inst] == 'claret':
+                    params[obj+'_ldc_'+inst] = [ params[obj+'_ldc_u1_'+inst], 
+                                                 params[obj+'_ldc_u2_'+inst], 
+                                                 params[obj+'_ldc_u3_'+inst], 
+                                                 params[obj+'_ldc_u4_'+inst] ]
+        
+                else:
+                    raise ValueError("Only 'none', 'lin', 'quad', 'sqrt', 'exp',"+\
+                                     "'log', 'sing', and 'claret' limb darkening "+\
+                                     "laws are supported. However, your input was:"+\
+                                     config.BASEMENT.settings[obj+'_ld_law_'+inst]+".")
     
+                
     
     #=========================================================================
     #::: photometric errors, per instrument
@@ -411,8 +429,8 @@ def flux_subfct_ellc(params, inst, companion, xx=None, settings=None, t_exp=None
                                     bfac_2 =      params[companion+'_bfac_'+inst], 
                                     heat_1 =      divide(params['host_heat_'+inst],2.),
                                     heat_2 =      divide(params[companion+'_heat_'+inst],2.),
-                                    lambda_1 =    params['host_lambda_'+inst], 
-                                    lambda_2 =    params[companion+'_lambda_'+inst], 
+                                    lambda_1 =    params['host_lambda'], 
+                                    lambda_2 =    params[companion+'_lambda'], 
                                     vsini_1 =     params['host_vsini'],
                                     vsini_2 =     params[companion+'_vsini'], 
                                     t_exp =       t_exp,
@@ -1444,17 +1462,17 @@ def baseline_hybrid_spline(*args):
     baseline = spl(xx) #evaluate on xx (!)
     
 #    if any(np.isnan(baseline)):
-    import matplotlib.pyplot as plt
-    print('x:\n', x[0:5], '\n in range:', np.min(x), np.median(x), np.max(x), '\n Nall=', len(x), ' Nvalid=', len(np.isfinite(x)))
-    print('xx:\n', xx[0:5], '\n in range:', np.min(xx), np.median(xx), np.max(xx), '\n Nall=', len(xx), ' Nvalid=', len(np.isfinite(xx)))
-    print('y:\n', y[0:5], '\n in range:', np.min(y), np.median(y), np.max(y), '\n Nall=', len(y), ' Nvalid=', len(np.isfinite(y)))
-    print('weights:\n', weights[0:5], '\n in range:', np.min(weights), np.median(weights), np.max(weights), '\n Nall=', len(weights), ' Nvalid=', len(np.isfinite(weights)))
-    print('baseline:\n', baseline[0:5], '\n in range:', np.min(baseline), np.median(baseline), np.max(baseline), '\n Nall=', len(baseline), ' Nvalid=', len(np.isfinite(baseline)))
-    plt.figure()
-    plt.plot(x,y,'k.', color='grey')
-    plt.plot(xx,baseline,'r-', lw=2)
-    plt.show()
-    input('press enter to continue')
+    # import matplotlib.pyplot as plt
+    # print('x:\n', x[0:5], '\n in range:', np.min(x), np.median(x), np.max(x), '\n Nall=', len(x), ' Nvalid=', len(np.isfinite(x)))
+    # print('xx:\n', xx[0:5], '\n in range:', np.min(xx), np.median(xx), np.max(xx), '\n Nall=', len(xx), ' Nvalid=', len(np.isfinite(xx)))
+    # print('y:\n', y[0:5], '\n in range:', np.min(y), np.median(y), np.max(y), '\n Nall=', len(y), ' Nvalid=', len(np.isfinite(y)))
+    # print('weights:\n', weights[0:5], '\n in range:', np.min(weights), np.median(weights), np.max(weights), '\n Nall=', len(weights), ' Nvalid=', len(np.isfinite(weights)))
+    # print('baseline:\n', baseline[0:5], '\n in range:', np.min(baseline), np.median(baseline), np.max(baseline), '\n Nall=', len(baseline), ' Nvalid=', len(np.isfinite(baseline)))
+    # plt.figure()
+    # plt.plot(x,y,'k.', color='grey')
+    # plt.plot(xx,baseline,'r-', lw=2)
+    # plt.show()
+    # input('press enter to continue')
     
     return baseline   
 

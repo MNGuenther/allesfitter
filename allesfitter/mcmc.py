@@ -198,6 +198,7 @@ def mcmc_fit(datadir):
             sampler = emcee.EnsembleSampler(config.BASEMENT.settings['mcmc_nwalkers'], 
                                             config.BASEMENT.ndim, 
                                             mcmc_lnprob,
+                                            moves=config.BASEMENT.settings['mcmc_moves'],
                                             pool=pool, 
                                             backend=backend)
             sampler = run_mcmc(sampler)
@@ -209,6 +210,7 @@ def mcmc_fit(datadir):
         sampler = emcee.EnsembleSampler(config.BASEMENT.settings['mcmc_nwalkers'],
                                         config.BASEMENT.ndim,
                                         mcmc_lnprob,
+                                        moves=config.BASEMENT.settings['mcmc_moves'],
                                         backend=backend)
         sampler = run_mcmc(sampler)
         t1 = timer()

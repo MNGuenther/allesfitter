@@ -44,7 +44,7 @@ from .priors.simulate_PDF import simulate_PDF
 from .limb_darkening import LDC3
 from .computer import update_params, calculate_model, flux_fct, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves.index_transits import index_transits
-from .lightcurves.lightcurves import get_epoch_occ
+from .lightcurves import get_epoch_occ
 
 
 ###############################################################################

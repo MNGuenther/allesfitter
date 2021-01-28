@@ -23,20 +23,33 @@ import matplotlib.pyplot as plt
 import warnings
 from pprint import pprint
 from datetime import datetime
+from astropy import units as u
 from astropy.stats import sigma_clip
-from wotan import flatten, slide_clip
-from transitleastsquares import transitleastsquares as tls
-from transitleastsquares import transit_mask, cleaned_array, catalog_info
+from astropy.timeseries import BoxLeastSquares as bls
 from ..exoworlds_rdx.lightcurves.index_transits import index_transits
-import time as timer
+# import time as timer
 import contextlib
+
+#::: specific modules
+try:
+    from wotan import flatten
+except ImportError:
+    pass
+
+try:
+    from transitleastsquares import transitleastsquares as tls
+    from transitleastsquares import transit_mask, catalog_info
+except ImportError:
+    pass
 
 #::: my modules
 try:
     from exoworlds.tess import tessio
 except:
     pass
-from .fast_slide_clip import fast_slide_clip
+from ..exoworlds_rdx.lightcurves.lightcurve_tools import plot_phase_folded_lightcurve, rebin_err  
+from allesfitter.time_series import clean, slide_clip
+from allesfitter.io import write_json 
 
 #::: plotting settings
 import seaborn as sns
@@ -85,15 +98,15 @@ def mask(time, flux, flux_err, period, duration, T0):
     flux = flux[~intransit]
     if flux_err is not None:
         flux_err = flux_err[~intransit]
-        time, flux, flux_err = cleaned_array(time, flux, flux_err)
+        time, flux, flux_err = clean(time, flux, flux_err)
     else:
-        time, flux = cleaned_array(time, flux)
+        time, flux = clean(time, flux)
     return time, flux, flux_err
     
 
 
 ###############################################################################
-#::: apply a mask (if wished so)
+#::: check for multiples of a value (e.g., of a period)
 ###############################################################################
 def is_multiple_of(a, b, tolerance=0.05):
     a = np.float(a)
@@ -103,6 +116,34 @@ def is_multiple_of(a, b, tolerance=0.05):
 
 
 
+###############################################################################
+#::: BLS search on an input lightcurve
+###############################################################################
+def bls_search(time, flux, flux_err=None):
+    if flux_err is None: 
+        ind = np.where(~np.isnan(time*flux))
+        time = np.array(time)[ind]
+        flux = np.array(flux)[ind]
+    else:
+        ind = np.where(~np.isnan(time*flux*flux_err))
+        time = np.array(time)[ind]
+        flux = np.array(flux)[ind]
+        flux_err = np.array(flux_err)[ind]
+    print(time, flux)
+    plt.figure()
+    plt.plot(time, flux, 'b.')
+    model = bls(time * u.day, flux, dy=flux_err)
+    print(model)
+    periodogram = model.autopower(0.05)
+    plt.plot(periodogram.period, periodogram.power)  
+    # max_power = np.argmax(periodogram.power)
+    # stats = model.compute_stats(periodogram.period[max_power],
+    #                             periodogram.duration[max_power],
+    #                             periodogram.transit_time[max_power])
+    # print(stats)
+        
+    
+    
 ###############################################################################
 #::: get TLS kwargs from TICv8
 ###############################################################################
@@ -121,15 +162,303 @@ def get_tls_kwargs_by_tic(tic_id, sigma=3, tls_kwargs=None, quiet=True):
     tls_kwargs['M_star']=float(M_star)
     tls_kwargs['M_star_min']=M_star-sigma*M_star_lerr
     tls_kwargs['M_star_max']=M_star+sigma*M_star_uerr
-    tls_kwargs['u']=u    
+    tls_kwargs['u']=u
     return tls_kwargs
+
+
+
+###############################################################################
+#::: write TLS reuslts as a dictionary to a json file
+###############################################################################
+def write_tls_results(fname, results):
+    '''
+    Parameters
+    ----------
+    fname : str
+        Name of the output json file.
+    results : transitleastsuqares.results class
+        The results returned form a TLS run.
+
+    Returns
+    -------
+    None.
+
+    Outputs
+    -------
+    A json file that contains a dictionary of the most important tls results.
+    The json file can be read into Python again via allesfitter's read_dic.
+    
+    Explanation
+    -----------
+    The TLS results object contains the following keys, where 
+    'short' indicates it's a float or short list (e.g., the found period or depth per transit) and 
+    'long' indicates it's a humongous array (e.g., the whole light curve).
+    We only want to save the 'short' parts to save space:
+        SDE short
+        SDE_raw short
+        chi2_min short
+        chi2red_min short
+        period short
+        period_uncertainty short
+        T0 short
+        duration short
+        depth short
+        depth_mean short
+        depth_mean_even short
+        depth_mean_odd short
+        transit_depths short
+        transit_depths_uncertainties short
+        rp_rs short
+        snr short
+        snr_per_transit short
+        snr_pink_per_transit short
+        odd_even_mismatch short
+        transit_times short
+        per_transit_count short
+        transit_count short
+        distinct_transit_count short
+        empty_transit_count short
+        FAP short
+        in_transit_count short
+        after_transit_count short
+        before_transit_count short
+        periods long
+        power long
+        power_raw long
+        SR long
+        chi2 long
+        chi2red long
+        model_lightcurve_time long
+        model_lightcurve_model long
+        model_folded_phase long
+        folded_y long
+        folded_dy long
+        folded_phase long
+        model_folded_model long
+    Also:
+        correct_duration short
+        model long (our self-made model(time) curve)
+    '''
+    dic = {}
+    for key in ['SDE', 'SDE_raw', 'chi2_min', 'chi2red_min', 'period', 'period_uncertainty',\
+                'T0', 'duration', 'depth', 'depth_mean', 'depth_mean_even', 'depth_mean_odd',\
+                'transit_depths', 'transit_depths_uncertainties', 'rp_rs',\
+                'snr', 'snr_per_transit', 'snr_pink_per_transit', 'odd_even_mismatch',\
+                'transit_times', 'per_transit_count', 'transit_count', 'distinct_transit_count',\
+                'empty_transit_count', 'FAP', 'in_transit_count', 'after_transit_count',\
+                'before_transit_count'] + ['correct_duration']: 
+        if (type(results[key])!=np.ndarray): #if it's not an array, save it as is
+            dic[key] = results[key]
+        else:  #if it's a short array, save as list (for json)
+            dic[key] = results[key].tolist()
+    write_json(fname, dic)
+    
+
+
+###############################################################################
+#::: TLS search on an input lightcurve
+###############################################################################
+def tls_search(time, flux, flux_err, plot=True, **kwargs):
+    '''
+    Summary:
+    -------
+    This runs TLS on these data with the given infos
+    
+    Inputs:
+    -------
+    time : array of flaot
+        time stamps of observations
+    flux : array of flaot
+        normalized flux
+    flux_err : array of flaot
+        error of normalized flux
+    **kwargs : collection of keyword arguments
+        All keyword arguments will be passed to TLS.
+        Missing keywords will be replaced with default values:
+            R_star : float
+                radius of the star (e.g. median)
+                default 1 R_sun (from TLS)
+            R_star_min : float
+                minimum radius of the star (e.g. 1st percentile)
+                default 0.13 R_sun (from TLS)
+            R_star_max : float
+                maximum radius of the star (e.g. 99th percentile)
+                default 3.5 R_sun (from TLS)
+            M_star : float
+                mass of the star (e.g. median)
+                default 1. M_sun (from TLS)
+            M_star_min : float
+                minimum mass of the star (e.g. 1st percentile)
+                default 0.1 M_sun (from TLS)
+            M_star_max : float
+                maximum mass of the star (e.g. 99th percentile)
+                default 1. M_sun (from TLS)    
+            u : list
+                quadratic limb darkening parameters
+                default [0.4804, 0.1867]
+            period_min : float
+                the minimum period to be searched (in days)
+            period_max : float
+                the maximum period to be searched (in days)
+            show_progress_bar : bool
+                Show a progress bar for TLS
+                default True
+            SNR_threshold : float
+                the SNR threshold at which to stop the TLS search
+                default 5
+            SDE_threshold : float
+                the SDE threshold at which to stop the TLS search
+                default -inf
+            FAP_threshold : float
+                the False Alarm Probability threshold at which to stop the TLS search
+                default inf
+            quiet : bool
+                silence all TLS outprint
+                default True
+        
+    Returns:
+    -------
+    results_all : list of dictionaries
+        List of all dictionaries containing the TLS results 
+        (with dictionaries made from the transitleastsqaures.results class).
+    fig_all : list of matplotlib.figure object, optional
+        List of all summary figures. Only returned if plot is True.
+    '''
+    
+    #::: seeed
+    np.random.seed(42)
+    
+    
+    #::: handle inputs
+    time, flux, flux_err = clean(time, flux, flux_err)
+    plot_bool = plot
+        
+    if 'show_progress_bar' not in kwargs: kwargs['show_progress_bar'] = True
+    if 'SNR_threshold' not in kwargs: kwargs['SNR_threshold'] = 5.
+    if 'SDE_threshold' not in kwargs: kwargs['SDE_threshold'] = -np.inf #don't trust SDE
+    if 'FAP_threshold' not in kwargs: kwargs['FAP_threshold'] = np.inf #don't trust FAP 
+    if 'quiet' not in kwargs: kwargs['quiet'] = True
+    if 'inj_period' not in kwargs: kwargs['inj_period'] = np.nan
+    
+    non_tls_keys = ['SNR_threshold','SDE_threshold','FAP_threshold','quiet','inj_period']
+    tls_kwargs_original = {key: kwargs[key] for key in kwargs.keys() if key not in non_tls_keys} #for the original tls
+    #the rest is filled automatically by TLS
+    
+    
+    #::: init
+    SNR = 1e12
+    SDE = 1e12
+    FAP = 0
+    FOUND_SIGNAL = False
+    results_all = []     
+    fig_all = []       
+    
+    
+    #::: function to convert the results into a dictionary
+    def _to_dic(results):
+        dic = {}
+        for key in results: 
+            dic[key] = results[key]
+        return dic
+    
+    
+    #::: function to run it once
+    def _run1(time, flux, flux_err):
+        if kwargs['quiet']:
+            with open(os.devnull, 'w') as devnull:
+                with contextlib.redirect_stdout(devnull):
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        model = tls(time, flux, flux_err)
+                        results = model.power(**tls_kwargs_original)
+        else:
+            model = tls(time, flux, flux_err)
+            results = model.power(**tls_kwargs_original)
+        
+        results = _to_dic(results)
+        results['detection'] = (results['snr'] >= kwargs['SNR_threshold']) and (results['SDE'] >= kwargs['SDE_threshold']) and (results['FAP'] <= kwargs['FAP_threshold'])
+        results['correct_duration'] = np.nan
+        
+        if results['detection']:
+            #::: calculcate the correct_duration, as TLS sometimes returns unreasonable durations
+            ind_tr_phase = np.where( results['model_folded_model'] < 1. )[0]
+            results['correct_duration'] = results['period'] * (results['model_folded_phase'][ind_tr_phase[-1]] - results['model_folded_phase'][ind_tr_phase[0]])
+            
+        print(results)
+        
+        return results
+            
+            
+    #::: function to plot it once
+    def _plot1(time, flux, flux_err, results):
+        fig, axes = plt.subplots(1, 3, figsize=(20,5), tight_layout=True)
+        
+        ax = axes[0]
+        ax.plot(results['folded_phase'], results['folded_y'], 'k.', color='silver', rasterized=True)
+        bintime, binflux, binflux_err, _ = rebin_err(results['folded_phase'], results['folded_y'], dt = 0.001*results['period'], ferr_type='medsig', ferr_style='sem')
+        ax.plot(bintime, binflux, 'b.', rasterized=True)
+        ax.plot(results['model_folded_phase'], results['model_folded_model'], 'r-', lw=3)
+        
+        ax = axes[1]
+        ax.plot((results['folded_phase']-0.5)*results['period']*24, results['folded_y'], 'k.', color='silver', rasterized=True)
+        bintime, binflux, binflux_err, _ = rebin_err((results['folded_phase']-0.5)*results['period']*24, results['folded_y'], dt = 0.001*results['period']*24, ferr_type='medsig', ferr_style='sem')
+        ax.plot(bintime, binflux, 'bo', rasterized=True)
+        ax.plot((results['model_folded_phase']-0.5)*results['period']*24, results['model_folded_model'], 'r-', lw=3)
+        ax.set(xlim=[ -1.5*results['correct_duration']*24, +1.5*results['correct_duration']*24 ], xlabel='Time (h)', yticks=[])
+        
+        ax = axes[2]
+        ax.text( .02, 0.95, 'P = ' + np.format_float_positional(results['period'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.85, 'Depth = ' + np.format_float_positional(1e3*(1.-results['depth']),4) + ' ppt', ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.75, 'Duration = ' + np.format_float_positional(24*results['correct_duration'],4) + ' h', ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.65, 'T_0 = ' + np.format_float_positional(results['T0'],4) + ' d', ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.55, 'SNR = ' + np.format_float_positional(results['snr'],4), ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.45, 'SDE = ' + np.format_float_positional(results['SDE'],4), ha='left', va='center', transform=ax.transAxes )
+        ax.text( .02, 0.35, 'FAP = ' + np.format_float_scientific(results['FAP'],4), ha='left', va='center', transform=ax.transAxes )
+        ax.set_axis_off()
+        
+        return fig
+            
+            
+    #::: search for transits in a loop
+    while (SNR >= kwargs['SNR_threshold']) and (SDE >= kwargs['SDE_threshold']) and (FAP <= kwargs['FAP_threshold']) and (FOUND_SIGNAL==False):
+       
+        #::: run once 
+        results = _run1(time, flux, flux_err)
+        
+        #::: if a transit was detected, store the results, plot, and apply a mask for the next run
+        if results['detection']:
+            results_all.append(results)
+            
+            results['model'] = np.interp(time, results['model_lightcurve_time'], results['model_lightcurve_model'])
+            
+            if plot_bool:
+                fig = _plot1(time, flux, flux_err, results)
+                fig_all.append(fig)
+           
+            time, flux, flux_err = mask(time, flux, flux_err, 
+                                        results['period'], 
+                                        np.max((1.5*results['correct_duration'])), 
+                                        results['T0'])
+
+        #::: update values
+        SNR = results['snr']
+        SDE = results['SDE']
+        FAP = results['FAP']
+        if is_multiple_of(results['period'],kwargs['inj_period']): SNR = -np.inf #if run as part of an injection-recovery test, then abort if it matches the injected period
+        
+                
+    #::: return
+    if plot_bool:
+        return results_all, fig_all
+    else:
+        return results_all
 
 
 
 ###############################################################################
 #::: TLS search on an input lightcurve
 ###############################################################################
-def tls_search(time, flux, flux_err,
+def tls_search_old(time, flux, flux_err,
                known_transits=None,
                tls_kwargs=None,
                wotan_kwargs=None,
@@ -202,6 +531,10 @@ def tls_search(time, flux, flux_err,
             FAP_threshold : float
                 the False Alarm Probability threshold at which to stop the TLS search
                 default inf
+            period_min : float
+                the minimum period to be searched (in days)
+            period_max : float
+                the maximum period to be searched (in days)
         
     wotan_kwargs : None, str, or dict:
         >> can be used to detrend the data before the TLS search
@@ -239,7 +572,7 @@ def tls_search(time, flux, flux_err,
         if None
             the default options will be used (see below)
         if dict
-            a dcitionary with the following keywords is expected;
+            a dictionary with the following keywords is expected;
             missing keywords will be replaced with default values
             show_plot : bool
                 can show a plot of each phase-folded transit candidate and TLS model in the terminal 
@@ -366,7 +699,7 @@ def tls_search(time, flux, flux_err,
         # print('t3a', timer3a - timer0)   
     
         #::: fast slide clipping (super fast)
-        if wotan_kwargs['slide_clip'] is not None: flux = fast_slide_clip(time, flux, **wotan_kwargs['slide_clip']) #slide_clip is super fast (<1 seconds for a TESS 2 min lightcurve for a single Sector)
+        if wotan_kwargs['slide_clip'] is not None: flux = slide_clip(time, flux, **wotan_kwargs['slide_clip']) #slide_clip is super fast (<1 seconds for a TESS 2 min lightcurve for a single Sector)
         # timer3a = timer.time()
         # print('t3a', timer3a - timer0)   
         
@@ -444,13 +777,14 @@ def tls_search(time, flux, flux_err,
             ind_trs.append(ind_tr)
             
             #::: mask out detected transits and append results
-            time1, flux1 = time, flux #for plotting
+            time1, flux1 = 1*time, 1*flux #for plotting
             time, flux, flux_err = mask(time, flux, flux_err, results.period, np.max((1.5*correct_duration)), results.T0)
             results_all.append(results)
             
             #::: write TLS stats to file
-            with open(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.txt'), 'wt') as out:
-                pprint(results, stream=out)
+            write_tls_results(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.txt'), results)
+            # with open(os.path.join(options['outdir'],'tls_signal_'+str(i)+'.txt'), 'wt') as out:
+            #     pprint(results, stream=out)
     
             # timer5 = timer.time()
             # print('t5', timer5 - timer0)  
@@ -461,17 +795,25 @@ def tls_search(time, flux, flux_err,
                 gs = fig.add_gridspec(2,3)
                 
                 ax = fig.add_subplot(gs[0,:])
-                ax.plot(time1, flux1, 'b.', rasterized=True)
+                ax.plot(time1, flux1, 'k.', color='silver', rasterized=True)
+                bintime, binflux, binflux_err, _ = rebin_err(time1, flux1, dt = 10./60/24, ferr_type='medsig', ferr_style='sem') #in 10 min intervals
+                ax.plot(bintime, binflux, 'b.', rasterized=True)
                 ax.plot(results['model_lightcurve_time'], results['model_lightcurve_model'], 'r-', lw=3)
                 ax.set(xlabel='Time (BJD)', ylabel='Flux')
                 
                 ax = fig.add_subplot(gs[1,0])
-                ax.plot(results['folded_phase'], results['folded_y'], 'b.', rasterized=True)
+                ax.plot(results['folded_phase'], results['folded_y'], 'k.', color='silver', rasterized=True)
+                bintime, binflux, binflux_err, _ = rebin_err(results['folded_phase'], results['folded_y'], dt = 0.001*results['period'], ferr_type='medsig', ferr_style='sem')
+                ax.plot(bintime, binflux, 'b.', rasterized=True)
+                # plot_phase_folded_lightcurve(time1, flux1, results['period'], results['T0'], dt=0.002, ax=ax)
                 ax.plot(results['model_folded_phase'], results['model_folded_model'], 'r-', lw=3)
-                ax.set(xlabel='Phase', ylabel='Flux')
+                # ax.set(xlabel='Phase', ylabel='Flux')
                 
                 ax = fig.add_subplot(gs[1,1])
-                ax.plot((results['folded_phase']-0.5)*results['period']*24, results['folded_y'], 'b.', rasterized=True)
+                ax.plot((results['folded_phase']-0.5)*results['period']*24, results['folded_y'], 'k.', color='silver', rasterized=True)
+                bintime, binflux, binflux_err, _ = rebin_err((results['folded_phase']-0.5)*results['period']*24, results['folded_y'], dt = 0.001*results['period']*24, ferr_type='medsig', ferr_style='sem')
+                ax.plot(bintime, binflux, 'bo', rasterized=True)
+                # plot_phase_folded_lightcurve(time1*24, flux1, results['period']*24, results['T0'], ax=ax, dt=0.002)
                 ax.plot((results['model_folded_phase']-0.5)*results['period']*24, results['model_folded_model'], 'r-', lw=3)
                 ax.set(xlim=[ -1.5*correct_duration*24, +1.5*correct_duration*24 ], xlabel='Time (h)', yticks=[])
                 

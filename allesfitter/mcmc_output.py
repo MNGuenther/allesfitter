@@ -35,9 +35,11 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
+from .computer import calculate_model, calculate_baseline, calculate_stellar_var
 from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples, plot_ttv_results
 from .plot_top_down_view import plot_top_down_view
 from .utils.latex_printer import round_tex
+from .statistics import residual_stats
 
 
 
@@ -211,8 +213,8 @@ def plot_MCMC_corner(sampler):
 #::: print autocorr
 ###############################################################################
 def print_autocorr(sampler):
-    logprint('\nConvergence check:')
-    logprint('--------------------------')
+    logprint('\nConvergence check')
+    logprint('-------------------')
     
     logprint('{0: <20}'.format('Total steps:'),        '{0: <10}'.format(config.BASEMENT.settings['mcmc_total_steps']))
     logprint('{0: <20}'.format('Burn steps:'),         '{0: <10}'.format(config.BASEMENT.settings['mcmc_burn_steps']))
@@ -348,17 +350,28 @@ def mcmc_output(datadir, quiet=False):
     
     #::: derive values (using stellar parameters from params_star.csv)
     if os.path.exists( os.path.join(config.BASEMENT.datadir,'params_star.csv') ):
-    # try:
         deriver.derive(posterior_samples, 'mcmc')
-    # except:
-        # logprint('\nDerived values could not be produced.')
     else:
         logprint('File "params_star.csv" not found. Cannot derive final parameters.')
     
     
+    #::: retrieve the median parameters and curves
+    params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
+    
+    
+    #::: check the residuals
+    for inst in config.BASEMENT.settings['inst_all']:
+        if inst in config.BASEMENT.settings['inst_phot']: key='flux'
+        elif inst in config.BASEMENT.settings['inst_rv']: key='rv'
+        model = calculate_model(params_median, inst, key)
+        baseline = calculate_baseline(params_median, inst, key)
+        stellar_var = calculate_stellar_var(params_median, inst, key)
+        residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+        residual_stats(residuals)
+    
+    
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
     try:
-        params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)
         params_star = np.genfromtxt( os.path.join(config.BASEMENT.datadir,'params_star.csv'), delimiter=',', names=True, dtype=None, encoding='utf-8', comments='#' )
         fig, ax = plot_top_down_view(params_median, params_star)
         fig.savefig( os.path.join(config.BASEMENT.outdir,'top_down_view.pdf'), bbox_inches='tight' )

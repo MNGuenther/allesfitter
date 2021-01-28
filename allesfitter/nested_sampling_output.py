@@ -40,10 +40,12 @@ import warnings
 #::: allesfitter modules
 from . import config
 from . import deriver
+from .computer import calculate_model, calculate_baseline, calculate_stellar_var
 from .general_output import afplot, afplot_per_transit, save_table, save_latex_table, logprint, get_params_from_samples, plot_ttv_results
 from .plot_top_down_view import plot_top_down_view
 from .utils.colormaputil import truncate_colormap
 from .utils.latex_printer import round_tex
+from .statistics import residual_stats
                      
 
     
@@ -96,11 +98,13 @@ def ns_output(datadir):
     #::: security check
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'ns_table.csv')):
         try:
-            overwrite = str(input('Nested Sampling output files already exists in '+config.BASEMENT.outdir+'.\n'+\
+            overwrite = str(input('Nested Sampling output files already exists in '+config.BASEMENT.outdir+'\n'+\
+                                  '-----------------------------------------------'+''.join(['-']*len(config.BASEMENT.outdir))+'\n'\
                                   'What do you want to do?\n'+\
                                   '1 : overwrite the output files\n'+\
                                   '2 : abort\n'))
             if (overwrite == '1'):
+                print('\n')
                 pass
             else:
                 raise ValueError('User aborted operation.')
@@ -136,7 +140,7 @@ def ns_output(datadir):
     
     #::: output the results
     logprint('\nResults:')
-    logprint('--------------------------')
+    logprint('----------')
 #    print(results.summary())
     logZdynesty = results.logz[-1]                                                       # value of logZ
     logZerrdynesty = results.logzerr[-1]                                                 # estimate of the statistcal uncertainty on logZ
@@ -239,7 +243,18 @@ def ns_output(datadir):
 
     #::: derive values (using stellar parameters from params_star.csv)
     deriver.derive(posterior_samples, 'ns')
-   
+    
+    
+    #::: check the residuals
+    for inst in config.BASEMENT.settings['inst_all']:
+        if inst in config.BASEMENT.settings['inst_phot']: key='flux'
+        elif inst in config.BASEMENT.settings['inst_rv']: key='rv'
+        model = calculate_model(params_median, inst, key)
+        baseline = calculate_baseline(params_median, inst, key)
+        stellar_var = calculate_stellar_var(params_median, inst, key)
+        residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+        residual_stats(residuals)
+    
     
     #::: make top-down orbit plot (using stellar parameters from params_star.csv)
     try:

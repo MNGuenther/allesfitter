@@ -24,8 +24,10 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 
 #::: modules
 import numpy as np
-import matplotlib.pyplot as plt
-import os, sys
+# import matplotlib.pyplot as plt
+import os
+import sys
+import fnmatch
 import collections
 from datetime import datetime
 from multiprocessing import cpu_count
@@ -33,13 +35,13 @@ import warnings
 warnings.formatwarning = lambda msg, *args, **kwargs: f'\n! WARNING:\n {msg}\ntype: {args[0]}, file: {args[1]}, line: {args[2]}\n'
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
-from scipy.special import ndtri
+# from scipy.special import ndtri
 from scipy.stats import truncnorm
 
 #::: allesfitter modules
 from .exoworlds_rdx.lightcurves.index_transits import index_transits, index_eclipses, get_first_epoch, get_tmid_observed_transits
 from .priors.simulate_PDF import simulate_PDF
-
+from .utils.mcmc_move_translator import translate_str_to_move
                      
     
     
@@ -82,8 +84,8 @@ class Basement():
         
         print('')
         self.logprint('\nallesfitter version')
-        self.logprint('--------------------------\n')
-        self.logprint('v1.1.5')
+        self.logprint('---------------------')
+        self.logprint('v1.1.6')
         
         self.load_settings()
         self.load_params()
@@ -309,7 +311,9 @@ class Basement():
         if ('fit_ttvs' in self.settings.keys()) and len(self.settings['fit_ttvs']):
             self.settings['fit_ttvs'] = set_bool(self.settings['fit_ttvs'])
             if (self.settings['fit_ttvs']==True) and (self.settings['fast_fit']==False):
-                raise ValueError("fit_ttvs==True, but fast_fit==False. Currently, you can only fit for TTVs if fast_fit==True. Please choose different settings.")
+                raise ValueError('fit_ttvs==True, but fast_fit==False.'+\
+                                 'Currently, you can only fit for TTVs if fast_fit==True.'+\
+                                 'Please choose different settings.')
         else:
             self.settings['fit_ttvs'] = False
         
@@ -338,10 +342,17 @@ class Basement():
             self.settings['mcmc_burn_steps'] = 1000
         if 'mcmc_thin_by' not in self.settings: 
             self.settings['mcmc_thin_by'] = 1
+        if 'mcmc_moves' not in self.settings: 
+            self.settings['mcmc_moves'] = 'StretchMove'
                 
-        for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps','mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
+        #::: make sure these are integers
+        for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps',
+                    'mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
-        
+            
+        #::: translate the mcmc_move string into a list of emcee commands
+        self.settings['mcmc_moves'] = translate_str_to_move(self.settings['mcmc_moves'])
+            
         # N_evaluation_samples = int( 1. * self.settings['mcmc_nwalkers'] * (self.settings['mcmc_total_steps']-self.settings['mcmc_burn_steps']) / self.settings['mcmc_thin_by'] )
         # self.logprint('\nAnticipating ' + str(N_evaluation_samples) + 'MCMC evaluation samples.\n')
         # if N_evaluation_samples>200000:
@@ -402,7 +413,13 @@ class Basement():
                     
                 if is_empty_or_none(companion+'_ld_law_'+inst):
                     self.settings[companion+'_ld_law_'+inst] = None
-                
+ 
+                if is_empty_or_none('host_ld_space_'+inst): 
+                    self.settings['host_ld_space_'+inst] = 'q'
+                    
+                if is_empty_or_none(companion+'_ld_space_'+inst):
+                    self.settings[companion+'_ld_space_'+inst] = 'q'        
+                    
                 if 'host_shape_'+inst not in self.settings: 
                     self.settings['host_shape_'+inst] = 'sphere'
                     
@@ -607,6 +624,7 @@ class Basement():
             backwards_compability(key_new='host_ldc_q1_'+inst, key_deprecated='ldc_q1_'+inst)
             backwards_compability(key_new='host_ldc_q2_'+inst, key_deprecated='ldc_q2_'+inst)
             backwards_compability(key_new='host_ldc_q3_'+inst, key_deprecated='ldc_q3_'+inst)
+            backwards_compability(key_new='host_ldc_q4_'+inst, key_deprecated='ldc_q4_'+inst)
             backwards_compability(key_new='ln_err_flux_'+inst, key_deprecated='log_err_flux_'+inst)
             backwards_compability(key_new='ln_jitter_rv_'+inst, key_deprecated='log_jitter_rv_'+inst)
             backwards_compability(key_new='baseline_gp_matern32_lnsigma_flux_'+inst, key_deprecated='baseline_gp1_flux_'+inst)
@@ -626,14 +644,14 @@ class Basement():
         #==========================================================================          
         self.allkeys = np.atleast_1d(buf['name']) #len(all rows in params.csv)
         self.labels = np.atleast_1d(buf['label']) #len(all rows in params.csv)
-        self.units = np.atleast_1d(buf['unit'])   #len(all rows in params.csv)
+        self.units = np.atleast_1d(buf['unit']) #len(all rows in params.csv)
         if 'truth' in buf.dtype.names:
             self.truths = np.atleast_1d(buf['truth']) #len(all rows in params.csv)
         else:
             self.truths = np.nan * np.ones(len(self.allkeys))
             
-        self.params = collections.OrderedDict()                                #len(all rows in params.csv)
-        self.params['user-given:'] = ''                                        #just for printing
+        self.params = collections.OrderedDict() #len(all rows in params.csv)
+        self.params['user-given:'] = '' #just for pretty printing
         for i,key in enumerate(self.allkeys):
             #::: if it's not a "coupled parameter", then use the given value
             if np.atleast_1d(buf['value'])[i] not in np.atleast_1d(self.allkeys):
@@ -652,12 +670,36 @@ class Basement():
                     raise ValueError("User input for "+key+" is "+self.params+" but must lie within ["+str(default_min)+","+str(default_max)+"].")
             if (key not in self.params):
                 self.params[key] = default
+        
+        
+        #==========================================================================
+        #::: luser-proof: make sure the limb darkening values are uniquely 
+        #::: from either the u- or q-space
+        #==========================================================================  
+        def check_ld(obj, inst):
+           if self.settings[obj+'_ld_space_'+inst] == 'q': 
+                matches = fnmatch.filter(self.allkeys, obj+'_ldc_u*_'+inst)
+                if len(matches) > 0:
+                    raise ValueError("The following user input is inconsistent:\n"+\
+                                     "Setting: '"+key+"' = 'q'\n"+\
+                                     "Parameters: {}".format(matches))   
+                        
+           elif self.settings[obj+'_ld_space_'+inst] == 'u': 
+                matches = fnmatch.filter(self.allkeys, obj+'_ldc_q*_'+inst)
+                if len(matches) > 0:
+                    raise ValueError("The following user input is inconsistent:\n"+\
+                                     "Setting: '"+key+"' = 'u'\n"+\
+                                     "Parameters: {}".format(matches))  
+                        
+        for inst in self.settings['inst_all']:
+            for obj in ['host'] + self.settings['companions_all']:   
+                check_ld(obj, inst)
             
             
         #==========================================================================
-        #::: go through all params
+        #::: validate that initial guess params have reasonable values
         #==========================================================================
-        self.params['automatically set:'] = ''                                 #just for printing
+        self.params['automatically set:'] = '' #just for pretty printing
         for companion in self.settings['companions_all']:
             for inst in self.settings['inst_all']:
                 
@@ -677,13 +719,25 @@ class Basement():
                 validate(companion+'_f_c', 0., -1, 1)
                 validate('dil_'+inst, 0., -np.inf, np.inf)
                 
-                #::: limb darkenings
+                #::: limb darkenings, u-space
+                validate('host_ldc_u1_'+inst, None, 0, 1)
+                validate('host_ldc_u2_'+inst, None, 0, 1)
+                validate('host_ldc_u3_'+inst, None, 0, 1)
+                validate('host_ldc_u4_'+inst, None, 0, 1)
+                validate(companion+'_ldc_u1_'+inst, None, 0, 1)
+                validate(companion+'_ldc_u2_'+inst, None, 0, 1)
+                validate(companion+'_ldc_u3_'+inst, None, 0, 1)
+                validate(companion+'_ldc_u4_'+inst, None, 0, 1)
+
+                #::: limb darkenings, q-space
                 validate('host_ldc_q1_'+inst, None, 0, 1)
                 validate('host_ldc_q2_'+inst, None, 0, 1)
                 validate('host_ldc_q3_'+inst, None, 0, 1)
+                validate('host_ldc_q4_'+inst, None, 0, 1)
                 validate(companion+'_ldc_q1_'+inst, None, 0, 1)
                 validate(companion+'_ldc_q2_'+inst, None, 0, 1)
                 validate(companion+'_ldc_q3_'+inst, None, 0, 1)
+                validate(companion+'_ldc_q4_'+inst, None, 0, 1)
                 
                 #::: catch exceptions
                 if self.params[companion+'_period'] is None:
@@ -701,7 +755,7 @@ class Basement():
                 validate('host_hf_'+inst, 1.5, -np.inf, np.inf)
                 validate('host_bfac_'+inst, None, -np.inf, np.inf)
                 validate('host_heat_'+inst, None, -np.inf, np.inf)
-                validate('host_lambda_'+inst, None, -np.inf, np.inf)
+                validate('host_lambda', None, -np.inf, np.inf)
                 validate('host_vsini', None, -np.inf, np.inf)
                 
                 validate(companion+'_gdc_'+inst, None, 0., 1.)
@@ -709,7 +763,7 @@ class Basement():
                 validate(companion+'_hf_'+inst, 1.5, -np.inf, np.inf)
                 validate(companion+'_bfac_'+inst, None, -np.inf, np.inf)
                 validate(companion+'_heat_'+inst, None, -np.inf, np.inf)
-                validate(companion+'_lambda_'+inst, None, -np.inf, np.inf)
+                validate(companion+'_lambda', None, -np.inf, np.inf)
                 validate(companion+'_vsini', None, -np.inf, np.inf)
         
                 #::: special parameters (list type)
@@ -999,8 +1053,8 @@ class Basement():
         change epoch entry from params.csv to set epoch into the middle of the range
         '''
         
-        self.logprint('\nShifting epochs into the data center:')
-        self.logprint('--------------------------\n')
+        self.logprint('\nShifting epochs into the data center')
+        self.logprint('------------------------------------')
         
         #::: for all companions
         for companion in self.settings['companions_all']:

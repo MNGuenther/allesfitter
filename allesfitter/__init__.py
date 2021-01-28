@@ -63,9 +63,10 @@ from .postprocessing.nested_sampling_compare_logZ import get_logZ, ns_plot_bayes
 from .postprocessing.plot_violins import ns_plot_violins, mcmc_plot_violins
 from .postprocessing.plot_histograms import plot_histograms
 
-from .utils.plotter import fullplot, fullplot_csv, brokenplot, brokenplot_csv, tessplot, tessplot_csv
-from .utils.reader import read_csv
+from .plotting import fullplot, fullplot_csv, brokenplot, brokenplot_csv, tessplot, tessplot_csv
 
+from .lightcurves import translate_limb_darkening_from_q_to_u as q_to_u
+from .lightcurves import translate_limb_darkening_from_u_to_q as u_to_q
 
 
 
@@ -98,7 +99,7 @@ class allesclass():
         except:
             pass
         
-#        try:
+        #::: nested sampling?
         if os.path.exists( os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz') ):
             f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
             results = pickle.load(f)
@@ -106,6 +107,8 @@ class allesclass():
             self.posterior_samples = nested_sampling_output.draw_ns_posterior_samples(results) # all weighted posterior_samples
             self.posterior_params = nested_sampling_output.draw_ns_posterior_samples(results, as_type='dic') # all weighted posterior_samples
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
+        
+        #::: mcmc?
         elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5') ):
             copyfile(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
@@ -204,7 +207,39 @@ class allesclass():
     def get_posterior_median_yerr(self, inst, key):
         return calculate_yerr_w(self.posterior_params_median, inst, key)
 
+
+
+    #::: posterior at maximum likelihood
+    
+    def get_posterior_at_maximum_likelihood_model(self, inst, key, xx=None, phased=False, settings=None):
+        if phased==False:
+            return calculate_model(self.posterior_params_at_maximum_likelihood, inst, key, xx=xx, settings=settings)
+        elif phased==True:
+            p = update_params(self.posterior_params_at_maximum_likelihood, phased=True)
+            return calculate_model(p, inst, key, xx=xx)
         
+    def get_posterior_at_maximum_likelihood_baseline(self, inst, key, xx=None, model=None, phased=False):
+        if phased==False:
+            return calculate_baseline(self.posterior_params_at_maximum_likelihood, inst, key, xx=xx, model=model)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')
+            
+    def get_posterior_at_maximum_likelihood_stellar_var(self, inst, key, xx=None, phased=False):
+        if phased==False:
+            return calculate_stellar_var(self.posterior_params_at_maximum_likelihood, inst, key, xx=xx)
+        elif phased==True:
+            raise ValueError('Not yet implemented.')    
+    
+    def get_posterior_at_maximum_likelihood_residuals(self, inst, key):
+        model = self.get_posterior_at_maximum_likelihood_model(inst, key)
+        baseline = self.get_posterior_at_maximum_likelihood_baseline(inst, key, model=model)
+        stellar_var = self.get_posterior_at_maximum_likelihood_stellar_var(inst, key)
+        return self.data[inst][key] - model - baseline - stellar_var
+    
+    def get_posterior_at_maximum_likelihood_yerr(self, inst, key):
+        return calculate_yerr_w(self.posterior_params_median, inst, key)
+
+
     
     #::: initial guess
     
@@ -281,4 +316,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.1.5'
+__version__ = '1.1.6'

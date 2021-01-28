@@ -28,17 +28,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import warnings
+
+#::: specific modules
 try:
     from wotan import flatten
-except:
-    warnings.warn('Install wotan for full TTV preparation functionality.')
+except ImportError:
     pass
 
 #::: my modules
 import allesfitter
-from allesfitter.lightcurves.lightcurves import eclipse_width_smart
+from allesfitter.lightcurves import eclipse_width_smart
 from allesfitter.exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
-from allesfitter.general_output import logprint
+# from .general_output import logprint
 
 
     
@@ -116,6 +117,7 @@ def prepare_ttv_fit(datadir, ax=None):
                 trend = flatten(tr_times, tr_flux, window_length=eclipse_width/2., method='biweight', return_trend=True)[1]
                 tmid = np.median( tr_times[ np.argsort(trend)[0:int(N_points_in_eclipse/2.)] ] )
             except:
+                warnings.warn('Install wotan for improved performance of prepare_ttv_fit().')
                 trend = None
                 tmid = np.median( tr_times[ np.argsort(tr_times)[0:int(N_points_in_eclipse/2.)] ] )
             ttv_guess = tmid - t

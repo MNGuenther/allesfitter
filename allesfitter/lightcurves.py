@@ -17,22 +17,24 @@ Web: www.mnguenther.com
 from __future__ import print_function, division, absolute_import
 
 #::: modules
-import os, sys
+# import os, sys
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from tqdm import tqdm
-from glob import glob
-from pprint import pprint
+# import matplotlib.pyplot as plt
+# import pandas as pd
+# from tqdm import tqdm
+# from glob import glob
+# from pprint import pprint
 
 #::: my modules
-import allesfitter
+# import allesfitter
+# from . import config
+from .limb_darkening import LDC3
 
 #::: plotting settings
-import seaborn as sns
-sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
-sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
-sns.set_context(rc={'lines.markeredgewidth': 1})
+# import seaborn as sns
+# sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
+# sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
+# sns.set_context(rc={'lines.markeredgewidth': 1})
 
 
 
@@ -229,3 +231,77 @@ def index_eclipses_smart(time, epoch, period, rr, rsuma, cosi, f_s, f_c, extra_f
     #::: return
     #--------------------------------------------------------------------------
     return ind_ecl1, ind_ecl2, ind_out
+
+
+
+def translate_limb_darkening_from_u_to_q(u, law=None):
+    '''
+    Translate limb darkening values from the physical space (u1,u2,u3)
+    into the Kipping-space (q1,q2,q3) for uniform sampling.
+
+    Parameters
+    ----------
+    u : float or list of float
+        Limb darkening values in the physical space.
+        Either None, u, (u1,u2), or (u1,u2,u3).
+    law : None or str, optional
+        The limb darkening law.
+        Either None, 'lin', 'quad', or 'sing'. The default is None.
+
+    Returns
+    -------
+    float or list of float
+        Limb darkening values in the Kipping-space.
+        Either None, q, (q1,q2), or (q1,q2,q3)
+    '''
+    if law is None:
+        return None
+        
+    elif law == 'lin':
+        return u
+    
+    elif law == 'quad':
+        q1 = (u[0] + u[1])**2
+        q2 = 0.5*u[0] / (u[0] + u[1])
+        return [ q1, q2 ]
+        
+    elif law == 'sing':
+        return LDC3.inverse(u)
+
+    
+
+def translate_limb_darkening_from_q_to_u(q, law=None):
+    '''
+    Translate limb darkening values from the Kipping-space (q1,q2,q3) 
+    into the (u1,u2,u3) space for physical interpretation.
+
+    Parameters
+    ----------
+    q : float or list of float
+        Limb darkening values in the Kipping-space.
+        Either None, q, (q1,q2), or (q1,q2,q3)
+    law : None or str, optional
+        The limb darkening law.
+        Either None, 'lin', 'quad', or 'sing'. The default is None.
+
+    Returns
+    -------
+    float or list of float
+        Limb darkening values in the physical space.
+        Either None, u, (u1,u2), or (u1,u2,u3)
+    '''
+    if law is None:
+        return None
+        
+    elif law == 'lin':
+        return q
+        
+    elif law == 'quad':
+        u1 = 2.*np.sqrt(q[0]) * q[1]
+        u2 = np.sqrt(q[0]) * (1. - 2.*q[1])
+        return [ u1, u2 ]
+        
+    elif law == 'sing':
+        return LDC3.forward(q)
+
+    

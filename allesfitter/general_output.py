@@ -50,7 +50,7 @@ from .exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
 ###############################################################################
 #::: print function that prints into console and logfile at the same time
 ############################################################################### 
-def logprint(*text, outdir=None):
+def logprint(*text):
     if config.BASEMENT.settings['print_progress']:
         print(*text)
     original = sys.stdout
