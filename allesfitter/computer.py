@@ -25,6 +25,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: modules
 import numpy as np
 import ellc
+from astropy import units as u
 from scipy.optimize import minimize
 from scipy.interpolate import UnivariateSpline
 import numpy.polynomial.polynomial as poly
@@ -40,11 +41,12 @@ except ImportError:
 
 #allesfitter modules
 from . import config
-from .limb_darkening import LDC3
+# from .limb_darkening import LDC3
 from .flares.aflare import aflare1
 # from .exoworlds_rdx.lightcurves.lightcurve_tools import calc_phase
 from .lightcurves import translate_limb_darkening_from_q_to_u as q_to_u
-from .lightcurves import translate_limb_darkening_from_u_to_q as u_to_q
+# from .lightcurves import translate_limb_darkening_from_u_to_q as u_to_q
+from .observables import calc_M_comp_from_RV, calc_rho, calc_rho_host
 
 '''
 README
@@ -256,15 +258,61 @@ def update_params(theta):
     #=========================================================================
     #::: host stellar density, per companion
     #::: (in cgs units)
-    #::: via Seager & Mallen-Ornelas 2003 (see also Winn 2010, Eq. 30)
-    #::: this needs rr^3 := (R_companion/R_star)^3 --> 0 
-    #::: hence we here demand rr < 0.215443469, allowing a 1% erroneous contribution by the planet density).
+    #::: this can directly be computed from Kepler's third law, by dividing by R_host**3
+    #::: see also Seager & Mallen-Ornelas 2003 and Winn 2010, Eq. 30
+    #::: only do this if it's actually requested by the user
     #=========================================================================
-    for companion in config.BASEMENT.settings['companions_phot']:
-        if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0) and (params[companion+'_rr'] < 0.215443469):
-            params[companion+'_host_density'] = 3. * np.pi * (1./params[companion+'_radius_1'])**3. / (params[companion+'_period']*86400.)**2 / 6.67408e-8 #in cgs
-        else:
-            params[companion+'_host_density'] = None
+    if (config.BASEMENT.settings['use_host_density_prior'] is True) \
+        and ('host_density' in config.BASEMENT.external_priors):
+    
+            for companion in config.BASEMENT.settings['companions_phot']:
+        
+                # """
+                # If we have transit and RV data, we can constrain each companion's mass 
+                # and density directly during sampling
+                # """
+                if (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0) \
+                    and (params[companion+'_K'] is not None) and (params[companion+'_K'] > 0):
+                        
+                    M_comp = calc_M_comp_from_RV(K = params[companion+'_K'],
+                                                 P = params[companion+'_period'], 
+                                                 incl = params[companion+'_incl'], 
+                                                 ecc = params[companion+'_ecc'], 
+                                                 M_host = config.BASEMENT.params_star['M_star_median'], 
+                                                 return_unit = u.Msun) #in Msun
+                    
+                    R_comp = params[companion+'_rr'] * config.BASEMENT.params_star['R_star_median'] #in Rsun
+                    
+                    rho_comp = calc_rho(R = R_comp, 
+                                        M = M_comp, 
+                                        R_unit = u.Rsun,
+                                        M_unit = u.Msun,
+                                        return_unit='cgs') #in cgs units
+                    
+                    params[companion+'_host_density'] = calc_rho_host(P = params[companion+'_period'], 
+                                                                      radius_1 = params[companion+'_radius_1'], 
+                                                                      rr = params[companion+'_rr'], 
+                                                                      rho_comp = rho_comp, 
+                                                                      return_unit = 'cgs')
+                        
+                # """
+                # Elif we only have transit data, we need to assume rr^3 * rho_comp := (R_companion/R_star)^3 * rho_comp --> 0. 
+                # Hence, we here demand rr**3 < 0.01, allowing a 1% erroneous contribution by the planet density.
+                # """
+                elif (params[companion+'_rr'] is not None) and (params[companion+'_rr'] > 0) \
+                    and (params[companion+'_rr']**3 < 0.01):
+                        
+                    params[companion+'_host_density'] = calc_rho_host(P = params[companion+'_period'], 
+                                                                      radius_1 = params[companion+'_radius_1'], 
+                                                                      rr = params[companion+'_rr'], 
+                                                                      rho_comp = 0., #just to set the whole term to 0 
+                                                                      return_unit = 'cgs')
+                        
+                # """
+                # Else we can't do anything. 
+                # """
+                else:
+                    params[companion+'_host_density'] = None
             
         
     #=========================================================================
@@ -691,8 +739,8 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
                                   bfac_2 =      params[companion+'_bfac_'+inst], 
                                   heat_1 =      divide(params['host_heat_'+inst],2.),
                                   heat_2 =      divide(params[companion+'_heat_'+inst],2.),
-                                  lambda_1 =    params['host_lambda_'+inst], 
-                                  lambda_2 =    params[companion+'_lambda_'+inst], 
+                                  lambda_1 =    params['host_lambda'], 
+                                  lambda_2 =    params[companion+'_lambda'], 
                                   vsini_1 =     params['host_vsini'],
                                   vsini_2 =     params[companion+'_vsini'], 
                                   t_exp =       t_exp,
@@ -769,8 +817,8 @@ def flux_subfct_ellc_phase_curve_hack(params, inst, companion, xx, t_exp, n_int)
                       bfac_2 =      0, 
                       heat_1 =      0,
                       heat_2 =      0,
-                      lambda_1 =    params['host_lambda_'+inst], 
-                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      lambda_1 =    params['host_lambda'], 
+                      lambda_2 =    params[companion+'_lambda'], 
                       vsini_1 =     params['host_vsini'],
                       vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
@@ -815,8 +863,8 @@ def flux_subfct_ellc_phase_curve_hack(params, inst, companion, xx, t_exp, n_int)
                       bfac_2 =      0, 
                       heat_1 =      0,
                       heat_2 =      0.1,
-                      lambda_1 =    params['host_lambda_'+inst], 
-                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      lambda_1 =    params['host_lambda'], 
+                      lambda_2 =    params[companion+'_lambda'], 
                       vsini_1 =     params['host_vsini'],
                       vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
@@ -861,8 +909,8 @@ def flux_subfct_ellc_phase_curve_hack(params, inst, companion, xx, t_exp, n_int)
                       bfac_2 =      0, 
                       heat_1 =      0,
                       heat_2 =      0.1,
-                      lambda_1 =    params['host_lambda_'+inst], 
-                      lambda_2 =    params[companion+'_lambda_'+inst], 
+                      lambda_1 =    params['host_lambda'], 
+                      lambda_2 =    params[companion+'_lambda'], 
                       vsini_1 =     params['host_vsini'],
                       vsini_2 =     params[companion+'_vsini'], 
                       t_exp =       t_exp,
@@ -945,8 +993,8 @@ def rv_fct(params, inst, companion, xx=None, settings=None):
                           bfac_2 =      params[companion+'_bfac_'+inst], 
                           heat_1 =      divide(params['host_heat_'+inst],2.),
                           heat_2 =      divide(params[companion+'_heat_'+inst],2.),
-                          lambda_1 =    params['host_lambda_'+inst],
-                          lambda_2 =    params[companion+'_lambda_'+inst], 
+                          lambda_1 =    params['host_lambda'],
+                          lambda_2 =    params[companion+'_lambda'], 
                           vsini_1 =     params['host_vsini'],
                           vsini_2 =     params[companion+'_vsini'], 
                           t_exp =       t_exp,
@@ -985,19 +1033,24 @@ def calculate_external_priors(params):
     lnp = 0.        
     
     #::: stellar density prior
-    for companion in config.BASEMENT.settings['companions_phot']:
-        '''
-        The stellar density computed from R_host and M_host
-        can be directly compared with the stellar density computed from the orbital motions (see e.g. Winn 210)
-        '''
-        if (config.BASEMENT.settings['use_host_density_prior'] is True) and ('host_density' in config.BASEMENT.external_priors) and (params[companion+'_host_density'] is not None):
-            b = config.BASEMENT.external_priors['host_density']
-            if b[0] == 'uniform':
-                if not (b[1] <= params[companion+'_host_density'] <= b[2]): return -np.inf
-            elif b[0] == 'normal':
-                lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (params[companion+'_host_density'] - b[1])**2 / (2.*b[2]**2) ) )
-            else:
-                raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
+    if (config.BASEMENT.settings['use_host_density_prior'] is True) \
+        and ('host_density' in config.BASEMENT.external_priors):
+            
+        for companion in config.BASEMENT.settings['companions_phot']:
+            '''
+            The stellar density computed from R_host and M_host
+            can be directly compared with the stellar density computed from the orbital motions (see e.g. Winn 2010)
+            '''
+            if params[companion+'_host_density'] is not None:
+                    
+                b = config.BASEMENT.external_priors['host_density']
+                if b[0] == 'uniform':
+                    if not (b[1] <= params[companion+'_host_density'] <= b[2]): return -np.inf
+                elif b[0] == 'normal':
+                    lnp += np.log( 1./(np.sqrt(2*np.pi) * b[2]) * np.exp( - (params[companion+'_host_density'] - b[1])**2 / (2.*b[2]**2) ) )
+                else:
+                    raise ValueError('Bounds have to be "uniform" or "normal". Input was "'+b[0]+'".')
+    
     
     #::: constrain eccentricities to avoid ellc crashes
     for companion in config.BASEMENT.settings['companions_all']:
@@ -1021,6 +1074,7 @@ def calculate_external_priors(params):
             and (config.BASEMENT.settings['use_tidal_eccentricity_prior'] is True) \
             and not (params[companion+'_ecc'] < (1. - 3*params[companion+'_radius_1'])): 
             lnp = -np.inf
+            
             
     #::: constrain dilution to avoid ellc crashes
     for inst in config.BASEMENT.settings['inst_all']:

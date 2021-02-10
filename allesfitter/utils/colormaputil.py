@@ -29,7 +29,9 @@ See also
 """
 
 import numpy as np
-from matplotlib import pyplot as pl, cm, colors
+from matplotlib import pyplot as pl
+from matplotlib import colors
+from matplotlib.pyplot import colormaps
 
 __version__ = "2013-12-19 dec denis"
 
@@ -65,7 +67,7 @@ def get_cmap( cmap, name=None, n=256 ):
     if isinstance( cmap, colors.Colormap ):
         return cmap
     if isinstance( cmap, str ):
-        if cmap in cm.cmap_d:
+        if cmap in colormaps():
             return pl.get_cmap( cmap )  # "Blues" ...
         A = np.loadtxt( cmap, delimiter=None )  # None: white space
         name = name or cmap.split("/")[-1] .split(".")[0]  # .../xx.csv -> xx
@@ -118,7 +120,7 @@ if __name__ == "__main__":
 
     cmap = cmap_bluebrown10
     bw = array_cmap( [ [0.,0,0], [1,1,1] ], name="bw", n=2 )
-    plot = 0
+    plot = 1
 
         # run this.py a=1 b=None c=[3] 'd = expr' ...  in sh or ipython
     exec( "\n".join( sys.argv[1:] ))

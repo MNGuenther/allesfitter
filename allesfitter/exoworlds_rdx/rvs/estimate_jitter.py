@@ -29,6 +29,9 @@ import os, sys
 from datetime import datetime
 import emcee
 import corner
+import multiprocessing
+multiprocessing.set_start_method('fork', force=True)
+#solves python>=3.8 issues, see https://stackoverflow.com/questions/60518386/error-with-module-multiprocessing-under-python3-8
 from multiprocessing import Pool, cpu_count
 from contextlib import closing
 

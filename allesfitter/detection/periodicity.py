@@ -17,7 +17,7 @@ Web: www.mnguenther.com
 from __future__ import print_function, division, absolute_import
 
 #::: modules
-# import os
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -164,150 +164,150 @@ def estimate_period(time, y, y_err, clip=True, plot=True, **kwargs):
 # ###############################################################################
 # #::: run a periodogram via astropy to get the dominant period and FAP
 # ###############################################################################
-# def estimate_period_old(time, y, y_err, periodogram_kwargs=None, astropy_kwargs=None, wotan_kwargs=None, options=None):
-#     '''
-#     Parameters
-#     ----------
-#     time : TYPE
-#         DESCRIPTION.
-#     y : TYPE
-#         DESCRIPTION.
-#     y_err : TYPE
-#         DESCRIPTION.
-#     periodogram_kwargs : TYPE, optional
-#         DESCRIPTION. The default is None.
-#     astropy_kwargs : TYPE, optional
-#         DESCRIPTION. The default is None.
-#     wotan_kwargs : TYPE, optional
-#         DESCRIPTION. The default is None.
-#     options : None or dictionary, optional
-#         The default is None, which will evaluate to:
-#             options = {}
-#             options['show_plot'] = True #show a plot in the terminal?
-#             options['save_plot'] = True #save a plot?
-#             options['fname_plot'] = 'periodogram' #filenmae of the plot
-#             options['outdir'] = '.' #output directory for the plot
-#         If a dictionary is given, it may contain and overwrite all these keys.
+def estimate_period_old(time, y, y_err, periodogram_kwargs=None, astropy_kwargs=None, wotan_kwargs=None, options=None):
+    '''
+    Parameters
+    ----------
+    time : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+    y_err : TYPE
+        DESCRIPTION.
+    periodogram_kwargs : TYPE, optional
+        DESCRIPTION. The default is None.
+    astropy_kwargs : TYPE, optional
+        DESCRIPTION. The default is None.
+    wotan_kwargs : TYPE, optional
+        DESCRIPTION. The default is None.
+    options : None or dictionary, optional
+        The default is None, which will evaluate to:
+            options = {}
+            options['show_plot'] = True #show a plot in the terminal?
+            options['save_plot'] = True #save a plot?
+            options['fname_plot'] = 'periodogram' #filenmae of the plot
+            options['outdir'] = '.' #output directory for the plot
+        If a dictionary is given, it may contain and overwrite all these keys.
 
-#     Returns
-#     -------
-#     None.
-#     '''  
+    Returns
+    -------
+    None.
+    '''  
     
-#     #==========================================================================
-#     #::: handle inputs
-#     #==========================================================================
-#     cadence = np.nanmedian(np.diff(time))
+    #==========================================================================
+    #::: handle inputs
+    #==========================================================================
+    cadence = np.nanmedian(np.diff(time))
         
-#     if periodogram_kwargs is None: periodogram_kwargs = {}
-#     if 'minperiod' not in periodogram_kwargs: periodogram_kwargs['minperiod'] = 10. * cadence
-#     if 'maxperiod' not in periodogram_kwargs: periodogram_kwargs['maxperiod'] = time[-1]-time[0]
+    if periodogram_kwargs is None: periodogram_kwargs = {}
+    if 'minperiod' not in periodogram_kwargs: periodogram_kwargs['minperiod'] = 10. * cadence
+    if 'maxperiod' not in periodogram_kwargs: periodogram_kwargs['maxperiod'] = time[-1]-time[0]
     
-#     if astropy_kwargs is None: astropy_kwargs = {}
-#     if 'sigma' not in astropy_kwargs: astropy_kwargs['sigma'] = 5
+    if astropy_kwargs is None: astropy_kwargs = {}
+    if 'sigma' not in astropy_kwargs: astropy_kwargs['sigma'] = 5
     
-#     if wotan_kwargs is None: wotan_kwargs = {}
-#     if 'slide_clip' not in wotan_kwargs: wotan_kwargs['slide_clip'] = {}
-#     if 'window_length' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['window_length'] = 1.
-#     if 'low' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['low'] = 5
-#     if 'high' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['high'] = 5
+    if wotan_kwargs is None: wotan_kwargs = {}
+    if 'slide_clip' not in wotan_kwargs: wotan_kwargs['slide_clip'] = {}
+    if 'window_length' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['window_length'] = 1.
+    if 'low' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['low'] = 5
+    if 'high' not in wotan_kwargs['slide_clip']: wotan_kwargs['slide_clip']['high'] = 5
 
-#     if options is None: options = {}
-#     if 'show_plot' not in options: options['show_plot'] = False
-#     if 'save_plot' not in options: options['save_plot'] = False
-#     if 'return_plot' not in options: options['return_plot'] = False
-#     if 'fname_plot' not in options: options['fname_plot'] = 'periodogram'
-#     if 'outdir' not in options: options['outdir'] = '.'
+    if options is None: options = {}
+    if 'show_plot' not in options: options['show_plot'] = False
+    if 'save_plot' not in options: options['save_plot'] = False
+    if 'return_plot' not in options: options['return_plot'] = False
+    if 'fname_plot' not in options: options['fname_plot'] = 'periodogram'
+    if 'outdir' not in options: options['outdir'] = '.'
     
-#     minfreq = 1./periodogram_kwargs['maxperiod']
-#     maxfreq = 1./periodogram_kwargs['minperiod']
-    
-    
-#     #==========================================================================
-#     #::: first, a global 5 sigma clip
-#     #==========================================================================
-#     ff = sigma_clip(np.ma.masked_invalid(y), sigma=astropy_kwargs['sigma']) #astropy wants masked arrays
-#     ff = np.array(ff.filled(np.nan)) #use NaN instead of masked arrays, because masked arrays drive me crazy
+    minfreq = 1./periodogram_kwargs['maxperiod']
+    maxfreq = 1./periodogram_kwargs['minperiod']
     
     
-#     #==========================================================================
-#     #::: fast slide clip (1 day, 5 sigma) [replaces Wotan's slow slide clip]
-#     #==========================================================================
-#     try: ff = slide_clip(time, ff, **wotan_kwargs['slide_clip'])
-#     except: print('Fast slide clip failed and was skipped.')     
+    #==========================================================================
+    #::: first, a global 5 sigma clip
+    #==========================================================================
+    ff = sigma_clip(time, np.ma.masked_invalid(y), low=astropy_kwargs['sigma'], high=astropy_kwargs['sigma']) #astropy wants masked arrays
+    # ff = np.array(ff.filled(np.nan)) #use NaN instead of masked arrays, because masked arrays drive me crazy
     
     
-#     #==========================================================================
-#     #::: now do the periodogram
-#     #==========================================================================
-#     ind_notnan = np.where(~np.isnan(time*ff*y_err))
-#     ls = LombScargle(time[ind_notnan], ff[ind_notnan])  #Analyze our dates and s-index data using the AstroPy Lomb Scargle module
-#     frequency, power = ls.autopower(minimum_frequency=minfreq, maximum_frequency=maxfreq)  #Determine the LS periodogram
-#     best_power = np.nanmax(power)
-#     best_frequency = frequency[np.argmax(power)]
-#     FAP=ls.false_alarm_probability(best_power)                  #Calculate the FAP for the highest peak in the power array  
+    #==========================================================================
+    #::: fast slide clip (1 day, 5 sigma) [replaces Wotan's slow slide clip]
+    #==========================================================================
+    try: ff = slide_clip(time, ff, **wotan_kwargs['slide_clip'])
+    except: print('Fast slide clip failed and was skipped.')     
     
     
-#     #==========================================================================
-#     #::: plots
-#     #==========================================================================
-#     if options['show_plot'] or options['save_plot'] or options['return_plot']: 
+    #==========================================================================
+    #::: now do the periodogram
+    #==========================================================================
+    ind_notnan = np.where(~np.isnan(time*ff*y_err))
+    ls = LombScargle(time[ind_notnan], ff[ind_notnan])  #Analyze our dates and s-index data using the AstroPy Lomb Scargle module
+    frequency, power = ls.autopower(minimum_frequency=minfreq, maximum_frequency=maxfreq)  #Determine the LS periodogram
+    best_power = np.nanmax(power)
+    best_frequency = frequency[np.argmax(power)]
+    FAP=ls.false_alarm_probability(best_power)                  #Calculate the FAP for the highest peak in the power array  
+    
+    
+    #==========================================================================
+    #::: plots
+    #==========================================================================
+    if options['show_plot'] or options['save_plot'] or options['return_plot']: 
         
-#         peak_loc=round(float(1./best_frequency),2) 
-#         FAP_probabilities = [0.5, 0.1, 0.01]                         #Enter FAP values you want to determine
-#         FAP_levels=ls.false_alarm_level(FAP_probabilities)           #Get corresponding LS Power values
+        peak_loc=round(float(1./best_frequency),2) 
+        FAP_probabilities = [0.5, 0.1, 0.01]                         #Enter FAP values you want to determine
+        FAP_levels=ls.false_alarm_level(FAP_probabilities)           #Get corresponding LS Power values
         
-#         fig, axes = plt.subplots(4, 1, figsize=[10,15], tight_layout=True)  
-#         # axes = np.atleast_1d(axes)
+        fig, axes = plt.subplots(4, 1, figsize=[10,15], tight_layout=True)  
+        # axes = np.atleast_1d(axes)
         
-#         # ax = axes[0]   
-#         # ind_clipped = np.where(np.isnan(ff))[0]
-#         # ax.plot(time[ind_clipped], flux[ind_clipped], 'r.', rasterized=True)
-#         # ax.plot(time, ff, 'b.', rasterized=True)
-#         # ax.set(xlabel='Time (BJD)', ylabel='Flux')
+        # ax = axes[0]   
+        # ind_clipped = np.where(np.isnan(ff))[0]
+        # ax.plot(time[ind_clipped], flux[ind_clipped], 'r.', rasterized=True)
+        # ax.plot(time, ff, 'b.', rasterized=True)
+        # ax.set(xlabel='Time (BJD)', ylabel='Flux')
         
-#         # ax = axes[1]       
-#         # ax.plot(time, ff, 'b.', rasterized=True)
-#         # ax.set(xlabel='Time (BJD)', ylabel='Flux (clipped)')
+        # ax = axes[1]       
+        # ax.plot(time, ff, 'b.', rasterized=True)
+        # ax.set(xlabel='Time (BJD)', ylabel='Flux (clipped)')
         
-#         ax = axes[0]        
-#         ax.semilogx(1./frequency,power,color='b')  
-#         ax.plot(peak_loc, best_power, marker='d', markersize=12, color='r')                
-#         ax.text(peak_loc*1.2,best_power*0.95,'Peak Period: '+str(peak_loc)+' days')
-#         ax.text(peak_loc*1.2,best_power*0.85,'FAP: '+str(FAP))    
-#         ax.hlines(FAP_levels, periodogram_kwargs['minperiod'], periodogram_kwargs['maxperiod'], color='grey', lw=1)    
-#         ax.text(periodogram_kwargs['maxperiod'], FAP_levels[0],'0.5% FAP ', ha='right')     
-#         ax.text(periodogram_kwargs['maxperiod'], FAP_levels[1],'0.1% FAP ', ha='right')
-#         ax.text(periodogram_kwargs['maxperiod'], FAP_levels[2],'0.01% FAP ', ha='right')
-#         ax.set(xlabel='Period (days)', ylabel='L-S power')   
-#         ax.tick_params(axis='both',which='major')    
-# #        ax.text(peak_loc*1.2,best_power*0.75,'std_old:'+str(std_old*1e3)[0:4]+' --> '+'std_new:'+str(std_new*1e3)[0:4])    
+        ax = axes[0]        
+        ax.semilogx(1./frequency,power,color='b')  
+        ax.plot(peak_loc, best_power, marker='d', markersize=12, color='r')                
+        ax.text(peak_loc*1.2,best_power*0.95,'Peak Period: '+str(peak_loc)+' days')
+        ax.text(peak_loc*1.2,best_power*0.85,'FAP: '+str(FAP))    
+        ax.hlines(FAP_levels, periodogram_kwargs['minperiod'], periodogram_kwargs['maxperiod'], color='grey', lw=1)    
+        ax.text(periodogram_kwargs['maxperiod'], FAP_levels[0],'0.5% FAP ', ha='right')     
+        ax.text(periodogram_kwargs['maxperiod'], FAP_levels[1],'0.1% FAP ', ha='right')
+        ax.text(periodogram_kwargs['maxperiod'], FAP_levels[2],'0.01% FAP ', ha='right')
+        ax.set(xlabel='Period (days)', ylabel='L-S power')   
+        ax.tick_params(axis='both',which='major')    
+#        ax.text(peak_loc*1.2,best_power*0.75,'std_old:'+str(std_old*1e3)[0:4]+' --> '+'std_new:'+str(std_new*1e3)[0:4])    
         
-#         ax = axes[1]
-#         plot_phase_folded_lightcurve(time, ff, period=1./best_frequency, epoch=0, ax=ax)
-#         ax.set(ylim=[np.nanmin(ff), np.nanmax(ff)], ylabel='Data (clipped; phased)')
+        ax = axes[1]
+        plot_phase_folded_lightcurve(time, ff, period=1./best_frequency, epoch=0, ax=ax)
+        ax.set(ylim=[np.nanmin(ff), np.nanmax(ff)], ylabel='Data (clipped; phased)')
         
-#         ax = axes[2]
-#         plot_phase_folded_lightcurve(time, ff, period=1./best_frequency, epoch=0, ax=ax)
-#         ax.set(ylabel='Data (clipped; phased; y-zoom)')
+        ax = axes[2]
+        plot_phase_folded_lightcurve(time, ff, period=1./best_frequency, epoch=0, ax=ax)
+        ax.set(ylabel='Data (clipped; phased; y-zoom)')
         
-#         #::: plot the autocorrelation of the data
-#         ax = axes[3]
-#         plot_acf(pd.Series(ff[ind_notnan], index=time[ind_notnan]), ax=ax, lags=np.linspace(start=1,stop=2000,num=100,dtype=int))
-#         ax.set(xlabel='Lag', ylabel='Autocorrelation', title='')
+        #::: plot the autocorrelation of the data
+        ax = axes[3]
+        plot_acf(pd.Series(ff[ind_notnan], index=time[ind_notnan]), ax=ax, lags=np.linspace(start=1,stop=2000,num=100,dtype=int))
+        ax.set(xlabel='Lag', ylabel='Autocorrelation', title='')
     
-#         if options['save_plot']:
-#             if not os.path.exists(options['outdir']): os.makedirs(options['outdir'])
-#             fig.savefig(os.path.join(options['outdir'],options['fname_plot']+'.pdf'), bbox_inches='tight')
-#         if options['show_plot']:
-#             plt.show(fig)
-#         else:
-#             plt.close(fig)
+        if options['save_plot']:
+            if not os.path.exists(options['outdir']): os.makedirs(options['outdir'])
+            fig.savefig(os.path.join(options['outdir'],options['fname_plot']+'.pdf'), bbox_inches='tight')
+        if options['show_plot']:
+            plt.show(fig)
+        else:
+            plt.close(fig)
     
-#     if options['return_plot'] is True:     
-#         return 1./best_frequency, FAP, axes
-#     else:
-#         return 1./best_frequency, FAP  
+    if options['return_plot'] is True:     
+        return 1./best_frequency, FAP, axes
+    else:
+        return 1./best_frequency, FAP  
 
 
 

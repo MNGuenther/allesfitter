@@ -308,19 +308,19 @@ def translate(params=None, settings=None, quiet=False, **params_kwargs):
     try: set_('r_companion_sun', (params2['r_companion_jup']*u.Rjup).to(u.Rsun).value)
     except: pass
 
-    try: set_('m_companion_earth', (params2['m_companion_jup']*u.Rjup).to(u.Rearth).value)
+    try: set_('m_companion_earth', (params2['m_companion_jup']*u.Mjup).to(u.Mearth).value)
     except: pass
-    try: set_('m_companion_earth', (params2['m_companion_sun']*u.Rsun).to(u.Rearth).value)
-    except: pass
-    
-    try: set_('m_companion_jup', (params2['m_companion_earth']*u.Rearth).to(u.Rjup).value)
-    except: pass
-    try: set_('m_companion_jup', (params2['m_companion_sun']*u.Rsun).to(u.Rjup).value)
+    try: set_('m_companion_earth', (params2['m_companion_sun']*u.Msun).to(u.Mearth).value)
     except: pass
     
-    try: set_('m_companion_sun', (params2['m_companion_earth']*u.Rearth).to(u.Rsun).value)
+    try: set_('m_companion_jup', (params2['m_companion_earth']*u.Mearth).to(u.Mjup).value)
     except: pass
-    try: set_('m_companion_sun', (params2['m_companion_jup']*u.Rjup).to(u.Rsun).value)
+    try: set_('m_companion_jup', (params2['m_companion_sun']*u.Msun).to(u.Mjup).value)
+    except: pass
+    
+    try: set_('m_companion_sun', (params2['m_companion_earth']*u.Mearth).to(u.Msun).value)
+    except: pass
+    try: set_('m_companion_sun', (params2['m_companion_jup']*u.Mjup).to(u.Msun).value)
     except: pass
         
     try: set_('a', ( (G/(4*np.pi**2) * (params2['period']*u.d)**2 * (params2['m_host']*u.Msun + M_companion_with_unit))**(1./3.) ).to(u.AU).value)  #in AU 

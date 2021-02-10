@@ -76,6 +76,8 @@ class Basement():
         All the variables needed for allesfitter
         '''
         
+        print('Filling the Basement')
+        
         self.quiet = quiet
         self.now = datetime.now().isoformat()
         self.datadir = datadir
@@ -85,7 +87,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.1.6')
+        self.logprint('v1.2.0')
         
         self.load_settings()
         self.load_params()
@@ -343,7 +345,7 @@ class Basement():
         if 'mcmc_thin_by' not in self.settings: 
             self.settings['mcmc_thin_by'] = 1
         if 'mcmc_moves' not in self.settings: 
-            self.settings['mcmc_moves'] = 'StretchMove'
+            self.settings['mcmc_moves'] = 'DEMove'
                 
         #::: make sure these are integers
         for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps',
@@ -654,7 +656,7 @@ class Basement():
         self.params['user-given:'] = '' #just for pretty printing
         for i,key in enumerate(self.allkeys):
             #::: if it's not a "coupled parameter", then use the given value
-            if np.atleast_1d(buf['value'])[i] not in np.atleast_1d(self.allkeys):
+            if np.atleast_1d(buf['value'])[i] not in list(self.allkeys):
                 self.params[key] = np.float(np.atleast_1d(buf['value'])[i])
             #::: if it's a "coupled parameter", then write the string of the key it is coupled to
             else:

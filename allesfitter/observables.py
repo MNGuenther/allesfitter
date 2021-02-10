@@ -18,19 +18,21 @@ from __future__ import print_function, division, absolute_import
 
 #::: modules
 import os
-import sys
+# import sys
 import pathlib
 import numpy as np
-import matplotlib.pyplot as plt
+# from numpy.polynomial import Polynomial
+# import matplotlib.pyplot as plt
 import pandas as pd
-from tqdm import tqdm
-from glob import glob
-from pprint import pprint
-from astropy.constants import G
+# from tqdm import tqdm
+# from glob import glob
+# from pprint import pprint
+from astropy.constants import G, M_earth, M_jup, M_sun, R_earth, R_jup, R_sun, au
 from astropy import units as u
+from time import time as timer
 
 #::: my modules
-import allesfitter
+# import allesfitter
 
 #::: plotting settings
 import seaborn as sns
@@ -39,12 +41,17 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
 
+"""
+Readme:
+Astropy units are nice and fancy, but can cause a 17x slow-down for parts of this code.
+Use constants' values instead of units.
+"""
 
 
 ###############################################################################
 #::: Convert Period P (in days) to semi-major axis a (in AU)
 ###############################################################################
-def p_to_a(P, Mp, Ms):
+def P_to_a(P, Mp, Ms):
     '''
     Parameters
     ----------
@@ -60,7 +67,348 @@ def p_to_a(P, Mp, Ms):
     a : float or array
         Planet orbital semi-major axis, in AU.
     '''
-    return ( (G/(4*np.pi**2) * (P*u.d)**2 * (Ms*u.Msun + Mp*u.Mearth))**(1./3.) ).to(u.AU).value  #in AU 
+    #apply units (convert to kg m s)
+    P = P*86400. #in s
+    Ms = Ms*M_sun.value #in kg
+    Mp = Mp*M_earth.value #in kg
+    
+    return ( (G.value/(4*np.pi**2) * P**2 * np.cbrt(Ms + Mp)) ) / au.value  #in AU 
+
+
+
+###############################################################################
+#::: Same as above, and actual not much slower with astropy units
+###############################################################################
+def P_to_a_astropy(P, Mp, Ms):
+    '''
+    Parameters
+    ----------
+    P : float or array
+        Planet orbital period, in days.
+    Mp : float or array
+        Planet mass, in Mearth.
+    Ms : float or array
+        Star mass, in Msun.
+
+    Returns
+    -------
+    a : float or array
+        Planet orbital semi-major axis, in AU.
+    '''
+    return ( (G/(4*np.pi**2) * (P*u.d)**2 * np.cbrt(Ms*u.Msun + Mp*u.Mearth)) ).to(u.AU).value  #in AU 
+
+
+
+###############################################################################
+#::: Convert semi-amplitude K to a companion mass
+###############################################################################
+def calc_M_comp_from_RV(K, P, incl, ecc, M_host, 
+                        return_unit='M_earth',
+                        approx=False):
+    """
+    This code can use the full binary mass function:
+    M_comp**3 * (sini)**3 / (M_host + M_comp)**2 
+     = (P * K**3) / (2. * pi * G) * (1. - e**2)**(3./2.)
+    (no assumption that Mp << Ms needed).
+
+    Parameters
+    ----------
+    K : float or array
+        Host's RV semi-major amplitude.
+    P : float or array
+        Companion's orbital period, in days.
+    incl : float or array
+        Inclination, in degrees.
+    ecc : float or array
+        Eccentricity.
+    M_host : float or array
+        Host's mass, in Msun.
+
+    Returns
+    -------
+    M_comp : float or array
+        Companion's mass, in units of "return_unit".
+    """
+    #apply units
+    P = P*86400. #in s
+    K = K*1e3 #from km/s to m/s
+    M_host = M_host*M_sun.value #in kg
+    
+    #return_unit
+    if return_unit=='M_earth': return_unit = M_earth.value
+    if return_unit=='M_jup': return_unit = M_jup.value
+    if return_unit=='M_sun': return_unit = M_sun.value
+    
+    #chose a rough but sensible conversion unit for least awkward scaling
+    if K < 1: 
+        conv_unit = M_earth.value #in kg. #if it's less than m/s, chose Earth mass
+    elif K < 1e3:
+        conv_unit = M_jup.value #in kg. #if it's less than km/s, chose Jupiter mass
+    else:
+        conv_unit = M_sun.value #in kg. #if it's more, chose Sun mass
+    
+    #use the full binary mass function
+    if not approx:
+        
+        #We rearange the binary mass function as a 3rd order polynomial.
+        #We start with these definitions of a and b:
+        a = np.sin(np.deg2rad(incl))**3 #dimensionless
+        b = ( P * K**3 / (2.*np.pi*G.value) * (1. - ecc**2)**(3./2.) ) #in kg 
+        #We use Mjup for the least awkward scaling, 
+        #as this equation can be used for Earth-like exoplanets and binaries alike
+        
+        #Rearanging the binary mass function then gives us:
+        #a * M_comp**3 - b * M_comp**2 - 2*b*M_host * M_comp - b*M_host**2 = 0
+            
+        #To use M_comp as a scalar for numpy, 
+        #we also divide the whole equation by u.Mjup**3.
+        #The coefficients have to absorb that.
+        #(We again use Mjup for the least awkward scaling.)
+        #This gives us:
+        #a * M_comp**3 - b/u.Mjup * M_comp**2 - 2*b*M_host/u.Mjup**2 * M_comp - b*M_host**2/u.Mjup**3 = 0
+        #Now divide by a to give the highest order term some independence
+        #M_comp**3 - b/a/u.Mjup * M_comp**2 - 2*b/a*M_host/u.Mjup**2 * M_comp - b/a*M_host**2/u.Mjup**3 = 0
+        
+        
+        #Now we define p3,...,p0 to make it even simpler:
+        #p3 * M_comp**3 + p2 * M_comp**2 + p1 * M_comp + p0 = 0,
+        #with the following coefficients:
+        
+        # p3 = 1.
+        p2 = -b/a / conv_unit
+        p1 = -2*b/a*(M_host) / (conv_unit**2)
+        p0 = -b/a*(M_host)**2 / (conv_unit**3)
+        # print(p2, p1, p0)
+        
+        #::: numpy's poly.roots() is too slow for us
+        # poly = Polynomial([p0,p1,p2,p3])
+        # s = poly.roots() #get all three roots; at least one is real
+        # s = np.real_if_close(s[np.isreal(s)][0]) #in Mjup but unitless
+        # s = (s*conv_unit).to(return_unit) #in return_unit
+        # print(s)
+        
+        #::: instead, use some good old-fashioned high school math
+        #::: see, e.g., http://teacherlink.ed.usu.edu/tlnasa/reference/ImagineDVD/Files/imagine/YBA/cyg-X1-mass/binary-formula.html#return
+        #::: and http://teacherlink.ed.usu.edu/tlnasa/reference/ImagineDVD/Files/imagine/YBA/cyg-X1-mass/cubic.html
+        Q = (3*p1 - p2**2)/9.
+        R = (9.*p2*p1 - 27.*p0 - 2.*p2**3)/54. 
+        
+        S = np.cbrt(R + np.sqrt(Q**3 + R**2))
+        T = np.cbrt(R - np.sqrt(Q**3 + R**2))
+    
+        s = S + T - p2/3. 
+        s = (s*conv_unit) / return_unit
+        
+        return s
+    
+        
+    #use the exoplanet approximation (just for testing)
+    else:
+        return ( K / np.sin(incl) * np.sqrt(1 - ecc**2) \
+                 * np.cbrt(P / (2*np.pi*G) * (M_host)**2) ) / return_unit 
+               #TODO, something is not right here
+            
+
+
+###############################################################################
+#::: Same as above, but 17x slower with astropy units
+###############################################################################            
+def calc_M_comp_from_RV_astropy(K, P, incl, ecc, M_host, 
+                        return_unit=u.Mearth,
+                        approx=False):
+    """
+    This code can use the full binary mass function:
+    M_comp**3 * (sini)**3 / (M_host + M_comp)**2 
+     = (P * K**3) / (2. * pi * G) * (1. - e**2)**(3./2.)
+    (no assumption that Mp << Ms needed).
+
+    Parameters
+    ----------
+    K : float or array
+        Host's RV semi-major amplitude.
+    P : float or array
+        Companion's orbital period, in days.
+    incl : float or array
+        Inclination, in degrees.
+    ecc : float or array
+        Eccentricity.
+    M_host : float or array
+        Host's mass, in Msun.
+
+    Returns
+    -------
+    M_comp : float or array
+        Companion's mass, in units of "return_unit".
+    """
+    #apply units
+    P = P*u.d
+    incl = incl*u.deg
+    K = K*u.km/u.s
+    
+    #chose a rough but sensible conversion unit for least awkward scaling
+    if K.value < 1e-3: 
+        conv_unit = u.Mearth #if it's less than m/s, chose Earth mass
+    elif K.value < 1:
+        conv_unit = u.Mjup #if it's less than k/s, chose Jupiter mass
+    else:
+        conv_unit = u.Msun #if it's more, chose Sun mass
+    
+    #use the full binary mass function
+    if not approx:
+        
+        #We rearange the binary mass function as a 3rd order polynomial.
+        #We start with these definitions of a and b:
+        a = np.sin(incl)**3 #dimensionless
+        b = ( P * K**3 / (2.*np.pi*G) * (1. - ecc**2)**(3./2.) ).to(conv_unit) #in Mjup 
+        #We use Mjup for the least awkward scaling, 
+        #as this equation can be used for Earth-like exoplanets and binaries alike
+        
+        #Rearanging the binary mass function then gives us:
+        #a * M_comp**3 - b * M_comp**2 - 2*b*M_host * M_comp - b*M_host**2 = 0
+            
+        #To use M_comp as a scalar for numpy, 
+        #we also divide the whole equation by u.Mjup**3.
+        #The coefficients have to absorb that.
+        #(We again use Mjup for the least awkward scaling.)
+        #This gives us:
+        #a * M_comp**3 - b/u.Mjup * M_comp**2 - 2*b*M_host/u.Mjup**2 * M_comp - b*M_host**2/u.Mjup**3 = 0
+        #Now divide by a to give the highest order term some independence
+        #M_comp**3 - b/a/u.Mjup * M_comp**2 - 2*b/a*M_host/u.Mjup**2 * M_comp - b/a*M_host**2/u.Mjup**3 = 0
+        
+        
+        #Now we define p3,...,p0 to make it even simpler:
+        #p3 * M_comp**3 + p2 * M_comp**2 + p1 * M_comp + p0 = 0,
+        #with the following coefficients:
+        
+        # p3 = 1.
+        p2 = -b/a / conv_unit
+        p1 = -2*b/a*(M_host*u.Msun) / (conv_unit**2)
+        p0 = -b/a*(M_host*u.M_sun)**2 / (conv_unit**3)
+        # print(p3, p2, p1, p0)
+        
+        #now the whole equation and all coefficients are dimensionless
+        # p3 = p3.decompose()
+        # p2 = p2.decompose()
+        # p1 = p1.decompose()
+        # p0 = p0.decompose()
+        # print(p3, p2, p1, p0)
+        
+        #now the whole equation and all coefficients are dimensionless
+        # p3 = p3.decompose().value
+        p2 = p2.decompose().value 
+        p1 = p1.decompose().value 
+        p0 = p0.decompose().value
+        # print(p3, p2, p1, p0)
+        
+        #::: numpy's poly.roots() is too slow for us
+        # poly = Polynomial([p0,p1,p2,p3])
+        # s = poly.roots() #get all three roots; at least one is real
+        # s = np.real_if_close(s[np.isreal(s)][0]) #in Mjup but unitless
+        # s = (s*conv_unit).to(return_unit) #in return_unit
+        # print(s)
+        
+        #::: instead, use some good old-fashioned high school math
+        Q = (3*p1 - p2**2)/9.
+        R = (9.*p2*p1 - 27.*p0 - 2.*p2**3)/54. 
+        
+        S = np.cbrt(R + np.sqrt(Q**3 + R**2))
+        T = np.cbrt(R - np.sqrt(Q**3 + R**2))
+    
+        s = S + T - p2/3. 
+        s = (s*conv_unit).to(return_unit)
+        
+        return s.value
+    
+        
+    #use the exoplanet approximation (just for testing)
+    else:
+        return ( K / np.sin(incl) \
+                 * np.sqrt(1 - ecc**2) \
+                 * np.cbrt(P / (2*np.pi*G) * (M_host)**2) \
+               ).decompose().to(return_unit).value
+
+
+
+###############################################################################
+#::: Calculate a body's density
+###############################################################################
+def calc_rho(R, M, 
+            R_unit = u.Rsun,
+            M_unit = u.Msun,
+            return_unit='cgs'):
+    """
+    Assumes a spherical body.
+    
+    Parameters
+    ----------
+    R : array or float
+        Body's radius.
+    M : array or float
+        Body's mass.
+    R_unit : astropy unit, optional
+        Radius unit. The default is u.Rsun.
+    M_unit : array or float, optional
+        Mass unit. The default is u.Msun.
+    return_unit : str, optional
+        Return unit. The default is 'cgs'.
+
+    Returns
+    -------
+    None.
+    """
+    #apply units
+    R *= R_unit
+    M *= M_unit
+    
+    #calculate
+    V = 4./3. * np.pi * R**3
+    rho = M / V
+    
+    #return
+    if return_unit == 'cgs':
+        return rho.cgs.value
+    else:
+        return None #TODO
+    
+    
+    
+###############################################################################
+#::: Derive the host's density from transit and RV observations
+###############################################################################
+def calc_rho_host(P, radius_1, rr, rho_comp,
+                           return_unit='cgs'):
+    """
+    Assumes a spherical body.
+    
+    Parameters
+    ----------
+    P : array or float
+        Period, in days.
+    radius_1 : array or float
+        R_host / a.
+    rr : astropy unit, optional
+        R_comp / R_host.
+    rho_comp : array or float, optional
+        Density of the companion, in cgs units.
+    return_unit : str, optional
+        Return unit. The default is 'cgs'.
+
+    Returns
+    -------
+    None.
+    """
+    #apply units
+    P *= u.d #in days
+    rho_comp = rho_comp * u.g / (u.cm)**3 #in cgs
+    
+    #calculate
+    rho_host = ( (3*np.pi) / (G*P**2) * (1./radius_1)**3 - rr**3 * rho_comp ).decompose()
+    
+    #return
+    if return_unit == 'cgs':
+        return rho_host.cgs.value
+    else:
+        return None #TODO
 
 
 
@@ -262,7 +610,7 @@ def estimate_tidal_locking_time_scale_Wikipedia(P, R_companion, M_companion, M_h
     elif typ == 'ice': mu = 4e9
     elif typ == 'gas': mu = 4e9
     
-    a = p_to_a(P, M_companion, M_host) # in AU
+    a = P_to_a(P, M_companion, M_host) # in AU
     a = (a*u.AU).to(u.m).value # in m
     R_companion = (R_companion*u.Rearth).to(u.m).value # in m
     M_companion = (M_companion*u.Mearth).to(u.kg).value # in kg
@@ -289,7 +637,7 @@ def estimate_tidal_locking_time_scale_Kastings1993(P, M_host):
         tidal locking time scale, in years.
     '''
     
-    a = p_to_a(P, 1., M_host) # in AU
+    a = P_to_a(P, 1., M_host) # in AU
     a = (a*u.AU).to(u.cm).value # in cm
     M_host = (M_host*u.Msun).to(u.g).value # in grams
     
@@ -380,3 +728,99 @@ def estimate_spectral_class(Teff):
         return SpC[0]
     else:
         return np.array( SpC )
+    
+    
+    
+##########################################################################
+#::: MAIN
+##########################################################################
+if __name__ == '__main__':
+    
+    ##########################################################################
+    #::: speed test
+    ##########################################################################
+    N = 1000
+    
+    #::: 
+    t0 = timer()
+    for i in range(N):
+        calc_M_comp_from_RV(K = 13e-3,P = 12*365, incl = 90 ,ecc = 0, M_host = 1, return_unit = u.Mjup, approx=False)
+    t1 = timer()
+    dt12 = (t1-t0)/N
+    print('Runtime with floats:', dt12*1e3, 'ms')
+    
+    t3 = timer()
+    for i in range(N):
+        calc_M_comp_from_RV_astropy(K = 13e-3,P = 12*365, incl = 90 ,ecc = 0, M_host = 1, return_unit = u.Mjup, approx=False)
+    t4 = timer()
+    dt34 = (t4-t3)/N
+    print('Runtime with astropy units:',  dt34*1e3, 'ms')
+
+    print('Runntime speed up by using floats instead of astropy units:',  dt34/dt12)
+    
+    
+    ##########################################################################
+    #::: accuracy test
+    ##########################################################################
+    jup_exact = calc_M_comp_from_RV(K = 13e-3, 
+                                    P = 12*365, 
+                                    incl = 90, 
+                                    ecc = 0, 
+                                    M_host = 1, 
+                                    return_unit = u.Mjup,
+                                    approx=False)
+    print('Jupiter Mass, exact:', jup_exact, 'Mjup')
+    
+    
+    # jup_approx = calc_M_comp_from_RV(K = 13e-3, 
+    #                                 P = 12*365, 
+    #                                 incl = 90, 
+    #                                 ecc = 0, 
+    #                                 M_host = 1, 
+    #                                 return_unit = u.Mjup,
+    #                                 approx=True)
+    # print('Jupiter Mass, approx:', jup_approx)
+    
+    
+    ear_exact = calc_M_comp_from_RV(K = 9e-5, 
+                                    P = 365, 
+                                    incl = 90, 
+                                    ecc = 0, 
+                                    M_host = 1, 
+                                    return_unit = u.Mearth,
+                                    approx=False)
+    print('Earth Mass, exact:', ear_exact, 'Mearth')
+    
+    
+    # ear_approx = calc_M_comp_from_RV(K = 13e-3, 
+    #                                 P = 12*365, 
+    #                                 incl = 90, 
+    #                                 ecc = 0, 
+    #                                 M_host = 1, 
+    #                                 return_unit = u.Mjup,
+    #                                 approx=False)
+    # print('Earth Mass, exact:', ear_approx)
+    
+    
+    ##########################################################################
+    #::: speed test
+    ##########################################################################
+    N = 10000
+    
+    #::: 
+    t0 = timer()
+    for i in range(N):
+        P_to_a(1,1,1)
+    t1 = timer()
+    dt12 = (t1-t0)/N
+    print('P_to_a: Runtime with floats:', dt12*1e3, 'ms')
+    
+    t3 = timer()
+    for i in range(N):
+        P_to_a(1,1,1)
+    t4 = timer()
+    dt34 = (t4-t3)/N
+    print('P_to_a: Runtime with astropy units:',  dt34*1e3, 'ms')
+
+    print('P_to_a: Runntime speed up by using floats instead of astropy units:',  dt34/dt12)
+    

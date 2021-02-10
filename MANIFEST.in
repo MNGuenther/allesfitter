@@ -3,9 +3,11 @@ include allesfitter/LOGO_circ.png
 graft allesfitter
 exclude build/
 exclude dist/
+exclude paper/
 exclude tutorials/
 exclude docs/
 prune build/
 prune dist/
+prune paper/
 prune tutorials/
 prune docs/

@@ -20,6 +20,9 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 import os
 import emcee
+import multiprocessing
+multiprocessing.set_start_method('fork', force=True)
+#solves python>=3.8 issues, see https://stackoverflow.com/questions/60518386/error-with-module-multiprocessing-under-python3-8
 from multiprocessing import Pool
 from contextlib import closing
 from time import time as timer

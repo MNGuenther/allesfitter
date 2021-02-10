@@ -30,7 +30,8 @@ from astropy import units as u
 import ellc
 # import time as timer
 import multiprocessing
-multiprocessing.set_start_method('forkserver', force=True)
+multiprocessing.set_start_method('fork', force=True)
+#solves python>=3.8 issues, see https://stackoverflow.com/questions/60518386/error-with-module-multiprocessing-under-python3-8
 from multiprocessing import cpu_count
 from pathos.multiprocessing import ProcessingPool as Pool
 from contextlib import closing
