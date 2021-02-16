@@ -57,15 +57,17 @@ def clean_up(time, y, yerr=None, time_format='BJD_TDB'):
     if time_format == 'BJD_TDB': 
         time = time - TJD_offset
     
-    if yerr is None:
-        ind = np.where( ~np.isnan(time*y) )
-        time = time[ind]
-        y = y[ind]    
-    else:
-        ind = np.where( ~np.isnan(time*y*yerr) )
-        time = time[ind]
-        y = y[ind]    
-        yerr = yerr[ind]
+    #TODO: the below messes things up in case a "trend" is passed, too
+    #TODO: it is probably not even needed, so just remove it?
+    # if yerr is None:
+    #     ind = np.where( ~np.isnan(time*y) )
+    #     time = time[ind]
+    #     y = y[ind]    
+    # else:
+    #     ind = np.where( ~np.isnan(time*y*yerr) )
+    #     time = time[ind]
+    #     y = y[ind]    
+    #     yerr = yerr[ind]
         
     return time, y, yerr
 
@@ -137,7 +139,7 @@ def fullplot_csv(fname, ax=None, time_format='BJD_TDB'):
 
 
 
-def brokenplot(time, y, yerr=None, dt=10, ax=None, time_format='BJD_TDB', clip=False):
+def brokenplot(time, y, yerr=None, trend=None, dt=10, ax=None, time_format='BJD_TDB', fmt='b.', clip=False):
     '''
     Parameters
     ----------
@@ -179,7 +181,11 @@ def brokenplot(time, y, yerr=None, dt=10, ax=None, time_format='BJD_TDB', clip=F
     
     ax.set_axis_off() #empty the axis before brokenaxes does its magic
     bax = brokenaxes(xlims=xlims, subplot_spec=ax.get_subplotspec())
-    bax.errorbar(time, y, yerr=yerr, fmt='b.', ms=2, rasterized=True)
+    bax.errorbar(time, y, yerr=yerr, fmt=fmt, ms=2, rasterized=True)
+    
+    if trend is not None:
+        bax.plot(time, trend, 'r-', lw=2, zorder=100)
+    
     if clip:
         bax.plot(time*mask_upper, bax.axs[0].get_ylim()[1]*mask_upper, 'r^', color='orange', ms=10, zorder=11)
         bax.plot(time*mask_lower, bax.axs[0].get_ylim()[0]*mask_lower, 'rv', color='orange', ms=10, zorder=11)

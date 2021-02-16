@@ -19,7 +19,7 @@ from __future__ import print_function, division, absolute_import
 #::: modules
 # import os, sys
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # import pandas as pd
 # from tqdm import tqdm
 # from glob import glob
@@ -29,6 +29,9 @@ import numpy as np
 # import allesfitter
 # from . import config
 from .limb_darkening import LDC3
+from .time_series import sigma_clip, slide_clip, flatten, mask_regions
+from .plotting import tessplot
+from .io import read_csv
 
 #::: plotting settings
 # import seaborn as sns
@@ -304,4 +307,52 @@ def translate_limb_darkening_from_q_to_u(q, law=None):
     elif law == 'sing':
         return LDC3.forward(q)
 
+
+
+def tessclean(time, flux, plot=False, 
+              method='biweight', window_length=1, bad_regions=None):
+    """
+    Clean a TESS light curve.
+
+    Parameters
+    ----------
+    time : TYPE
+        DESCRIPTION.
+    flux : TYPE
+        DESCRIPTION.
+    plot : TYPE, optional
+        DESCRIPTION. The default is False.
+    bad_regions : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    flux_flat : TYPE
+        DESCRIPTION.
+    """
     
+    flux_clip = mask_regions(time, flux, bad_regions)
+    flux_clip = sigma_clip(time, flux_clip, low=20, high=5) #fixed values to keep things simple
+    flux_clip = slide_clip(time, flux_clip, window_length=window_length, low=20, high=3) #fixed values to keep things simple
+    mask = np.isnan(flux_clip)
+    
+    flux_flat, trend = flatten(time, flux_clip, method=method, window_length=window_length, return_trend=True)
+    
+    if not plot:
+        return flux_flat
+    
+    else:
+        axes = tessplot(time[mask], flux[mask], color='r')
+        tessplot(time, flux_clip, trend=trend, axes=axes, shade=False)
+        for ax in np.atleast_1d(axes): ax.set_ylabel('Flux\n(original)')
+        fig1 = plt.gcf()
+        
+        axes = tessplot(time, flux_clip, trend=trend)
+        for ax in np.atleast_1d(axes): ax.set_ylabel('Flux\n(clipped)')
+        fig2 = plt.gcf()
+        
+        axes = tessplot(time, flux_flat)
+        fig3 = plt.gcf()
+        for ax in np.atleast_1d(axes): ax.set_ylabel('Flux\n(clipped & detrended)')
+        
+        return flux_flat, fig1, fig2, fig3

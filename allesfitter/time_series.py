@@ -196,9 +196,17 @@ def slide_clip(time, y, window_length=1, low=4, high=4, return_mask=False):
     Clipped y (outliers replaced with NaN).
     """
     y_flat = flatten(time, y, method='biweight', window_length=window_length)
-    return sigma_clip(time, y_flat, low=low, high=high, return_mask=return_mask)
-
-
+    y2, mask, mask_upper, mask_lower = sigma_clip(time, y_flat, low=low, high=high, return_mask=True)
+    y3 = 1*y
+    y3[mask] = np.nan
+    
+    if not return_mask:
+        return y3
+    
+    else:
+        return y3, mask, mask_upper, mask_lower
+    
+    
 
 ###############################################################################
 #::: binning
@@ -236,7 +244,7 @@ def binning(time, y, y_err=None, dt=None):
 ###############################################################################
 #::: mask bad data regions
 ###############################################################################
-def mask_regions(time, y, regions=None):
+def mask_regions(time, y, bad_regions=None):
     """
     Mask regions by filling y and y_err with NaN for those selected times.
     
@@ -248,17 +256,20 @@ def mask_regions(time, y, regions=None):
         Any data corresponding to the time stamps.
     y_err : array of float or None, optional
         Error of the data. The default is None.
-    regions : list or None, optional
+    bad_regions : list or None, optional
         List of tuples like [(start0,end0),(start1,end1),...], 
-        where any (start,end) are the start and end points of bad data regions. 
+        where any (start,end) are the start and end points of bad data bad_regions. 
         The default is None.
 
     Returns
     -------
-    Masked time, y, and y_err (regions of y and y_err replaced with NaN)
+    Masked time, y, and y_err (bad_regions of y and y_err replaced with NaN)
     """
-    for region in regions:
-        ind_bad = np.where((time>=region[0]) & (time<=region[1]))[0]
-        y[ind_bad] = np.nan
+    y2 = 1.*y
     
-    return y
+    if bad_regions is not None:
+        for bad_region in bad_regions:
+            ind_bad = np.where((time>=bad_region[0]) & (time<=bad_region[1]))[0]
+            y2[ind_bad] = np.nan
+    
+    return y2
