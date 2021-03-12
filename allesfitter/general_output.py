@@ -104,6 +104,12 @@ def plot_panel(datadir):
         ax.plot(config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['rv'], marker='.', ls='none', label=inst)
         ax.legend()
         ax.set(ylabel='RV (km/s)', xlabel='Time (BJD)')
+        
+    for inst in config.BASEMENT.settings['inst_rv2']:
+        ax = axes[1]
+        ax.plot(config.BASEMENT.data[inst]['time'], config.BASEMENT.data[inst]['rv2'], marker='.', ls='none', label=inst)
+        ax.legend()
+        ax.set(ylabel='RV (km/s)', xlabel='Time (BJD)')
     
     fig.savefig( os.path.join(config.BASEMENT.outdir,'data_panel.pdf'), bbox_inches='tight' )
     return fig, axes
@@ -281,11 +287,11 @@ def afplot(samples, companion):
                 #::: don't phase-fold single day photometric follow-up
     #            if (style=='phase') & (inst in config.BASEMENT.settings['inst_phot']) & ((config.BASEMENT.data[inst]['time'][-1] - config.BASEMENT.data[inst]['time'][0]) < 1.):
     #                axes[i,j].axis('off')
-                #::: don't zoom onto RV data
-                if ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
-                    axes[i,j].axis('off')
+                #::: don't zoom onto RV data (actually, let's do it, for the RM effects' sake #yolo #2fast2rm)
+                # if ('zoom' in style) & (inst in config.BASEMENT.settings['inst_rv']):
+                #     axes[i,j].axis('off')
                 #::: don't plot if the companion is not covered by an instrument
-                elif (inst in config.BASEMENT.settings['inst_phot']) & (companion not in config.BASEMENT.settings['companions_phot']):
+                if (inst in config.BASEMENT.settings['inst_phot']) & (companion not in config.BASEMENT.settings['companions_phot']):
                     axes[i,j].axis('off')
                 #::: don't plot if the companion is not covered by an instrument
                 elif (inst in config.BASEMENT.settings['inst_rv']) & (companion not in config.BASEMENT.settings['companions_rv']):
@@ -405,6 +411,7 @@ def plot_1(ax, samples, inst, companion, style,
             ylabel = 'Relative Flux - Baseline'
         elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
             ylabel = 'Residuals'
+            
     elif inst in base.settings['inst_rv']:
         key='rv'
         baseline_plus = 0.
@@ -416,9 +423,21 @@ def plot_1(ax, samples, inst, companion, style,
             ylabel = 'RV (km/s) - Baseline'
         elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
             ylabel = 'Residuals'
+            
+    elif inst in base.settings['inst_rv2']:
+        key='rv2'
+        baseline_plus = 0.
+        if style in ['full']:
+            ylabel = 'RV (km/s)'
+        elif style in ['full_minus_offset']:
+            ylabel = 'RV (km/s) - Offset'
+        elif style in ['phase', 'phasezoom', 'phasezoom_occ', 'phase_curve']:
+            ylabel = 'RV (km/s) - Baseline'
+        elif style in ['full_residuals', 'phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
+            ylabel = 'Residuals'
         
     else:
-        raise ValueError('inst should be listed in inst_phot or inst_rv...')
+        raise ValueError('inst should be: inst_phot, inst_rv, or inst_rv2...')
     
     
     if samples is not None:
@@ -502,7 +521,7 @@ def plot_1(ax, samples, inst, companion, style,
                             stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
                             ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
                             ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-            elif key=='rv':
+            elif key in ['rv', 'rv2']:
                 xx = np.arange( x[0], x[-1]+dt, dt)
                 for i in range(samples.shape[0]):
                     s = samples[i,:]
@@ -552,18 +571,23 @@ def plot_1(ax, samples, inst, companion, style,
         #::: Radial velocity
         #::: need to take care of multiple companions
         #----------------------------------------------------------------------
-        if (inst in base.settings['inst_rv']):
+        if (inst in base.settings['inst_rv']) or (inst in base.settings['inst_rv2']):
             
+            #::: get key
+            if (inst in base.settings['inst_rv']): i_return = 0
+            elif (inst in base.settings['inst_rv2']): i_return = 1
+              
+                
             #::: remove other companions
             for other_companion in base.settings['companions_rv']:
                 if companion!=other_companion:
-                    model = rv_fct(params_median, inst, other_companion)[0]
+                    model = rv_fct(params_median, inst, other_companion)[i_return]
                     y -= model
             
             
             #::: calculate residuals (if wished)
             if style in ['phase_residuals', 'phasezoom_residuals', 'phasezoom_occ_residuals', 'phase_curve_residuals']:
-                model = rv_fct(params_median, inst, companion)[0]
+                model = rv_fct(params_median, inst, companion)[i_return]
                 y -= model
                 
                 
@@ -585,7 +609,7 @@ def plot_1(ax, samples, inst, companion, style,
                     s = samples[i,:]
                     p = update_params(s)
 #                    p = update_params(s, phased=True)
-                    model = rv_fct(p, inst, companion, xx=xx2)[0]
+                    model = rv_fct(p, inst, companion, xx=xx2)[i_return]
                     ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
             
         
@@ -728,6 +752,9 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
         baseline_plus = 1.
     elif inst in base.settings['inst_rv']:
         key = 'rv'   
+        ylabel = 'RV (km/s)'
+    elif inst in base.settings['inst_rv2']:
+        key = 'rv2'   
         ylabel = 'RV (km/s)'
         
     if samples.shape[0]==1:

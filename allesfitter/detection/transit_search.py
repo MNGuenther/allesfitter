@@ -488,6 +488,11 @@ def tls_search(time, flux, flux_err, plot=True, plot_type='brokenplot', **kwargs
 
 
 
+def _cut(time, model_lightcurve_time, model_lightcurve_flux):
+    return np.interp(time, model_lightcurve_time, model_lightcurve_flux) 
+
+
+
 def _tls_search_plot_lightcurve(time, flux, results, typ='fullplot'):
     """
     ...
@@ -517,8 +522,9 @@ def _tls_search_plot_lightcurve(time, flux, results, typ='fullplot'):
         axes = brokenplot(time, flux)
         axes = brokenplot(results['model_lightcurve_time'], results['model_lightcurve_model'], color='r', ls='-', marker='', lw=3, zorder=100, axes=axes)
     elif typ=='tessplot':
-        axes = tessplot(time, flux)
-        axes = tessplot(results['model_lightcurve_time'], results['model_lightcurve_model'], color='r', ls='-', marker='', lw=3, zorder=100, axes=axes, shade=False)
+        trend = _cut(time, results['model_lightcurve_time'], results['model_lightcurve_model'])
+        axes = tessplot(time, flux, trend=trend)
+        # axes = tessplot(results['model_lightcurve_time'], results['model_lightcurve_model'], color='r', ls='-', marker='', lw=3, zorder=100, axes=axes, shade=False)
     elif typ=='monthplot':
         axes = monthplot(time, flux)
         axes = monthplot(results['model_lightcurve_time'], results['model_lightcurve_model'], color='r', ls='-', marker='', lw=3, zorder=100, axes=axes)
@@ -596,6 +602,9 @@ def tls_search_tess(time, flux, flux_err,
                      bad_regions=None,
                      options=None):
 
+    if options is None: options = {}
+    if 'outdir' not in options: options['outdir'] = ''
+    
     #::: logprint
     with open( os.path.join(options['outdir'], 'logfile.log'), 'w' ) as f:
         f.write('TLS search, UTC ' + datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + '\n')

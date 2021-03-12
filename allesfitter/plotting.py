@@ -254,25 +254,28 @@ def tessplot(time, flux, flux_err=None, trend=None, time_format='BJD_TDB', clip=
             sectors += [s]
     
     N = len(inds)
-    # ss = ax.get_subplotspec()
-    # ax.set_axis_off() #empty the axis before brokenaxes does its magic
-    # gssub = ss.subgridspec(N,1)
-    
+        
     if axes is None:
         fig, axes = plt.subplots(N, figsize=(12,3*N), tight_layout=True, sharey=sharey)
-    
+        
     for i in range(N):
         # ax1 = fig.add_subplot(gssub[i,0])
         ax1 = np.atleast_1d(axes)[i]
         ind, s = inds[i], sectors[i]
         line = 2*(s-1)
         if flux_err is None:
-            ax1.plot(time[ind], flux[ind], 'b.', ms=2, rasterized=True, **kwargs)
+            try:
+                kwargs2 = kwargs.copy()
+                del kwargs2['size']
+                del kwargs2['color']
+                ax1.scatter(time[ind], flux[ind], marker='.', s=kwargs['size'][ind], color=kwargs['color'][ind], rasterized=True, **kwargs2)
+            except:
+                ax1.plot(time[ind], flux[ind], 'b.', ms=2, rasterized=True, **kwargs)
         else:
             ax1.errorbar(time[ind], flux[ind], yerr=flux_err[ind], fmt='b.', ms=2, rasterized=True, **kwargs)
         if clip:
-            ax1.plot(time[ind]*mask_upper[ind], ax1.get_ylim()[1]*mask_upper[ind], 'r^', color='orange', ms=10, zorder=11)
-            ax1.plot(time[ind]*mask_lower[ind], ax1.get_ylim()[0]*mask_lower[ind], 'rv', color='orange', ms=10, zorder=11)
+            ax1.scatter(time[ind]*mask_upper[ind], ax1.get_ylim()[1]*mask_upper[ind], marker='^', color='orange', s=36, zorder=11)
+            ax1.scatter(time[ind]*mask_lower[ind], ax1.get_ylim()[0]*mask_lower[ind], marker='v', color='orange', s=36, zorder=11)
         if trend is not None:
             ax1.plot(time[ind], trend[ind], 'r-', lw=2, rasterized=True)
         ax1.text(0.98,0.95,'Sector '+str(s),ha='right',va='top',transform=ax1.transAxes)
@@ -280,8 +283,6 @@ def tessplot(time, flux, flux_err=None, trend=None, time_format='BJD_TDB', clip=
         orb1 = float(df['End TJD'].loc[line])
         orb2 = float(df['Start TJD'].loc[line+1])
         orb3 = float(df['End TJD'].loc[line+1])
-        # ax1.plot([orb0,orb1],[1,1],'k-',c='silver',lw=2)
-        # ax1.plot([orb2,orb3],[1,1],'k-',c='silver',lw=2)
         if shade:
             ax1.axvspan(orb0,orb1,color='b',alpha=0.1,zorder=-11)
             ax1.axvspan(orb2,orb3,color='b',alpha=0.1,zorder=-11)
@@ -401,9 +402,9 @@ def monthplot_csv(fname, **kwargs):
 def _clip_helper(time, y):
     y, _, mask_upper0, mask_lower0 = sigma_clip(time, y, low=4, high=4, return_mask=True)
     y, _, mask_upper, mask_lower = slide_clip(time, y, window_length=1, low=4, high=4, return_mask=True)
-    mask_upper = np.array(mask_upper0*mask_upper, dtype=float)
+    mask_upper = np.array(mask_upper0 | mask_upper, dtype=float)
     mask_upper[mask_upper==0] = np.nan
-    mask_lower = np.array(mask_lower0*mask_lower, dtype=float)
+    mask_lower = np.array(mask_lower0 | mask_lower, dtype=float)
     mask_lower[mask_lower==0] = np.nan
     
     return y, mask_lower, mask_upper

@@ -118,7 +118,7 @@ def update_params(theta):
         
        
     #=========================================================================
-    #::: radii, per companion
+    #::: radii, per companion 
     #::: R_1/a and R_2/a --> dependent on each companion's orbit
     #=========================================================================
     for companion in config.BASEMENT.settings['companions_all']:
@@ -209,6 +209,10 @@ def update_params(theta):
     #=========================================================================
     for inst in config.BASEMENT.settings['inst_rv']:
         key='rv'
+        params['jitter_'+key+'_'+inst] = np.exp( params['ln_jitter_'+key+'_'+inst] )
+        
+    for inst in config.BASEMENT.settings['inst_rv2']:
+        key='rv2'
         params['jitter_'+key+'_'+inst] = np.exp( params['ln_jitter_'+key+'_'+inst] )
         
         
@@ -1091,10 +1095,89 @@ def calculate_external_priors(params):
 ###############################################################################  
 
 #==============================================================================
+#::: Subfunction A: calculate lnlike for a detached binary
+#==============================================================================
+# def calculate_lnlike_detached_binary(params, inst):
+#     """
+#     This only works right now for the following conditions:
+#         - it's a detached binary, consisting of 'host' and 'B'
+#         - there are no other companions
+#         - can't use hybrid baseline, hybrid errors, nor GPs for RVs
+#     """  
+    
+#     lnlike_total = 0
+    
+#     #--------------------------------------------------------------------------  
+#     #::: first, check and add external priors
+#     #--------------------------------------------------------------------------  
+#     lnprior_external = calculate_external_priors(params)   
+#     lnlike_total += lnprior_external       
+    
+            
+#     #--------------------------------------------------------------------------  
+#     #::: directly catch any issues
+#     #--------------------------------------------------------------------------  
+#     if np.isnan(lnlike_total) or np.isinf(lnlike_total):
+#         return -np.inf
+    
+    
+#     #--------------------------------------------------------------------------  
+#     #::: for all photometry instruments
+#     #--------------------------------------------------------------------------   
+#     key, key2 = 'flux', 'inst_phot'
+    
+#     for inst in config.BASEMENT.settings[key2]:
+#         #::: calculate the model; if there are any NaN, return -np.inf
+#         model = calculate_model(params, inst, key)
+#         if any(np.isnan(model)) or any(np.isinf(model)): 
+#             return -np.inf
+        
+#         #::: calculate errors, baseline and stellar variability
+#         yerr_w = calculate_yerr_w(params, inst, key)
+#         baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
+#         stellar_var = calculate_stellar_var(params, inst, key, model=model, baseline=baseline, yerr_w=yerr_w)
+        
+#         #::: calculate residuals and inv_simga2
+#         residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+#         if any(np.isnan(residuals)): 
+#             return -np.inf
+#         inv_sigma2_w = 1./yerr_w**2
+        
+#         #::: calculate lnlike
+#         lnlike_total += -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+    
+    
+#     #--------------------------------------------------------------------------  
+#     #::: for all RV instruments
+#     #--------------------------------------------------------------------------   
+#     for inst in config.BASEMENT.settings['inst_rv']:
+#         key = 'rv12'
+        
+#         #::: calculate the models; if there are any NaN, return -np.inf
+#         model_rv1, model_rv2 = calculate_model(params, inst, 'rv12')
+#         if any(np.isnan(model_rv1*model_rv2)) or any(np.isinf(model_rv1*model_rv2)): 
+#             return -np.inf
+        
+#         #::: calculate errors, baseline and stellar variability
+#         yerr_w = calculate_yerr_w(params, inst, key)
+#         baseline = calculate_baseline(params, inst, key, model=model, yerr_w=yerr_w)
+#         stellar_var = calculate_stellar_var(params, inst, key, model=model, baseline=baseline, yerr_w=yerr_w)
+        
+#         #::: calculate residuals and inv_simga2
+#         residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
+#         if any(np.isnan(residuals)): 
+#             return -np.inf
+#         inv_sigma2_w = 1./yerr_w**2
+        
+#         #::: calculate lnlike
+#         lnlike_total += -0.5*(np.sum((residuals)**2 * inv_sigma2_w - np.log(inv_sigma2_w/2./np.pi))) #use np.sum to catch any nan and then set lnlike to nan
+    
+
+
+#==============================================================================
 #::: calculate all instruments linked (for stellar variability)
 #==============================================================================
 def calculate_lnlike_total(params):
-#    print('\ncalculating lnlike total')
     
     lnlike_total = 0
     
@@ -1115,19 +1198,22 @@ def calculate_lnlike_total(params):
     #--------------------------------------------------------------------------  
     #::: for all instruments
     #--------------------------------------------------------------------------   
-    for key, key2 in zip(['flux','rv'], ['inst_phot', 'inst_rv']):      
-               
-#        print('\n',key)
-#        print('a',config.BASEMENT.settings['stellar_var_'+key])
-#        print('b',config.BASEMENT.settings['stellar_var_'+key] in FCTs)
-        
-#        print('c',[config.BASEMENT.settings['baseline_'+key+'_'+inst] for inst in config.BASEMENT.settings[key2]])
-#        print('d',all( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs for inst in config.BASEMENT.settings[key2]] ))
+    for key, key2 in zip(['flux', 'rv', 'rv2'], ['inst_phot', 'inst_rv', 'inst_rv2']):      
+        """
+        Fitting detached binaries (with rv2 and inst_rv2) only works under the following conditions:
+            - it's a detached binary, consisting of only 'host' and 'B'
+            - the host's RV signal is given in the inst_rv file
+            - the companion's RV signal is given in the inst_rv2 file
+            - there are no other companions
+            - can't use hybrid baseline, hybrid errors, nor GPs for RVs
+            - the sample baseline and sample errors for RVs should be coupled
+        """  
         
         #--------------------------------------------------------------------------       
         #::: CASE 1)
         #::: flux/rv stellar variability in FCTs --> can be calculated per inst (only GP needs to know about all other instruments) 
         #::: all flux/rv baselines in FCTs
+        # TODO Qué?! An offset or a hybrid spline or polynomial also needs to know all other instruments!
         #-------------------------------------------------------------------------- 
         if ( config.BASEMENT.settings['stellar_var_'+key] in FCTs ) and all( [config.BASEMENT.settings['baseline_'+key+'_'+inst] in FCTs for inst in config.BASEMENT.settings[key2]] ):
 #            print('CASE 1')
@@ -1147,14 +1233,6 @@ def calculate_lnlike_total(params):
                 residuals = config.BASEMENT.data[inst][key] - model - baseline - stellar_var
                 if any(np.isnan(residuals)): 
                     return -np.inf
-#                    print(model)
-#                    print(inst, key)
-#                    print(yerr_w)
-#                    print(baseline)
-#                    print(stellar_var)
-#                    for key in params:
-#                        print(key, params[key])
-#                    raise ValueError('There are NaN in the residuals. Something horrible happened.')
                 inv_sigma2_w = 1./yerr_w**2
                 
                 #::: calculate lnlike
@@ -1350,27 +1428,28 @@ def calculate_yerr_w(params, inst, key):
     '''
     if inst in config.BASEMENT.settings['inst_phot']:
         yerr_w = config.BASEMENT.data[inst]['err_scales_'+key] * params['err_'+key+'_'+inst]
-    elif inst in config.BASEMENT.settings['inst_rv']:
+    elif (inst in config.BASEMENT.settings['inst_rv']) or (inst in config.BASEMENT.settings['inst_rv2']):
         yerr_w = np.sqrt( config.BASEMENT.data[inst]['white_noise_'+key]**2 + params['jitter_'+key+'_'+inst]**2 )
     return yerr_w
 
 
         
 
-################################################################################
-##::: calculate residuals
-################################################################################  
-def calculate_residuals(params, inst, key):
-    '''
-    Note:
-    -----
-    No 'xx' here, because residuals can only be calculated on given data
-    (not on an arbitrary xx grid)
-    '''       
-    model = calculate_model(params, inst, key)
-    baseline = calculate_baseline(params, inst, key, model=model)
-    residuals = config.BASEMENT.data[inst][key] - model - baseline
-    return residuals
+###############################################################################
+#::: calculate residuals
+# TODO DEPRECATED
+###############################################################################  
+# def calculate_residuals(params, inst, key):
+#     '''
+#     Note:
+#     -----
+#     No 'xx' here, because residuals can only be calculated on given data
+#     (not on an arbitrary xx grid)
+#     '''       
+#     model = calculate_model(params, inst, key)
+#     baseline = calculate_baseline(params, inst, key, model=model)
+#     residuals = config.BASEMENT.data[inst][key] - model - baseline
+#     return residuals
 
 
     
@@ -1393,8 +1472,27 @@ def calculate_model(params, inst, key, xx=None, settings=None):
     elif key=='rv':
         model_rv = 0.
         for companion in settings['companions_rv']:
-            model_rv += rv_fct(params, inst, companion, xx=xx, settings=settings)[0]
+            model_rv += rv_fct(params, inst, companion, xx=xx, settings=settings)[0] 
+            # RV signal measured from the host/primary (caused by a sepcific companion's gravity)
         return model_rv
+    
+    elif key=='rv2':
+        model_rv2 = 0.
+        for companion in settings['companions_rv']:
+            model_rv2 += rv_fct(params, inst, companion, xx=xx, settings=settings)[1] 
+            # RV_2 signal measured from the companion/secondary (caused by the host's gravity)
+        return model_rv2
+    
+    elif key=='rv12':
+        model_rv = 0.
+        model_rv2 = 0.
+        for companion in settings['companions_rv']:
+            model_rv_temp, model_rv2_temp = rv_fct(params, inst, companion, xx=xx, settings=settings) 
+            model_rv += model_rv_temp
+            model_rv2 += model_rv2_temp
+            # RV signal measured from the host/primary (caused by a sepcific companion's gravity)
+            # RV_2 signal measured from the companion/secondary (caused by the host's gravity)
+        return model_rv, model_rv2
     
     elif (key=='centdx') | (key=='centdy'):
         raise ValueError("Fitting for 'centdx' and 'centdy' not yet implemented.")
@@ -1439,7 +1537,7 @@ def calculate_baseline(params, inst, key, model=None, yerr_w=None, xx=None):
     
     if model is None: 
         model = calculate_model(params, inst, key, xx=None) #the model has to be evaluated on the time grid
-        
+
     if yerr_w is None: 
         yerr_w = calculate_yerr_w(params, inst, key)
         

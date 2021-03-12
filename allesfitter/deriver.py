@@ -286,7 +286,13 @@ def derive(samples, mode):
         #----------------------------------------------------------------------
         #::: masses
         #----------------------------------------------------------------------
-        if companion+'_K' in config.BASEMENT.params:
+        #::: for detached binaries, where K and q were fitted:
+        if (companion+'_K' in config.BASEMENT.params) and (companion+'_q' in config.BASEMENT.params):
+            derived_samples[companion+'_M_companion_(M_earth)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_earth.value #in M_earth
+            derived_samples[companion+'_M_companion_(M_jup)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_jup.value #in M_jup
+            
+        #::: for exoplanets or single-lined binaries, where only K was fitted, approximate/best-guess q form K:
+        elif companion+'_K' in config.BASEMENT.params:
             a_1 = 0.019771142 * get_params(companion+'_K') * get_params(companion+'_period') * np.sqrt(1. - derived_samples[companion+'_e']**2)/sin_d(derived_samples[companion+'_i'])
     #        derived_samples[companion+'_a_rv'] = (1.+1./ellc_params[companion+'_q'])*a_1
             derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a_(R_sun)'] / a_1 ) - 1.)

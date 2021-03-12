@@ -342,8 +342,9 @@ def tessclean(time, flux, plot=False,
         return flux_flat
     
     else:
-        axes = tessplot(time[mask], flux[mask], color='r')
-        tessplot(time, flux_clip, trend=trend, axes=axes, shade=False)
+        size = np.array([4**2 if m else 2**2 for m in mask]) #scatter uses sqrt of ms, so take ^2
+        color = np.array(['r' if m else 'b' for m in mask])
+        axes = tessplot(time, flux, trend=trend, size=size, color=color)
         for ax in np.atleast_1d(axes): ax.set_ylabel('Flux\n(original)')
         fig1 = plt.gcf()
         

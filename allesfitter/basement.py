@@ -87,7 +87,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.1')
+        self.logprint('v1.2.2')
         
         self.load_settings()
         self.load_params()
@@ -191,7 +191,7 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Main settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for key in ['companions_phot', 'companions_rv', 'inst_phot', 'inst_rv']:
+        for key in ['companions_phot', 'companions_rv', 'inst_phot', 'inst_rv', 'inst_rv2']:
             if key not in self.settings:
                 self.settings[key] = []
             elif len(self.settings[key]): 
@@ -200,7 +200,7 @@ class Basement():
                 self.settings[key] = []
         
         self.settings['companions_all']  = list(np.unique(self.settings['companions_phot']+self.settings['companions_rv'])) #sorted by b, c, d...
-        self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv'] )) #sorted like user input
+        self.settings['inst_all'] = list(unique( self.settings['inst_phot']+self.settings['inst_rv']+self.settings['inst_rv2'] )) #sorted like user input
     
         if len(self.settings['inst_phot'])==0 and len(self.settings['companions_phot'])>0:
             raise ValueError('No photometric instrument is selected, but photometric companions are given.')
@@ -430,7 +430,7 @@ class Basement():
                     
                     
         for companion in self.settings['companions_rv']:
-            for inst in self.settings['inst_rv']:
+            for inst in list(self.settings['inst_rv']) + list(self.settings['inst_rv2']):
                 if companion+'_flux_weighted_'+inst in self.settings: 
                     self.settings[companion+'_flux_weighted_'+inst] = set_bool(self.settings[companion+'_flux_weighted_'+inst])
                 else:
@@ -459,7 +459,7 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Stellar variability
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        for key in ['flux', 'rv']:
+        for key in ['flux', 'rv', 'rv2']:
             if ('stellar_var_'+key not in self.settings) or (self.settings['stellar_var_'+key] is None) or (self.settings['stellar_var_'+key].lower()=='none'): 
                 self.settings['stellar_var_'+key] = 'none'
                      
@@ -470,6 +470,7 @@ class Basement():
         for inst in self.settings['inst_all']:
             if inst in self.settings['inst_phot']: key='flux'
             elif inst in self.settings['inst_rv']: key='rv'
+            elif inst in self.settings['inst_rv2']: key='rv2'
             
             if 'baseline_'+key+'_'+inst not in self.settings: 
                 self.settings['baseline_'+key+'_'+inst] = 'none'
@@ -508,6 +509,7 @@ class Basement():
         for inst in self.settings['inst_all']:
             if inst in self.settings['inst_phot']: key='flux'
             elif inst in self.settings['inst_rv']: key='rv'
+            elif inst in self.settings['inst_rv2']: key='rv2'
             if 'error_'+key+'_'+inst not in self.settings: 
                 self.settings['error_'+key+'_'+inst] = 'sample'
             
@@ -1008,10 +1010,30 @@ class Basement():
                           'white_noise_rv':rv_err,
                           'custom_series':custom_series
                          }
+            
+        #======================================================================
+        #::: RV2 (for detached binaries)
+        #======================================================================
+        for inst in self.settings['inst_rv2']:
+            try:
+                time, rv, rv_err, custom_series = np.genfromtxt( os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:4]       
+            except:
+                time, rv, rv_err = np.genfromtxt( os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]              
+                custom_series = np.zeros_like(time)
+            if not all(np.diff(time)>0):
+                raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
+            self.data[inst] = {
+                          'time':time,
+                          'rv2':rv,
+                          'white_noise_rv2':rv_err,
+                          'custom_series':custom_series
+                         }
         
+        #======================================================================
         #::: also save the combined time series
         #::: for cases where all instruments are treated together
         #::: e.g. for stellar variability GPs
+        #======================================================================
         self.data['inst_phot'] = {'time':[],'flux':[],'flux_err':[],'inst':[]}
         for inst in self.settings['inst_phot']:
             self.data['inst_phot']['time'] += list(self.data[inst]['time'])
@@ -1035,8 +1057,21 @@ class Basement():
         self.data['inst_rv']['ind_sort'] = ind_sort
         self.data['inst_rv']['time'] = np.array(self.data['inst_rv']['time'])[ind_sort]
         self.data['inst_rv']['rv'] = np.array(self.data['inst_rv']['rv'])[ind_sort]
-        self.data['inst_rv']['rv_er'] = np.array(self.data['inst_rv']['rv_err'])[ind_sort]   
+        self.data['inst_rv']['rv_err'] = np.array(self.data['inst_rv']['rv_err'])[ind_sort]   
         self.data['inst_rv']['inst'] = np.array(self.data['inst_rv']['inst'])[ind_sort]
+    
+        self.data['inst_rv2'] = {'time':[],'rv2':[],'rv2_err':[],'inst':[]}
+        for inst in self.settings['inst_rv2']:
+            self.data['inst_rv2']['time'] += list(self.data[inst]['time'])
+            self.data['inst_rv2']['rv2'] += list(self.data[inst]['rv2'])
+            self.data['inst_rv2']['rv2_err'] += list(np.nan*self.data[inst]['rv2']) #errors will be sampled/derived later
+            self.data['inst_rv2']['inst'] += [inst]*len(self.data[inst]['time'])
+        ind_sort = np.argsort(self.data['inst_rv2']['time'])
+        self.data['inst_rv2']['ind_sort'] = ind_sort
+        self.data['inst_rv2']['time'] = np.array(self.data['inst_rv2']['time'])[ind_sort]
+        self.data['inst_rv2']['rv2'] = np.array(self.data['inst_rv2']['rv2'])[ind_sort]
+        self.data['inst_rv2']['rv2_err'] = np.array(self.data['inst_rv2']['rv2_err'])[ind_sort]   
+        self.data['inst_rv2']['inst'] = np.array(self.data['inst_rv2']['inst'])[ind_sort]
 
         
             

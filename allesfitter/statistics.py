@@ -257,7 +257,11 @@ def residual_stats(residuals):
     passed_anderson = alles_anderson(residuals)
     passed_adfuller = alles_adfuller(residuals)
     passed_durbin = alles_durbin(residuals)
-    passed_ljung = alles_ljung(residuals)
+    try:
+        passed_ljung = alles_ljung(residuals)
+    except:
+        logprint('Ljung-Box Test crashed.')
+        passed_ljung = '(crashed)'
     logprint('Summary')
     logprint('-------')
     logprint('Test                    Passed?')
