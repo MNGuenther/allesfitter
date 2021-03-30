@@ -25,6 +25,7 @@ import warnings
 from pprint import pprint
 from datetime import datetime
 from astropy import units as u
+from astropy import constants as c
 from astropy.stats import sigma_clip
 from astropy.timeseries import BoxLeastSquares as bls
 from ..exoworlds_rdx.lightcurves.index_transits import index_transits
@@ -409,13 +410,18 @@ def tls_search(time, flux, flux_err, plot=True, plot_type='brokenplot', **kwargs
         
         results = _to_dic(results)
         results['detection'] = (results['snr'] >= kwargs['SNR_threshold']) and (results['SDE'] >= kwargs['SDE_threshold']) and (results['FAP'] <= kwargs['FAP_threshold'])
-        results['correct_duration'] = np.nan
+        results['correct_duration'] = np.nan        
+        results['R_planet_'] = np.nan
+
         
         if results['detection']:
             #::: calculcate the correct_duration, as TLS sometimes returns unreasonable durations
             ind_tr_phase = np.where( results['model_folded_model'] < 1. )[0]
             results['correct_duration'] = results['period'] * (results['model_folded_phase'][ind_tr_phase[-1]] - results['model_folded_phase'][ind_tr_phase[0]])
-                    
+            
+            if 'R_star' in kwargs:
+                results['R_planet'] = results['rp_rs'] * kwargs['R_star'] * 109.07637070600963 #from Rsun to Rearth
+            
         return results
             
             
@@ -581,6 +587,9 @@ def _tls_search_plot_folded(time, flux, results):
     ax.text( .02, 0.55, 'SNR = ' + np.format_float_positional(results['snr'],4), ha='left', va='center', transform=ax.transAxes )
     ax.text( .02, 0.45, 'SDE = ' + np.format_float_positional(results['SDE'],4), ha='left', va='center', transform=ax.transAxes )
     ax.text( .02, 0.35, 'FAP = ' + np.format_float_scientific(results['FAP'],4), ha='left', va='center', transform=ax.transAxes )
+    ax.text( .02, 0.25, 'R_planet/R_star = ' + np.format_float_positional(results['rp_rs'],4), ha='left', va='center', transform=ax.transAxes )
+    if ~np.isnan(results['R_planet']): 
+        ax.text( .02, 0.15, 'R_planet = ' + np.format_float_positional(results['R_planet'],4), ha='left', va='center', transform=ax.transAxes )
     ax.set_axis_off()
     
     return fig

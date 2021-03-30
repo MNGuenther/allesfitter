@@ -87,7 +87,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.2')
+        self.logprint('v1.2.3')
         
         self.load_settings()
         self.load_params()
@@ -346,11 +346,16 @@ class Basement():
             self.settings['mcmc_thin_by'] = 1
         if 'mcmc_moves' not in self.settings: 
             self.settings['mcmc_moves'] = 'DEMove'
-                
+            
         #::: make sure these are integers
         for key in ['mcmc_nwalkers','mcmc_pre_run_loops','mcmc_pre_run_steps',
                     'mcmc_total_steps','mcmc_burn_steps','mcmc_thin_by']:
             self.settings[key] = int(self.settings[key])
+            
+        #::: luser proof
+        if self.settings['mcmc_total_steps'] <= self.settings['mcmc_burn_steps']:
+            raise ValueError('Your setting for mcmc_total_steps must be larger than mcmc_burn_steps (check your settings.csv).')
+                
             
         #::: translate the mcmc_move string into a list of emcee commands
         self.settings['mcmc_moves'] = translate_str_to_move(self.settings['mcmc_moves'])
@@ -531,7 +536,6 @@ class Basement():
             self.settings['color_plot'] = False
             
             
-            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Companion colors
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -539,6 +543,15 @@ class Basement():
             self.settings[companion+'_color'] = sns.color_palette()[i]
         
         
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #::: Plot zoom window
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'zoom_window' not in self.settings:
+            self.settings['zoom_window'] = 8./24. #8h window around transit/eclipse midpoint by Default
+        else:
+            self.settings['zoom_window'] = float(self.settings['zoom_window'])
+            
+            
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Exposure time interpolation
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -964,7 +977,11 @@ class Basement():
                 time, flux, flux_err = np.genfromtxt(os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]     
                 custom_series = np.zeros_like(time)
             if any(np.isnan(time*flux*flux_err*custom_series)):
-                raise ValueError('There are NaN values in "'+inst+'.csv". Please exclude these rows from the file and restart.')
+                raise ValueError('There are NaN values in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
+            if any(flux_err==0):
+                raise ValueError('There are uncertainties with values of 0 in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
+            if any(flux_err<0):
+                raise ValueError('There are uncertainties with negative values in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
             if not all(np.diff(time)>=0):
                 raise ValueError('The time array in "'+inst+'.csv" is not sorted. Please make sure the file is not corrupted, then sort it by time and restart.')
             elif not all(np.diff(time)>0):
@@ -1002,6 +1019,13 @@ class Basement():
             except:
                 time, rv, rv_err = np.genfromtxt( os.path.join(self.datadir,inst+'.csv'), delimiter=',', dtype=float, unpack=True)[0:3]              
                 custom_series = np.zeros_like(time)
+            if any(np.isnan(time*rv*rv_err*custom_series)):
+                raise ValueError('There are NaN values in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
+            #aCkTuaLLLyy rv_err=0 is ok, since we add a jitter term here anyway (instead of scaling)
+            # if any(rv_err==0):
+            #     raise ValueError('There are uncertainties with values of 0 in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
+            if any(rv_err<0):
+                raise ValueError('There are uncertainties with negative values in "'+inst+'.csv". Please make sure everything is fine with your data, then exclude these rows from the file and restart.')
             if not all(np.diff(time)>0):
                 raise ValueError('Your time array in "'+inst+'.csv" is not sorted. You will want to check that...')
             self.data[inst] = {

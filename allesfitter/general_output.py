@@ -312,7 +312,7 @@ def afplot(samples, companion):
 ###############################################################################
 def plot_1(ax, samples, inst, companion, style, 
            base=None, dt=None,
-           zoomwindow=8., force_binning=False,
+           zoomwindow=None, force_binning=False,
            kwargs_data=None,
            kwargs_model=None,
            kwargs_ax=None):
@@ -388,6 +388,9 @@ def plot_1(ax, samples, inst, companion, style,
     
     timelabel = 'Time' #removed feature
     
+    if zoomwindow is None:
+        zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
+    
     
     #==========================================================================
     #::: helper fct
@@ -446,7 +449,17 @@ def plot_1(ax, samples, inst, companion, style,
         else:
             alpha = 0.1
         
-    
+
+
+    #==========================================================================
+    # guesstimate where the secondary eclipse / occultation is
+    #==========================================================================
+    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
+    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
+    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
+ 
+        
+ 
     #==========================================================================
     # full time series, not phased
     # plot the 'undetrended' data
@@ -667,9 +680,6 @@ def plot_1(ax, samples, inst, companion, style,
                     xx = np.linspace( -10./zoomfactor, 10./zoomfactor, 1000)
                     xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
                 elif style in ['phasezoom_occ']:
-                    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
-                    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
-                    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
                     xx = np.linspace( -10./zoomfactor + phase_shift, 10./zoomfactor + phase_shift, 1000 )
                     xx2 = params_median[companion+'_epoch'] + xx * params_median[companion+'_period']
     
