@@ -25,11 +25,17 @@ import matplotlib.pyplot as plt
 # from glob import glob
 # from pprint import pprint
 
+#::: specific modules
+try:
+    from wotan import flatten
+except ImportError:
+    pass
+
 #::: my modules
 # import allesfitter
 # from . import config
 from .limb_darkening import LDC3
-from .time_series import sigma_clip, slide_clip, flatten, mask_regions
+from .time_series import sigma_clip, slide_clip, mask_regions
 from .plotting import tessplot
 from .io import read_csv
 

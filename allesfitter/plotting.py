@@ -88,7 +88,7 @@ def guess_labels(ax, time, y):
 
 
 
-def fullplot(time, y, yerr=None, ax=None, time_format='BJD_TDB', clip=False):
+def fullplot(time, y, yerr=None, ax=None, time_format='BJD_TDB', clip=False, **kwargs):
     '''
     Parameters
     ----------
@@ -119,7 +119,7 @@ def fullplot(time, y, yerr=None, ax=None, time_format='BJD_TDB', clip=False):
     if clip:
         flux, mask_lower, mask_upper = _clip_helper(time, y)
     
-    ax.errorbar(time, y, yerr=yerr, fmt='b.', ms=2, rasterized=True)
+    ax.errorbar(time, y, yerr=yerr, fmt='b.', ms=2, rasterized=True, **kwargs)
     if clip:
         ax.plot(time*mask_upper, ax.get_ylim()[1]*mask_upper, 'r^', color='orange', ms=10, zorder=11)
         ax.plot(time*mask_lower, ax.get_ylim()[0]*mask_lower, 'rv', color='orange', ms=10, zorder=11)

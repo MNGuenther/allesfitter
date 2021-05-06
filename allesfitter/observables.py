@@ -72,7 +72,7 @@ def P_to_a(P, Mp, Ms):
     Ms = Ms*M_sun.value #in kg
     Mp = Mp*M_earth.value #in kg
     
-    return ( (G.value/(4*np.pi**2) * P**2 * np.cbrt(Ms + Mp)) ) / au.value  #in AU 
+    return np.cbrt(G.value/(4*np.pi**2) * P**2 * (Ms + Mp)) / au.value  #in AU 
 
 
 
