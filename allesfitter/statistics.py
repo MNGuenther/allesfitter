@@ -4,31 +4,24 @@
 Created on Thu Dec 10 19:00:41 2020
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
 from __future__ import print_function, division, absolute_import
 
 #::: modules
-import os, sys
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from tqdm import tqdm
-from glob import glob
-from pprint import pprint
 from scipy.stats import anderson
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.stats.stattools import durbin_watson 
 from statsmodels.stats.diagnostic import acorr_ljungbox
-
 
 #::: allesfitter modules
 from . import config

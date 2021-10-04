@@ -4,13 +4,13 @@
 Created on Fri Oct  5 00:41:29 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -48,6 +48,9 @@ from .lightcurves import translate_limb_darkening_from_q_to_u as q_to_u
 # from .lightcurves import translate_limb_darkening_from_u_to_q as u_to_q
 from .observables import calc_M_comp_from_RV, calc_rho, calc_rho_host
 
+
+
+
 '''
 README
 
@@ -59,8 +62,6 @@ for dilution:
     on another note, the TESS SPOC lightcurve parameter CROWDSAP = F_source / (F_source + F_blend) d
     hence D_0 = 1 - CROWDSAP
 '''
-
-
 
 
 

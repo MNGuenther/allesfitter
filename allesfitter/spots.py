@@ -4,13 +4,13 @@
 Created on Tue Nov 27 15:41:12 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -25,7 +25,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 import os
 from tqdm import tqdm
 import matplotlib.gridspec as gridspec
@@ -37,7 +37,6 @@ from astropy.coordinates import SkyCoord
 #::: my modules
 import allesfitter
 from allesfitter import config
-
 
 
 

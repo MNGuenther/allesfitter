@@ -4,27 +4,20 @@
 Created on Fri Oct  5 00:17:06 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
 from __future__ import print_function, division, absolute_import
 
-#::: plotting settings
-import seaborn as sns
-sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
-sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
-sns.set_context(rc={'lines.markeredgewidth': 1})
-
 #::: modules
 import numpy as np
-# import matplotlib.pyplot as plt
 import os
 import sys
 import fnmatch
@@ -35,14 +28,20 @@ import warnings
 warnings.formatwarning = lambda msg, *args, **kwargs: f'\n! WARNING:\n {msg}\ntype: {args[0]}, file: {args[1]}, line: {args[2]}\n'
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
-# from scipy.special import ndtri
 from scipy.stats import truncnorm
 
 #::: allesfitter modules
 from .exoworlds_rdx.lightcurves.index_transits import index_transits, index_eclipses, get_first_epoch, get_tmid_observed_transits
 from .priors.simulate_PDF import simulate_PDF
 from .utils.mcmc_move_translator import translate_str_to_move
+
+#::: plotting settings
+import seaborn as sns
+sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_scale=1.5, color_codes=True)
+sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
+sns.set_context(rc={'lines.markeredgewidth': 1})
                      
+    
     
     
 ###############################################################################
@@ -87,7 +86,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.4')
+        self.logprint('v1.2.6')
         
         self.load_settings()
         self.load_params()
@@ -852,11 +851,11 @@ class Basement():
                     if (self.params[companion+'_sbratio_'+inst] > 0) and (self.params[companion+'_heat_'+inst] == 0):
                         self.params[companion+'_heat_'+inst] = 1e-15           #this is to avoid a bug/feature in ellc
               
-                    
+
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 #::: luser proof: avoid conflicting/degenerate phase curve commands
                 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                if (self.settings['phase_curve'] == True):
+                if (inst in self.settings['inst_phot']) and (self.settings['phase_curve'] == True):
                     phase_curve_model_1 = (self.params[companion+'_phase_curve_B1_'+inst] is not None)
                     phase_curve_model_2 = ((self.params[companion+'_phase_curve_B1t_'+inst] is not None) or (self.params[companion+'_phase_curve_B1r_'+inst] is not None))
                     phase_curve_model_3 = (self.params[companion+'_phase_curve_atmospheric_'+inst] is not None)

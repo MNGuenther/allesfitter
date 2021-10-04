@@ -4,13 +4,13 @@
 Created on Fri Sep 28 15:19:30 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli institute for Astrophysics and Space Research, 
-Massachusetts institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -45,6 +45,8 @@ from .limb_darkening import LDC3
 from .computer import update_params, calculate_model, flux_fct, flux_subfct_ellc, flux_subfct_sinusoidal_phase_curves
 from .exoworlds_rdx.lightcurves.index_transits import index_transits
 from .lightcurves import get_epoch_occ
+
+
 
 
 ###############################################################################
@@ -287,10 +289,11 @@ def derive(samples, mode):
         #::: masses
         #----------------------------------------------------------------------
         #::: for detached binaries, where K and q were fitted:
-        if (companion+'_K' in config.BASEMENT.params) and (companion+'_q' in config.BASEMENT.params):
+        if (companion+'_K' in config.BASEMENT.params) and not np.isclose(get_params(companion+'_q'),1):
             derived_samples[companion+'_M_companion_(M_earth)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_earth.value #in M_earth
             derived_samples[companion+'_M_companion_(M_jup)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_jup.value #in M_jup
-            
+            derived_samples[companion+'_M_companion_(M_sun)'] = get_params(companion+'_q') * star['M_star'] #in M_sun
+
         #::: for exoplanets or single-lined binaries, where only K was fitted, approximate/best-guess q form K:
         elif companion+'_K' in config.BASEMENT.params:
             a_1 = 0.019771142 * get_params(companion+'_K') * get_params(companion+'_period') * np.sqrt(1. - derived_samples[companion+'_e']**2)/sin_d(derived_samples[companion+'_i'])
@@ -298,7 +301,8 @@ def derive(samples, mode):
             derived_samples[companion+'_q'] = 1./(( derived_samples[companion+'_a_(R_sun)'] / a_1 ) - 1.)
             derived_samples[companion+'_M_companion_(M_earth)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_earth.value #in M_earth
             derived_samples[companion+'_M_companion_(M_jup)'] = derived_samples[companion+'_q'] * star['M_star'] * M_sun.value / M_jup.value #in M_jup
-            
+            derived_samples[companion+'_M_companion_(M_sun)'] = derived_samples[companion+'_q'] * star['M_star'] #in M_sun
+
             
         #----------------------------------------------------------------------
         #::: time of secondary eclipse   
@@ -340,7 +344,7 @@ def derive(samples, mode):
                                                                 / sin_d(derived_samples[companion+'_i']) ) \
                                                    * eccentricity_correction_T_tra    #in h
                                   
-
+        
         #----------------------------------------------------------------------
         #::: primary and secondary eclipse depths (per inst) 
         #::: / transit and occultation depths (per inst)
@@ -377,7 +381,7 @@ def derive(samples, mode):
             derived_samples[companion+'_depth_tr_dil_'+inst] = np.resize(derived_samples[companion+'_depth_tr_dil_'+inst], N_samples)
             derived_samples[companion+'_depth_occ_dil_'+inst] = np.resize(derived_samples[companion+'_depth_occ_dil_'+inst], N_samples)
             derived_samples[companion+'_nightside_flux_dil_'+inst] = np.resize(derived_samples[companion+'_nightside_flux_dil_'+inst], N_samples)
-
+        
     
         #----------------------------------------------------------------------
         #::: undiluted (per companion; per inst)
@@ -388,7 +392,7 @@ def derive(samples, mode):
             derived_samples[companion+'_depth_tr_undil_'+inst] = derived_samples[companion+'_depth_tr_dil_'+inst] / (1. - dil) #in ppt
             derived_samples[companion+'_depth_occ_undil_'+inst] = derived_samples[companion+'_depth_occ_dil_'+inst] / (1. - dil) #in ppt
             derived_samples[companion+'_nightside_flux_undil_'+inst] = derived_samples[companion+'_nightside_flux_dil_'+inst] / (1. - dil) #in ppt
-
+        
         
         #----------------------------------------------------------------------
         #::: equilibirum temperature
@@ -518,6 +522,9 @@ def derive(samples, mode):
         
         names.append( companion+'_M_companion_(M_jup)' )
         labels.append( 'Companion mass '+companion+'; $M_\mathrm{'+companion+'}$ ($\mathrm{M_{jup}}$)' )
+        
+        names.append( companion+'_M_companion_(M_sun)' )
+        labels.append( 'Companion mass '+companion+'; $M_\mathrm{'+companion+'}$ ($\mathrm{M_{\odot}}$)' )
         
         names.append( companion+'_b_tra' )
         labels.append( 'Impact parameter '+companion+'; $b_\mathrm{tra;'+companion+'}$' )

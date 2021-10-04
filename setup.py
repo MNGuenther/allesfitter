@@ -4,13 +4,13 @@
 Created on Wed Jan 23 11:40:38 2019
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -23,10 +23,10 @@ from setuptools import setup, find_packages
 setup(
     name = 'allesfitter',
     packages = find_packages(),
-    version = '1.2.4',
+    version = '1.2.6',
     description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
-    author_email = 'maxgue@mit.edu',
+    author_email = 'maximilian.guenther@esa.int',
     url = 'https://github.com/MNGuenther/allesfitter',
     download_url = 'https://github.com/MNGuenther/allesfitter',
     license='MIT',

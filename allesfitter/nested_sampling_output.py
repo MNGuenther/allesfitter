@@ -4,13 +4,13 @@
 Created on Fri Oct  5 14:28:55 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -27,7 +27,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter, MaxNLocator
 import os
-#import bzip2
 import gzip
 try:
    import cPickle as pickle
@@ -112,6 +111,7 @@ def ns_output(datadir):
             warnings.warn("Nested Sampling output files already existed from a previous run, and were automatically overwritten.")
             pass
     
+    
     #::: load the save_ns.pickle
     f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
     results = pickle.load(f)
@@ -137,6 +137,7 @@ def ns_output(datadir):
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
     params_median, params_ll, params_ul = get_params_from_samples(posterior_samples)     # params drawn form these posterior_samples
+    
     
     #::: output the results
     logprint('\nResults:')

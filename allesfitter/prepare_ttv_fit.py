@@ -5,13 +5,12 @@ Created on Fri Jan 31 15:50:31 2020
 
 @author: 
 Dr. Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
-GitHub: https://github.com/MNGuenther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -39,7 +38,6 @@ except ImportError:
 import allesfitter
 from allesfitter.lightcurves import eclipse_width_smart
 from allesfitter.exoworlds_rdx.lightcurves.index_transits import get_tmid_observed_transits
-# from .general_output import logprint
 
 
     

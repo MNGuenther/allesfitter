@@ -4,30 +4,21 @@
 Created on Fri Nov  6 18:32:01 2020
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
 from __future__ import print_function, division, absolute_import
 
 #::: modules
-import os, sys
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from tqdm import tqdm
-from glob import glob
-from pprint import pprint
 import json
-
-#::: my modules
-import allesfitter
 
 #::: plotting settings
 import seaborn as sns
@@ -59,7 +50,7 @@ def write_csv(fname, *arrays, **kwargs):
     -------
     Saves a csv file under the given name.
     '''
-    X = np.column_stack((*arrays))
+    X = np.column_stack(arrays)
     np.savetxt(fname, X, delimiter=',', **kwargs)
 
 

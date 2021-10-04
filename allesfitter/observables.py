@@ -4,13 +4,13 @@
 Created on Wed Nov 18 12:48:58 2020
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -18,21 +18,12 @@ from __future__ import print_function, division, absolute_import
 
 #::: modules
 import os
-# import sys
 import pathlib
 import numpy as np
-# from numpy.polynomial import Polynomial
-# import matplotlib.pyplot as plt
 import pandas as pd
-# from tqdm import tqdm
-# from glob import glob
-# from pprint import pprint
 from astropy.constants import G, M_earth, M_jup, M_sun, R_earth, R_jup, R_sun, au
 from astropy import units as u
 from time import time as timer
-
-#::: my modules
-# import allesfitter
 
 #::: plotting settings
 import seaborn as sns
@@ -41,11 +32,15 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
 
+
+
 """
 Readme:
 Astropy units are nice and fancy, but can cause a 17x slow-down for parts of this code.
 Use constants' values instead of units.
 """
+
+
 
 
 ###############################################################################
@@ -95,7 +90,7 @@ def P_to_a_astropy(P, Mp, Ms):
     a : float or array
         Planet orbital semi-major axis, in AU.
     '''
-    return ( (G/(4*np.pi**2) * (P*u.d)**2 * np.cbrt(Ms*u.Msun + Mp*u.Mearth)) ).to(u.AU).value  #in AU 
+    return np.cbrt(G/(4*np.pi**2) * (P*u.d)**2 * (Ms*u.Msun + Mp*u.Mearth)).to(u.AU).value  #in AU 
 
 
 

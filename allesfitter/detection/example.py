@@ -4,25 +4,19 @@
 Created on Wed Dec 16 19:15:19 2020
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
 from __future__ import print_function, division, absolute_import
 
 #::: modules
-import os, sys
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from tqdm import tqdm
-from glob import glob
 from pprint import pprint
 
 #::: optional modules
@@ -31,12 +25,9 @@ try:
 except ImportError:
     pass
 
-
 #::: my modules
-import allesfitter
-from allesfitter.io import read_csv
 from allesfitter import tessplot
-from allesfitter.time_series import sigma_clip, slide_clip, binning, mask_regions
+from allesfitter.time_series import sigma_clip, slide_clip, mask_regions
 from allesfitter.detection.periodicity import estimate_period
 from allesfitter.detection.transit_search import get_tls_kwargs_by_tic, tls_search
 from exoworlds.tess import tessio

@@ -4,13 +4,13 @@
 Created on Fri Oct  5 01:10:51 2018
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -656,7 +656,9 @@ def plot_1(ax, samples, inst, companion, style,
                 dt = 15./60./24. / params_median[companion+'_period']
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
-            if (len(x) > 500) or force_binning:
+            buf = phi*zoomfactor
+            buf = buf[(buf>-4) & (buf<4)] #just counting the points in the transit window
+            if (len(buf) > 80) or force_binning:
                 if style in ['phase_curve', 
                              'phase_curve_residuals']:
                     ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=kwargs_data['color'], rasterized=kwargs_data['rasterized'], zorder=11 )                    
@@ -692,6 +694,9 @@ def plot_1(ax, samples, inst, companion, style,
                         ax.plot( xx*zoomfactor, model, 'r-', alpha=alpha, zorder=12 )
              
         
+        #----------------------------------------------------------------------
+        #::: Set axes limits
+        #----------------------------------------------------------------------
         #::: x-zoom?
         if style in ['phasezoom',
                      'phasezoom_residuals']:
@@ -705,20 +710,28 @@ def plot_1(ax, samples, inst, companion, style,
         
         #::: y-zoom onto occultation and phase variations
         if style in ['phasezoom_occ']:
-                # try:
-            buf = phase_y[phase_time>0.25] #TODO: replace with proper eclipse indexing
-            def nanptp(arr): return np.nanmax(arr)-np.nanmin(arr)
-            ax.set( ylim=[np.nanmin(buf)-0.1*nanptp(buf), np.nanmax(buf)+0.1*nanptp(buf)] )
-                # except:
-                #     ax.set( ylim=[0.999,1.0005] )
+            try:
+                buf = phase_y[phase_time>0.25] #TODO: replace with proper eclipse indexing
+                def nanptp(arr): return np.nanmax(arr)-np.nanmin(arr)
+                y0 = np.nanmin(buf)-0.1*nanptp(buf)
+                y1 = np.nanmax(buf)+0.1*nanptp(buf)
+                if y1>y0: ax.set(ylim=[y0,y1])
+            except:
+                pass
+                # ax.axis('off')
+                # ax.set( ylim=[0.999,1.0005] )
        
         if style in ['phase_curve', 
                      'phase_curve_residuals']:
-                try:
-                    phase_curve_no_dips = flux_subfct_sinusoidal_phase_curves(params_median, inst, companion, np.ones_like(xx), xx=xx)
-                    ax.set(ylim=[np.min(phase_curve_no_dips)-0.1*np.ptp(phase_curve_no_dips), np.max(phase_curve_no_dips)+0.1*np.ptp(phase_curve_no_dips)])
-                except:
-                    ax.set( ylim=[0.999,1.001] )
+            try:
+                phase_curve_no_dips = flux_subfct_sinusoidal_phase_curves(params_median, inst, companion, np.ones_like(xx), xx=xx)
+                y0 = np.min(phase_curve_no_dips)-0.1*np.ptp(phase_curve_no_dips)
+                y1 = np.max(phase_curve_no_dips)+0.1*np.ptp(phase_curve_no_dips)
+                if y1>y0: ax.set(ylim=[y0,y1])
+            except:
+                pass
+                # ax.axis('off')
+                # ax.set( ylim=[0.999,1.001] )
 
 
 

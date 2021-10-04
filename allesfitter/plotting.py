@@ -4,13 +4,13 @@
 Created on Fri Jul 10 18:27:01 2020
 
 @author:
-Maximilian N. Günther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
@@ -21,6 +21,7 @@ import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pandas as pd
 from tqdm import tqdm
 from glob import glob
@@ -266,9 +267,11 @@ def tessplot(time, flux, flux_err=None, trend=None, time_format='BJD_TDB', clip=
         if flux_err is None:
             try:
                 kwargs2 = kwargs.copy()
-                del kwargs2['size']
                 del kwargs2['color']
-                ax1.scatter(time[ind], flux[ind], marker='.', s=kwargs['size'][ind], color=kwargs['color'][ind], rasterized=True, **kwargs2)
+                sc = ax1.scatter(time[ind], flux[ind], c=kwargs['color'][ind], marker='.', rasterized=True, **kwargs2)
+                divider = make_axes_locatable(ax1)
+                cax = divider.append_axes('right', size='2%', pad=0.05)
+                plt.colorbar(sc, cax=cax, orientation='vertical', label='Flare Prob.')
             except:
                 ax1.plot(time[ind], flux[ind], 'b.', ms=2, rasterized=True, **kwargs)
         else:
