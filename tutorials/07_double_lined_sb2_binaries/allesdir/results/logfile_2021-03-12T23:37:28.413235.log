@@ -1,0 +1,214 @@
+
+allesfitter version
+---------------------
+v1.2.2
+
+Convergence check
+-------------------
+Total steps:         5000      
+Burn steps:          2000      
+Evaluation steps:    3000                
+Evaluation samples:  30000               
+Autocorrelation times:
+	 parameter                      tau (in steps)       Chain length (in multiples of tau)
+	 host_ldc_q1_Leonardo           172.77944865785747   17.363176137578034  
+	 host_ldc_q2_Leonardo           199.93083147491907   15.005189434108585  
+	 B_rr                           239.55455978595884   12.523243150455952  
+	 B_rsuma                        192.78550289188536   15.561336070391187  
+	 B_cosi                         236.01997749154907   12.71078843360799   
+	 B_K                            146.7893804573313    20.437445751547667  
+	 B_q                            141.35491756505954   21.22317392049152   
+	 baseline_offset_flux_Leonardo  147.12825851612638   20.390372524331735  
+	 baseline_offset_rv_Donatello_Primary 147.9495867940572    20.277177280501217  
+	 ln_err_flux_Leonardo           156.12500833712483   19.215371271731314  
+	 ln_jitter_rv_Donatello_Primary 154.77839514098548   19.382550111514867  
+
+Not yet converged! Some chains are less than 30x the autocorrelation length. Please continue to run with longer chains, or start again with more walkers.
+
+
+Leonardo B: deriving eclipse depths and more from model curves...
+
+Saved mcmc_derived_results.csv, mcmc_derived_latex_table.txt, and mcmc_derived_latex_cmd.txt
+
+Saved mcmc_derived_corner.pdf
+
+Performing diagnostic tests on the fit's residuals...
+
+Anderson-Darling Test
+---------------------
+This tests the null hypothesis that the residuals follows a normal distribution.
+Test statistic		 1.3831280306159925
+Critical values		 [0.547 0.623 0.747 0.871 1.037]
+Significance levels	 [0.15  0.1   0.05  0.025 0.01 ]
+Does the null hypotheses hold at a significance level of...
+... 0.15 		 False
+... 0.1 		 False
+... 0.05 		 False
+... 0.025 		 False
+... 0.01 		 False
+The null hypothesis is rejected at some significance levels.
+In simple words: there might still be some structure in your residuals.
+
+
+Augmented Dickey-Fuller Test
+----------------------------
+This tests the null hypothesis that the residuals show non-stationarity (trends).
+Test Statistic          -4.162228
+P-Value                  0.000763
+# Lags Used              3.000000
+# Observations Used     64.000000
+Critical Value (1%)     -3.536928
+Critical Value (5%)     -2.907887
+Critical Value (10%)    -2.591493
+Is the time series stationary? True
+In simple words: your residuals look good.
+
+
+Durbin-Watson Test
+------------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Test statistic: 0.6306007473548662
+The test statistic is approximately equal to 2*(1-r) where r is the sample autocorrelation of the residuals. Interpretation:
+	< 1.5 suggests a positive correlation
+	1.5 to 2.5 suggests no correlation
+	> 2.5 suggests a negative correlation
+Signs of a positive correlation.
+In simple words: there might still be some structure in your residuals.
+
+
+Ljung-Box Test
+--------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Does the null hypotheses hold at a significance level of...
+ lag   lb_stat    lb_pvalue  0.15   0.1  0.05  0.025  0.01
+   1 28.186041 1.101964e-07 False False False  False False
+   5 50.300422 1.202857e-09 False False False  False False
+  10 56.031339 2.025346e-08 False False False  False False
+  15 70.046938 4.381913e-09 False False False  False False
+  20 89.001700 1.107420e-10 False False False  False False
+The null hypothesis is rejected at some significance levels.
+In simple words: there might still be some structure in your residuals.
+
+
+Summary
+-------
+Test                    Passed?
+Anderson-Darling        False
+Augmented Dickey-Fuller True
+Durbin-Watson           False
+Ljung-Box               False
+
+Performing diagnostic tests on the fit's residuals...
+
+Anderson-Darling Test
+---------------------
+This tests the null hypothesis that the residuals follows a normal distribution.
+Test statistic		 1.2993053161709085
+Critical values		 [0.5   0.569 0.683 0.797 0.948]
+Significance levels	 [0.15  0.1   0.05  0.025 0.01 ]
+Does the null hypotheses hold at a significance level of...
+... 0.15 		 False
+... 0.1 		 False
+... 0.05 		 False
+... 0.025 		 False
+... 0.01 		 False
+The null hypothesis is rejected at some significance levels.
+In simple words: there might still be some structure in your residuals.
+
+
+Augmented Dickey-Fuller Test
+----------------------------
+This tests the null hypothesis that the residuals show non-stationarity (trends).
+Test Statistic          -3.003913
+P-Value                  0.034531
+# Lags Used              0.000000
+# Observations Used     15.000000
+Critical Value (1%)     -3.964443
+Critical Value (5%)     -3.084908
+Critical Value (10%)    -2.681814
+Is the time series stationary? True
+In simple words: your residuals look good.
+
+
+Durbin-Watson Test
+------------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Test statistic: 1.6902381053366107
+The test statistic is approximately equal to 2*(1-r) where r is the sample autocorrelation of the residuals. Interpretation:
+	< 1.5 suggests a positive correlation
+	1.5 to 2.5 suggests no correlation
+	> 2.5 suggests a negative correlation
+No signs of a correlation.
+In simple words: your residuals look good.
+
+
+Ljung-Box Test
+--------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Ljung-Box Test crashed.
+Summary
+-------
+Test                    Passed?
+Anderson-Darling        False
+Augmented Dickey-Fuller True
+Durbin-Watson           True
+Ljung-Box               (crashed)
+
+Performing diagnostic tests on the fit's residuals...
+
+Anderson-Darling Test
+---------------------
+This tests the null hypothesis that the residuals follows a normal distribution.
+Test statistic		 1.473709043892196
+Critical values		 [0.5   0.569 0.683 0.797 0.948]
+Significance levels	 [0.15  0.1   0.05  0.025 0.01 ]
+Does the null hypotheses hold at a significance level of...
+... 0.15 		 False
+... 0.1 		 False
+... 0.05 		 False
+... 0.025 		 False
+... 0.01 		 False
+The null hypothesis is rejected at some significance levels.
+In simple words: there might still be some structure in your residuals.
+
+
+Augmented Dickey-Fuller Test
+----------------------------
+This tests the null hypothesis that the residuals show non-stationarity (trends).
+Test Statistic          15.786819
+P-Value                  1.000000
+# Lags Used              6.000000
+# Observations Used      9.000000
+Critical Value (1%)     -4.473135
+Critical Value (5%)     -3.289881
+Critical Value (10%)    -2.772382
+Is the time series stationary? False
+In simple words: there might still be some structure in your residuals.
+
+
+Durbin-Watson Test
+------------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Test statistic: 1.3952735839589745
+The test statistic is approximately equal to 2*(1-r) where r is the sample autocorrelation of the residuals. Interpretation:
+	< 1.5 suggests a positive correlation
+	1.5 to 2.5 suggests no correlation
+	> 2.5 suggests a negative correlation
+Signs of a positive correlation.
+In simple words: there might still be some structure in your residuals.
+
+
+Ljung-Box Test
+--------------
+This tests the null hypothesis that there is no correlation among the residuals.
+Ljung-Box Test crashed.
+Summary
+-------
+Test                    Passed?
+Anderson-Darling        False
+Augmented Dickey-Fuller False
+Durbin-Watson           False
+Ljung-Box               (crashed)
+
+Done. For all outputs, see allesdir/results 
+

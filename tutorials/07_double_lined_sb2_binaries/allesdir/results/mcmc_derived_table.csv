@@ -1,0 +1,20 @@
+#property,value,lower_error,upper_error,source
+Host radius over semi-major axis B; $R_\star/a_\mathrm{B}$,0.18603855374666067,0.0019998356167848508,0.0029058308520086007,derived
+Semi-major axis B over host radius; $a_\mathrm{B}/R_\star$,5.375229918010737,0.08266723018945221,0.058409319219233424,derived
+Companion radius B over semi-major axis B; $R_\mathrm{B}/a_\mathrm{B}$,0.05660763472249078,0.002611049794476558,0.004455329100191904,derived
+Companion radius B; $R_\mathrm{B}$ ($\mathrm{R_{\oplus}}$),77.15700707446388,4.7992270210066295,6.518334993350038,derived
+Companion radius B; $R_\mathrm{B}$ ($\mathrm{R_{jup}}$),6.883498948436721,0.4281590928031429,0.5815278971225588,derived
+Semi-major axis B; $a_\mathrm{B}$ ($\mathrm{R_{\odot}}$),12.451456675730881,0.41041629169577654,0.40516208099413475,derived
+Semi-major axis B; $a_\mathrm{B}$ (AU),0.05790509162177516,0.0019086275278966947,0.0018841929930465337,derived
+Inclination B; $i_\mathrm{B}$ (deg),82.27140901810677,0.5595851329475181,0.42184062038357695,derived
+Companion mass B; $M_\mathrm{B}$ ($\mathrm{M_{\oplus}}$),584600.7890906775,82901.78499286226,84688.66454555443,derived
+Companion mass B; $M_\mathrm{B}$ ($\mathrm{M_{jup}}$),1839.3597833318165,260.8381858660814,266.46033768012944,derived
+Impact parameter B; $b_\mathrm{tra;B}$,0.7234734156433174,0.04684824898540274,0.05397447252016718,derived
+Total transit duration B; $T_\mathrm{tot;B}$ (h),3.8591056759097766,0.05841257379591669,0.09093007528400276,derived
+Companion density B; $\rho_\mathrm{B}$ (cgs),6.89410635114864,1.659363943695559,1.9065130360914821,derived
+Companion surface gravity B; $g_\mathrm{B}$ (cgs),91350.83836388795,12667.746742753108,9119.452128297009,derived
+Equilibrium temperature B; $T_\mathrm{eq;B}$ (K),2781.838637453875,126.7129332095692,125.90829437412094,derived
+Transit depth (undil.) B; $\delta_\mathrm{tr; undil; B; Leonardo}$ (ppt),0.08370605344522503,6.156124129824692e-05,6.649826351973198e-05,derived
+Transit depth (dil.) B; $\delta_\mathrm{tr; dil; B; Leonardo}$ (ppt),0.08370605344522503,6.156124129824692e-05,6.649826351973198e-05,derived
+Limb darkening; $u_\mathrm{1; Leonardo}$,1.6017400140735942,0.2542603602496012,0.2630585502552245,derived
+Limb darkening; $u_\mathrm{2; Leonardo}$,-0.6824539263578493,0.21394275793935424,0.27390884333588006,derived

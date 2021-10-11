@@ -1,0 +1,10 @@
+
+Results:
+--------------------------
+log(Z) = 5291.4545961951035 +- 3.4925900958109604e+141
+Nr. of posterior samples: 49704
+
+Saved ns_derived_results.csv, ns_derived_latex_table.txt, and ns_derived_latex_cmd.txt
+
+Saved ns_derived_corner.jpg
+Done. For all outputs, see allesfit_with_ttvs/results

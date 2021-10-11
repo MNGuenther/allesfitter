@@ -1,0 +1,11 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+flare_tpeak_1 & $0.32047\pm0.00078$ & days& fit \\ 
+flare_fwhm_1 & $0.0390\pm0.0036$ & days& fit \\ 
+flare_ampl_1 & $0.01170_{-0.00055}^{+0.00058}$ & rel. flux& fit \\ 
+flare_tpeak_2 & $0.7294_{-0.0015}^{+0.0017}$ & days& fit \\ 
+flare_fwhm_2 & $0.0639_{-0.0086}^{+0.010}$ & days& fit \\ 
+flare_ampl_2 & $0.00738\pm0.00048$ & rel. flux& fit \\ 
+$\log{\sigma_\mathrm{Flaronardo}}$ & $-6.894\pm0.044$ & log rel. flux& fit \\ 

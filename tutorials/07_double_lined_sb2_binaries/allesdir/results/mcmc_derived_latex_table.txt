@@ -1,0 +1,23 @@
+Parameter & Value & Source \\ 
+\hline 
+\multicolumn{3}{c}{\textit{Derived parameters}} \\ 
+\hline 
+Host radius over semi-major axis B; $R_\star/a_\mathrm{B}$ & $0.1860_{-0.0020}^{+0.0029}$ & derived \\ 
+Semi-major axis B over host radius; $a_\mathrm{B}/R_\star$ & $5.375_{-0.083}^{+0.058}$ & derived \\ 
+Companion radius B over semi-major axis B; $R_\mathrm{B}/a_\mathrm{B}$ & $0.0566_{-0.0026}^{+0.0045}$ & derived \\ 
+Companion radius B; $R_\mathrm{B}$ ($\mathrm{R_{\oplus}}$) & $77.2_{-4.8}^{+6.5}$ & derived \\ 
+Companion radius B; $R_\mathrm{B}$ ($\mathrm{R_{jup}}$) & $6.88_{-0.43}^{+0.58}$ & derived \\ 
+Semi-major axis B; $a_\mathrm{B}$ ($\mathrm{R_{\odot}}$) & $12.45\pm0.41$ & derived \\ 
+Semi-major axis B; $a_\mathrm{B}$ (AU) & $0.0579\pm0.0019$ & derived \\ 
+Inclination B; $i_\mathrm{B}$ (deg) & $82.27_{-0.56}^{+0.42}$ & derived \\ 
+Companion mass B; $M_\mathrm{B}$ ($\mathrm{M_{\oplus}}$) & $585000\pm85000$ & derived \\ 
+Companion mass B; $M_\mathrm{B}$ ($\mathrm{M_{jup}}$) & $1840\pm270$ & derived \\ 
+Impact parameter B; $b_\mathrm{tra;B}$ & $0.723_{-0.047}^{+0.054}$ & derived \\ 
+Total transit duration B; $T_\mathrm{tot;B}$ (h) & $3.859_{-0.058}^{+0.091}$ & derived \\ 
+Companion density B; $\rho_\mathrm{B}$ (cgs) & $6.9_{-1.7}^{+1.9}$ & derived \\ 
+Companion surface gravity B; $g_\mathrm{B}$ (cgs) & $91400_{-13000}^{+9100}$ & derived \\ 
+Equilibrium temperature B; $T_\mathrm{eq;B}$ (K) & $2780\pm130$ & derived \\ 
+Transit depth (undil.) B; $\delta_\mathrm{tr; undil; B; Leonardo}$ (ppt) & $0.083706_{-0.000062}^{+0.000066}$ & derived \\ 
+Transit depth (dil.) B; $\delta_\mathrm{tr; dil; B; Leonardo}$ (ppt) & $0.083706_{-0.000062}^{+0.000066}$ & derived \\ 
+Limb darkening; $u_\mathrm{1; Leonardo}$ & $1.60\pm0.26$ & derived \\ 
+Limb darkening; $u_\mathrm{2; Leonardo}$ & $-0.68_{-0.21}^{+0.27}$ & derived \\ 

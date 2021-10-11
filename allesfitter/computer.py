@@ -33,11 +33,29 @@ import warnings
 warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 warnings.filterwarnings('ignore', category=np.RankWarning) 
 warnings.filterwarnings('ignore', category=RuntimeWarning) 
+
+#::: for now, only use the original celerite
 try:
     import celerite
     from celerite import terms
+    celerite_version = 1
 except ImportError:
-    warnings.warn("Cannot import package 'celerite', thus 'hybrid_GP' baseline models will not be supported.")
+    warnings.warn("Cannot import package 'celerite', thus GP baseline models will not be supported.")
+
+#TODO: handling two celerite versions
+# celerite_version = 0 #global. nice.
+# try:
+#     import celerite2
+#     from celerite2 import terms
+#     celerite_version = 2
+# except ImportError:
+#     warnings.warn("Cannot import package 'celerite2', importing package 'celerite' instead.")
+#     try:
+#         import celerite
+#         from celerite import terms
+#         celerite_version = 1
+#     except ImportError:
+#         warnings.warn("Cannot import package 'celerite2' nor 'celerite', thus GP baseline models will not be supported.")
 
 #allesfitter modules
 from . import config
@@ -1637,15 +1655,21 @@ def baseline_hybrid_spline(*args):
 def baseline_hybrid_GP(*args):
     x, y, yerr_w, xx, params, inst, key = args
     
-    kernel = terms.Matern32Term(log_sigma=1., log_rho=1.)
-    gp = celerite.GP(kernel, mean=np.nanmean(y)) 
+    if celerite_version == 2:
+        kernel = terms.Matern32Term(log_sigma=1., log_rho=1.)
+        gp = celerite.GP(kernel, mean=np.nanmean(y)) 
+    elif celerite_version == 1:
+        kernel = terms.Matern32Term(log_sigma=1., log_rho=1.)
+        gp = celerite.GP(kernel, mean=np.nanmean(y)) 
+    else:
+        raise ImportError('You have come too far; you need celerite or celerite2 to do what you want to do.')
     gp.compute(x, yerr=yerr_w) #constrain on x/y/yerr
      
-    def neg_log_like(gp_params, y, gp):
+    def neg_log_like(gp_params, y, gp): #TODO: this is not yet suited for celerite2
         gp.set_parameter_vector(gp_params)
         return -gp.log_likelihood(y)
     
-    def grad_neg_log_like(gp_params, y, gp):
+    def grad_neg_log_like(gp_params, y, gp): #TODO: this is not yet suited for celerite2
         gp.set_parameter_vector(gp_params)
         return -gp.grad_log_likelihood(y)[1]
     

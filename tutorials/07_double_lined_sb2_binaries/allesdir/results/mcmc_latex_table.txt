@@ -1,0 +1,19 @@
+parameter & value & unit & fit/fixed \\ 
+\hline 
+\multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
+\hline 
+$q_{1;\mathrm{TESS}}$ & $0.918_{-0.13}^{+0.061}$ & & fit \\ 
+$q_{2;\mathrm{TESS}}$ & $0.871_{-0.15}^{+0.100}$ & & fit \\ 
+rr & $0.304_{-0.017}^{+0.025}$ & & fit \\ 
+rsuma & $0.2434_{-0.0035}^{+0.0039}$ & & fit \\ 
+cosi & $0.1345_{-0.0073}^{+0.0096}$ & & fit \\ 
+$T_{0;b}$ & $0.0$ & $\mathrm{BJD_{TDB}}$& fixed \\ 
+$P_b$ & $2.46113408$ & d& fixed \\ 
+$K_b$ & $98.3\pm1.2$ & km/s& fit \\ 
+mass ratio q & $0.6895\pm0.010$ & & fit \\ 
+offset flux & $-0.006023\pm0.000032$ & & fit \\ 
+offset rv & $1.88\pm0.80$ & & fit \\ 
+offset rv2 & $1.8778029147924475$ & & fixed \\ 
+ln err flux & $-7.117\pm0.093$ & & fit \\ 
+ln err rv & $1.16_{-0.12}^{+0.14}$ & & fit \\ 
+ln err rv2 & $1.1623245995844906$ & & fixed \\ 

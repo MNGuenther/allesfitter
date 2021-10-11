@@ -1,0 +1,248 @@
+
+allesfitter version
+---------------------
+v1.2.1
+
+Settings:
+--------------------------
+
+user-given:                   
+companions_phot                ['B']          
+companions_rv                  ['B']          
+inst_phot                      ['Leonardo']   
+inst_rv                        ['Donatello_Primary']
+inst_rv2                       ['Donatello_Secondary']
+fast_fit                       True           
+fast_fit_width                 0.3333333333333333
+multiprocess                   True           
+multiprocess_cores             19             
+shift_epoch                    False          
+use_stellar_density_prior      True           
+mcmc_nwalkers                  500            
+mcmc_total_steps               5000           
+mcmc_burn_steps                2000           
+mcmc_thin_by                   50             
+ns_modus                       static         
+ns_nlive                       500            
+ns_bound                       single         
+ns_sample                      auto           
+ns_tol                         0.1            
+host_ld_law_Leonardo           quad           
+host_grid_Leonardo             very_sparse    
+B_grid_Leonardo                very_sparse    
+host_grid_Donatello_Primary    very_sparse    
+B_grid_Donatello_Primary       very_sparse    
+host_grid_Donatello_Secondary  very_sparse    
+B_grid_Donatello_Secondary     very_sparse    
+baseline_flux_Leonardo         sample_offset  
+baseline_rv_Donatello_Primary  sample_offset  
+baseline_rv_Donatello_Secondary sample_offset  
+error_flux_Leonardo            sample         
+error_rv_Donatello_Primary     sample         
+error_rv_Donatello_Secondary   sample         
+
+automatically set:            
+companions_all                 ['B']          
+inst_all                       ['Leonardo', 'Donatello_Primary', 'Donatello_Secondary']
+print_progress                 True           
+inst_for_B_epoch               ['Leonardo', 'Donatello_Primary', 'Donatello_Secondary']
+phase_curve                    False          
+use_host_density_prior         True           
+use_tidal_eccentricity_prior   False          
+fit_ttvs                       False          
+secondary_eclipse              False          
+mcmc_pre_run_loops             0              
+mcmc_pre_run_steps             0              
+mcmc_moves                     [(<emcee.moves.de.DEMove object at 0x7fc2c80ebc50>, 1.0)]
+B_ld_law_Leonardo              None           
+host_ld_space_Leonardo         q              
+B_ld_space_Leonardo            q              
+host_shape_Leonardo            sphere         
+B_shape_Leonardo               sphere         
+host_ld_law_Donatello_Primary  None           
+B_ld_law_Donatello_Primary     None           
+host_ld_space_Donatello_Primary q              
+B_ld_space_Donatello_Primary   q              
+host_shape_Donatello_Primary   sphere         
+B_shape_Donatello_Primary      sphere         
+host_ld_law_Donatello_Secondary None           
+B_ld_law_Donatello_Secondary   None           
+host_ld_space_Donatello_Secondary q              
+B_ld_space_Donatello_Secondary q              
+host_shape_Donatello_Secondary sphere         
+B_shape_Donatello_Secondary    sphere         
+B_flux_weighted_Donatello_Primary False          
+B_flux_weighted_Donatello_Secondary False          
+exact_grav                     False          
+phase_curve_style              None           
+stellar_var_flux               none           
+stellar_var_rv                 none           
+stellar_var_rv2                none           
+baseline_flux_Leonardo_against time           
+baseline_rv_Donatello_Primary_against time           
+baseline_rv2_Donatello_Secondary none           
+baseline_rv2_Donatello_Secondary_against time           
+error_rv2_Donatello_Secondary  sample         
+color_plot                     False          
+B_color                        (0.2980392156862745, 0.4470588235294118, 0.6901960784313725)
+t_exp_Leonardo                 None           
+t_exp_n_int_Leonardo           None           
+t_exp_Donatello_Primary        None           
+t_exp_n_int_Donatello_Primary  None           
+t_exp_Donatello_Secondary      None           
+t_exp_n_int_Donatello_Secondary None           
+host_N_spots_Leonardo          0              
+B_N_spots_Leonardo             0              
+host_N_spots_Donatello_Primary 0              
+B_N_spots_Donatello_Primary    0              
+host_N_spots_Donatello_Secondary 0              
+B_N_spots_Donatello_Secondary  0              
+N_flares                       0              
+
+Parameters:
+--------------------------
+
+user-given:                   
+host_ldc_q1_Leonardo           0.9             free  ['uniform', 0.0, 1.0]         
+host_ldc_q2_Leonardo           0.9             free  ['uniform', 0.0, 1.0]         
+B_rr                           0.3             free  ['uniform', 0.0, 1.0]         
+B_rsuma                        0.24            free  ['uniform', 0.0, 1.0]         
+B_cosi                         0.13            free  ['uniform', 0.0, 0.5]         
+B_epoch                        0.0             set  
+B_period                       2.46113408      set  
+B_K                            98.0            free  ['uniform', 80.0, 120.0]      
+B_q                            0.63            free  ['uniform', 0.4, 0.8]         
+baseline_offset_flux_Leonardo  -0.005          free  ['uniform', -0.01, 0.01]      
+baseline_offset_rv_Donatello_Primary 0.0             free  ['uniform', -10.0, 10.0]      
+baseline_offset_rv2_Donatello_Secondary 0.0             set  
+ln_err_flux_Leonardo           -7.11           free  ['uniform', -8.0, -6.0]       
+ln_jitter_rv_Donatello_Primary 1.3             free  ['uniform', -3.0, 3.0]        
+ln_jitter_rv2_Donatello_Secondary 1.3             set  
+
+automatically set:            
+B_sbratio_Leonardo             0.0             set  
+B_f_s                          0.0             set  
+B_f_c                          0.0             set  
+dil_Leonardo                   0.0             set  
+host_ldc_u1_Leonardo           None            set  
+host_ldc_u2_Leonardo           None            set  
+host_ldc_u3_Leonardo           None            set  
+host_ldc_u4_Leonardo           None            set  
+B_ldc_u1_Leonardo              None            set  
+B_ldc_u2_Leonardo              None            set  
+B_ldc_u3_Leonardo              None            set  
+B_ldc_u4_Leonardo              None            set  
+host_ldc_q3_Leonardo           None            set  
+host_ldc_q4_Leonardo           None            set  
+B_ldc_q1_Leonardo              None            set  
+B_ldc_q2_Leonardo              None            set  
+B_ldc_q3_Leonardo              None            set  
+B_ldc_q4_Leonardo              None            set  
+B_a                            None            set  
+didt_Leonardo                  None            set  
+domdt_Leonardo                 None            set  
+host_gdc_Leonardo              None            set  
+host_rotfac_Leonardo           1.0             set  
+host_hf_Leonardo               1.5             set  
+host_bfac_Leonardo             None            set  
+host_heat_Leonardo             None            set  
+host_lambda                    None            set  
+host_vsini                     None            set  
+B_gdc_Leonardo                 None            set  
+B_rotfac_Leonardo              1.0             set  
+B_hf_Leonardo                  1.5             set  
+B_bfac_Leonardo                None            set  
+B_heat_Leonardo                None            set  
+B_lambda                       None            set  
+B_vsini                        None            set  
+host_spots_Leonardo            None            set  
+B_spots_Leonardo               None            set  
+B_phase_curve_A1_Leonardo      None            set  
+B_phase_curve_B1_Leonardo      None            set  
+B_phase_curve_B1_shift_Leonardo 0.0             set  
+B_phase_curve_B1t_Leonardo     None            set  
+B_phase_curve_B1t_shift_Leonardo 0.0             set  
+B_phase_curve_B1r_Leonardo     None            set  
+B_phase_curve_B1r_shift_Leonardo 0.0             set  
+B_phase_curve_B2_Leonardo      None            set  
+B_phase_curve_B3_Leonardo      None            set  
+B_phase_curve_beaming_Leonardo None            set  
+B_phase_curve_atmospheric_Leonardo None            set  
+B_phase_curve_atmospheric_shift_Leonardo 0.0             set  
+B_phase_curve_atmospheric_thermal_Leonardo None            set  
+B_phase_curve_atmospheric_thermal_shift_Leonardo 0.0             set  
+B_phase_curve_atmospheric_reflected_Leonardo None            set  
+B_phase_curve_atmospheric_reflected_shift_Leonardo 0.0             set  
+B_phase_curve_ellipsoidal_Leonardo None            set  
+B_phase_curve_ellipsoidal_2nd_Leonardo None            set  
+B_sbratio_Donatello_Primary    0.0             set  
+dil_Donatello_Primary          0.0             set  
+host_ldc_u1_Donatello_Primary  None            set  
+host_ldc_u2_Donatello_Primary  None            set  
+host_ldc_u3_Donatello_Primary  None            set  
+host_ldc_u4_Donatello_Primary  None            set  
+B_ldc_u1_Donatello_Primary     None            set  
+B_ldc_u2_Donatello_Primary     None            set  
+B_ldc_u3_Donatello_Primary     None            set  
+B_ldc_u4_Donatello_Primary     None            set  
+host_ldc_q1_Donatello_Primary  None            set  
+host_ldc_q2_Donatello_Primary  None            set  
+host_ldc_q3_Donatello_Primary  None            set  
+host_ldc_q4_Donatello_Primary  None            set  
+B_ldc_q1_Donatello_Primary     None            set  
+B_ldc_q2_Donatello_Primary     None            set  
+B_ldc_q3_Donatello_Primary     None            set  
+B_ldc_q4_Donatello_Primary     None            set  
+didt_Donatello_Primary         None            set  
+domdt_Donatello_Primary        None            set  
+host_gdc_Donatello_Primary     None            set  
+host_rotfac_Donatello_Primary  1.0             set  
+host_hf_Donatello_Primary      1.5             set  
+host_bfac_Donatello_Primary    None            set  
+host_heat_Donatello_Primary    None            set  
+B_gdc_Donatello_Primary        None            set  
+B_rotfac_Donatello_Primary     1.0             set  
+B_hf_Donatello_Primary         1.5             set  
+B_bfac_Donatello_Primary       None            set  
+B_heat_Donatello_Primary       None            set  
+host_spots_Donatello_Primary   None            set  
+B_spots_Donatello_Primary      None            set  
+B_sbratio_Donatello_Secondary  0.0             set  
+dil_Donatello_Secondary        0.0             set  
+host_ldc_u1_Donatello_Secondary None            set  
+host_ldc_u2_Donatello_Secondary None            set  
+host_ldc_u3_Donatello_Secondary None            set  
+host_ldc_u4_Donatello_Secondary None            set  
+B_ldc_u1_Donatello_Secondary   None            set  
+B_ldc_u2_Donatello_Secondary   None            set  
+B_ldc_u3_Donatello_Secondary   None            set  
+B_ldc_u4_Donatello_Secondary   None            set  
+host_ldc_q1_Donatello_Secondary None            set  
+host_ldc_q2_Donatello_Secondary None            set  
+host_ldc_q3_Donatello_Secondary None            set  
+host_ldc_q4_Donatello_Secondary None            set  
+B_ldc_q1_Donatello_Secondary   None            set  
+B_ldc_q2_Donatello_Secondary   None            set  
+B_ldc_q3_Donatello_Secondary   None            set  
+B_ldc_q4_Donatello_Secondary   None            set  
+didt_Donatello_Secondary       None            set  
+domdt_Donatello_Secondary      None            set  
+host_gdc_Donatello_Secondary   None            set  
+host_rotfac_Donatello_Secondary 1.0             set  
+host_hf_Donatello_Secondary    1.5             set  
+host_bfac_Donatello_Secondary  None            set  
+host_heat_Donatello_Secondary  None            set  
+B_gdc_Donatello_Secondary      None            set  
+B_rotfac_Donatello_Secondary   1.0             set  
+B_hf_Donatello_Secondary       1.5             set  
+B_bfac_Donatello_Secondary     None            set  
+B_heat_Donatello_Secondary     None            set  
+host_spots_Donatello_Secondary None            set  
+B_spots_Donatello_Secondary    None            set  
+
+External priors:
+--------------------------
+
+Stellar density prior (automatically set): ['normal', 0.2875135014413257, 0.051013496083381904] (g cm^-3)
+
+ndim: 11

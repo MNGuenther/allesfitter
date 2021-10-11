@@ -1,0 +1,19 @@
+TLS search, UTC 2020-10-08 14:27:00
+
+Wotan kwargs:
+{'flatten': {'method': 'rspline', 'window_length': 1.0, 'window_size': 0.5},
+ 'slide_clip': {'high': 3.0, 'low': 20.0, 'window_length': 1.0}}
+
+TLS kwargs:
+{'FAP_threshold': inf,
+ 'SDE_threshold': -inf,
+ 'SNR_threshold': 5.0,
+ 'show_progress_bar': False}
+
+Options:
+{'inj_period': nan,
+ 'outdir': 'tls_results_rspline_1.0',
+ 'quiet': False,
+ 'save_csv': False,
+ 'save_plot': '123',
+ 'show_plot': True}

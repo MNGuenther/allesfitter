@@ -1,0 +1,19 @@
+TLS search, UTC 2020-10-08 16:24:47
+
+Wotan kwargs:
+{'flatten': {'method': 'biweight', 'window_length': 1.0},
+ 'slide_clip': {'high': 3, 'low': 10, 'window_length': 0.5}}
+
+TLS kwargs:
+{'FAP_threshold': inf,
+ 'SDE_threshold': -inf,
+ 'SNR_threshold': 5.0,
+ 'show_progress_bar': False}
+
+Options:
+{'inj_period': nan,
+ 'outdir': 'tls_results_biweight_1.0',
+ 'quiet': True,
+ 'save_csv': True,
+ 'save_plot': '123',
+ 'show_plot': '123'}

@@ -1,0 +1,55 @@
+#name,value
+#####################################,
+# General settings,
+#####################################,
+companions_phot,B
+companions_rv,B
+inst_phot,Leonardo
+inst_rv,Donatello_Primary
+inst_rv2,Donatello_Secondary
+fast_fit,TRUE
+fast_fit_width,0.3333333333333333
+multiprocess,True
+multiprocess_cores,all
+shift_epoch,False
+use_stellar_density_prior,True
+#####################################,
+# MCMC settings,
+#####################################,
+mcmc_nwalkers,500
+mcmc_total_steps,5000
+mcmc_burn_steps,2000
+mcmc_thin_by,50
+#####################################,
+# Nested Sampling settings,
+#####################################,
+ns_modus,static
+ns_nlive,500
+ns_bound,single
+ns_sample,auto
+ns_tol,0.1
+#####################################,
+# Limb darkening settings,
+#####################################,
+host_ld_law_Leonardo,quad
+#####################################,
+# Grid settings,
+#####################################,
+host_grid_Leonardo,very_sparse
+B_grid_Leonardo,very_sparse
+host_grid_Donatello_Primary,very_sparse
+B_grid_Donatello_Primary,very_sparse
+host_grid_Donatello_Secondary,very_sparse
+B_grid_Donatello_Secondary,very_sparse
+#####################################,
+# Baseline settings,
+#####################################,
+baseline_flux_Leonardo,sample_offset
+baseline_rv_Donatello_Primary,sample_offset
+baseline_rv_Donatello_Secondary,sample_offset
+#####################################,
+# Error settings,
+#####################################,
+error_flux_Leonardo,sample
+error_rv_Donatello_Primary,sample
+error_rv_Donatello_Secondary,sample

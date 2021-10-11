@@ -1,0 +1,7 @@
+\newcommand{\flaretpeak1}{$=0.32047\pm0.00078$} %none = 0.32047\pm0.00078
+\newcommand{\flarefwhm1}{$=0.0390\pm0.0036$} %none = 0.0390\pm0.0036
+\newcommand{\flareampl1}{$=0.01170_{-0.00055}^{+0.00058}$} %none = 0.01170_{-0.00055}^{+0.00058}
+\newcommand{\flaretpeak2}{$=0.7294_{-0.0015}^{+0.0017}$} %none = 0.7294_{-0.0015}^{+0.0017}
+\newcommand{\flarefwhm2}{$=0.0639_{-0.0086}^{+0.010}$} %none = 0.0639_{-0.0086}^{+0.010}
+\newcommand{\flareampl2}{$=0.00738\pm0.00048$} %none = 0.00738\pm0.00048
+\newcommand{\logerrfluxFlaronardo}{$=-6.894\pm0.044$} %none = -6.894\pm0.044

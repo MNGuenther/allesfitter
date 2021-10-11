@@ -1,0 +1,20 @@
+#name,value,fit,bounds,label,unit,coupled_with
+#limb darkening coefficients per instrument,,,,,,
+host_ldc_q1_Leonardo,0.9,1,uniform 0 1,$q_{1;\mathrm{TESS}}$,,
+host_ldc_q2_Leonardo,0.9,1,uniform 0 1,$q_{2;\mathrm{TESS}}$,,
+#companion B astrophysical params,,,,,,
+B_rr,0.30,1,uniform 0 1,rr,,
+B_rsuma,0.24,1,uniform 0 1,rsuma,,
+B_cosi,0.13,1,uniform 0 0.5,cosi,,
+B_epoch,0,0,,$T_{0;b}$,$\mathrm{BJD_{TDB}}$,
+B_period,2.46113408,0,,$P_b$,d,
+B_K,98,1,uniform 80 120,$K_b$,km/s,
+B_q,0.63,1,uniform 0.4 0.8,mass ratio q,,
+#baselines,,,,,,
+baseline_offset_flux_Leonardo,-0.005,1,uniform -0.01 0.01,offset flux,,
+baseline_offset_rv_Donatello_Primary,0,1,uniform -10 10,offset rv,,
+baseline_offset_rv2_Donatello_Secondary,,0,,offset rv2,,baseline_offset_rv_Donatello_Primary
+#errors,,,,,,
+ln_err_flux_Leonardo,-7.11,1,uniform -8 -6,ln err flux,,
+ln_jitter_rv_Donatello_Primary,1.3,1,uniform -3 3,ln err rv,,
+ln_jitter_rv2_Donatello_Secondary,,0,,ln err rv2,,ln_jitter_rv_Donatello_Primary
