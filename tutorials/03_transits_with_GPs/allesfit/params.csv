@@ -21,7 +21,7 @@ b_geom_albedo_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$A_{\mathrm{geom}; b; \mat
 host_gdc_Leonardo,0.0,0,trunc_normal 0 1 0.0 0.0,$Grav. dark._{b; \mathrm{Leonardo}}$,
 #spots per instrument and companion,,,,,
 #errors per instrument,
-log_err_flux_Leonardo,-6.0,1,uniform -14.0 0.0,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$
+ln_err_flux_Leonardo,-6.0,1,uniform -14.0 0.0,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$
 #baseline per instrument,
 baseline_gp_offset_flux_Leonardo,0,1,uniform -0.01 0.01,$\mathrm{gp ln sigma (Leonardo)}$,
 baseline_gp_matern32_lnsigma_flux_Leonardo,-5,1,uniform -15 0,$\mathrm{gp ln sigma (Leonardo)}$,

@@ -49,3 +49,4 @@ error_flux_Leonardo,sample
 # Stellar grid per object and instrument,
 ###############################################################################,
 host_grid_Leonardo,very_sparse
+b_grid_Leonardo,very_sparse

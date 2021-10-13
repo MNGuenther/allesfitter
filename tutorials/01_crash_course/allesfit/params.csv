@@ -9,6 +9,6 @@ b_period,3.41,1,uniform 3.36 3.46,$P_b$,days,3.4
 host_ldc_q1_Leonardo,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{Leonardo}}$,,0.64
 host_ldc_q2_Leonardo,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{Leonardo}}$,,0.38
 #errors per instrument,,,,,,
-log_err_flux_Leonardo,-7,1,uniform -8 -5,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$,
+ln_err_flux_Leonardo,-7,1,uniform -8 -5,$\log{\sigma_\mathrm{Leonardo}}$,$\log{ \mathrm{rel. flux.} }$,
 #baseline per instrument,,,,,,
 baseline_offset_flux_Leonardo,0,1,uniform -0.003 0.003,$\mathrm{gp: \log{\sigma} (Leonardo)}$,,

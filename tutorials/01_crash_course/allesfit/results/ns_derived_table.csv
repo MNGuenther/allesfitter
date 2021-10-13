@@ -1,0 +1,14 @@
+#property,value,lower_error,upper_error,source
+Host radius over semi-major axis b; $R_\star/a_\mathrm{b}$,0.10027712536080502,0.005121138788016413,0.014856777775337462,derived
+Semi-major axis b over host radius; $a_\mathrm{b}/R_\star$,9.972364050270702,1.2868251016125534,0.5366962413284337,derived
+Companion radius b over semi-major axis b; $R_\mathrm{b}/a_\mathrm{b}$,0.010506425796251828,0.0006426961637396242,0.0020340172826804094,derived
+Inclination b; $i_\mathrm{b}$ (deg),88.15058159489674,1.9228059085451719,1.186143812773338,derived
+Impact parameter b; $b_\mathrm{tra;b}$,0.3239037048583677,0.20299393925182974,0.25203697608655573,derived
+Total transit duration b; $T_\mathrm{tot;b}$ (h),2.7595904129158275,0.0697509114503454,0.11237835589758749,derived
+Full-transit duration b; $T_\mathrm{full;b}$ (h),2.155466695518947,0.13939361572167908,0.07701286270840679,derived
+Host density from orbit b; $\rho_\mathrm{\star;b}$ (cgs),1.621784690009334,0.5503055620321331,0.2760313149071214,derived
+Transit depth (undil.) b; $\delta_\mathrm{tr; undil; b; Leonardo}$ (ppt),0.013192715180709302,0.0005896898175818954,0.0005957290659744929,derived
+Transit depth (dil.) b; $\delta_\mathrm{tr; dil; b; Leonardo}$ (ppt),0.013192715180709302,0.0005896898175818954,0.0005957290659744929,derived
+Limb darkening; $u_\mathrm{1; Leonardo}$,0.4795880296131085,0.277787922447589,0.2901318473382363,derived
+Limb darkening; $u_\mathrm{2; Leonardo}$,0.13795779436804217,0.3424920698208587,0.36450221818082745,derived
+Combined host density from all orbits; $rho_\mathrm{\star; combined}$ (cgs),1.621784690009334,0.5503055620321331,0.2760313149071214,derived

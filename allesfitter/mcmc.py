@@ -184,8 +184,8 @@ def mcmc_fit(datadir):
         #::: run the sampler        
         logprint("\nRunning full MCMC")
         sampler.run_mcmc(p0,
-                         (config.BASEMENT.settings['mcmc_total_steps'] - already_completed_steps)/config.BASEMENT.settings['mcmc_thin_by'], 
-                         thin_by=config.BASEMENT.settings['mcmc_thin_by'], 
+                         int((config.BASEMENT.settings['mcmc_total_steps'] - already_completed_steps)/config.BASEMENT.settings['mcmc_thin_by']), 
+                         thin_by=int(config.BASEMENT.settings['mcmc_thin_by']), 
                          progress=config.BASEMENT.settings['print_progress'])
         
         return sampler

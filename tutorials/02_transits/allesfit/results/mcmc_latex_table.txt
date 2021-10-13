@@ -3,13 +3,13 @@ parameter & value & unit & fit/fixed \\
 \multicolumn{4}{c}{\textit{Fitted parameters}} \\ 
 \hline 
 $R_b / R_\star$ & $0.1062\pm0.0022$ & & fit \\ 
-$(R_\star + R_b) / a_b$ & $0.1161_{-0.0013}^{+0.0014}$ & & fit \\ 
-$\cos{i_b}$ & $0.0298_{-0.0098}^{+0.0072}$ & & fit \\ 
+$(R_\star + R_b) / a_b$ & $0.1161\pm0.0013$ & & fit \\ 
+$\cos{i_b}$ & $0.0297_{-0.0099}^{+0.0072}$ & & fit \\ 
 $T_{0;b}$ & $14.70052\pm0.00060$ & BJD& fit \\ 
 $P_b$ & $3.39987\pm0.00026$ & d& fit \\ 
 $\sqrt{e_b} \cos{\omega_b}$ & $0.0$ & & fixed \\ 
 $\sqrt{e_b} \sin{\omega_b}$ & $0.0$ & & fixed \\ 
-$q_{1; \mathrm{Leonardo}}$ & $0.48_{-0.28}^{+0.33}$ & & fit \\ 
-$q_{2; \mathrm{Leonardo}}$ & $0.20_{-0.14}^{+0.27}$ & & fit \\ 
-$\log{\sigma_\mathrm{Leonardo}}$ & $-6.148\pm0.044$ & rel. flux& fit \\ 
+$q_{1; \mathrm{Leonardo}}$ & $0.49_{-0.28}^{+0.33}$ & & fit \\ 
+$q_{2; \mathrm{Leonardo}}$ & $0.20_{-0.13}^{+0.26}$ & & fit \\ 
+$\log{\sigma_\mathrm{Leonardo}}$ & $-6.148\pm0.045$ & rel. flux& fit \\ 
 $\mathrm{offset (Leonardo)}$ & $0.00030\pm0.00016$ & & fit \\ 

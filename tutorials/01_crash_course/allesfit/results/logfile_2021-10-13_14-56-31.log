@@ -1,0 +1,18 @@
+
+allesfitter version
+---------------------
+v1.2.7
+
+Shifting epochs into the data center
+------------------------------------
+Companion b
+	input epoch: 1.09
+	shifted epoch: 4.5
+	shifted by 1 periods
+
+Running Dynamic Nested Sampler...
+--------------------------
+
+Running on 19 CPUs.
+
+Time taken to run 'dynesty' (in dynamic mode) is 0.02 hours

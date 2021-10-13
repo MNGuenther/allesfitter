@@ -78,7 +78,7 @@ class Basement():
         print('Filling the Basement')
         
         self.quiet = quiet
-        self.now = datetime.now().isoformat()
+        self.now = "{:%Y-%m-%d_%H-%M-%S}".format(datetime.now())
         self.datadir = datadir
         self.outdir = os.path.join(datadir,'results') 
         if not os.path.exists( self.outdir ): os.makedirs( self.outdir )
@@ -86,7 +86,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.6')
+        self.logprint('v1.2.7')
         
         self.load_settings()
         self.load_params()

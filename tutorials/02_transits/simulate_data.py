@@ -1,27 +1,25 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Oct 15 15:57:46 2018
+Created on Wed Oct 13 14:56:02 2021
 
 @author:
-Maximilian N. Guenther
-MIT Kavli Institute for Astrophysics and Space Research, 
-Massachusetts Institute of Technology,
-77 Massachusetts Avenue,
-Cambridge, MA 02109, 
-USA
-Email: maxgue@mit.edu
+Dr. Maximilian N. Günther
+European Space Agency (ESA)
+European Space Research and Technology Centre (ESTEC)
+Keplerlaan 1, 2201 AZ Noordwijk, The Netherlands
+Email: maximilian.guenther@esa.int
+GitHub: mnguenther
+Twitter: m_n_guenther
 Web: www.mnguenther.com
 """
 
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt
-import ellc
-from pprint import pprint
 
 #::: my modules
-from allesfitter.generative_models import inject_lc_model
+from allesfitter.v0.generative_models import inject_lc_model
 
 #::: plotting settings
 import seaborn as sns
@@ -29,7 +27,7 @@ sns.set(context='paper', style='ticks', palette='deep', font='sans-serif', font_
 sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 sns.set_context(rc={'lines.markeredgewidth': 1})
 
-#::: seed
+#::: random seed
 np.random.seed(42)
 
 

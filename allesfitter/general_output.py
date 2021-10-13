@@ -263,6 +263,8 @@ def afplot(samples, companion):
     '''
 #    global config.BASEMENT
     
+    print('Plotting collage for companion', companion+'...')
+    
     if config.BASEMENT.settings['fit_ttvs'] is False:
       
         N_inst = len(config.BASEMENT.settings['inst_all'])
@@ -305,6 +307,53 @@ def afplot(samples, companion):
     else:
         return None, None
     
+    
+    
+###############################################################################
+#::: guesstimate median values for plotting stuff
+###############################################################################
+def guesstimator(params_median, companion, base=None):
+    
+    if base==None:
+        base = config.BASEMENT
+        
+    #==========================================================================
+    # guesstimate the median e, omega, R_star_over_a, and b_tra for below
+    #==========================================================================
+    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
+    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
+    R_star_over_a = params_median[companion+'_rsuma'] / (1. + params_median[companion+'_rr'])
+    eccentricity_correction_b_tra = ( (1. - e**2) / ( 1. + e*np.sin(w) ) )
+    b_tra = (1./R_star_over_a) * params_median[companion+'_cosi'] * eccentricity_correction_b_tra
+        
+            
+    #==========================================================================
+    # guesstimate the primary eclipse / transit duration (T14; total duration)
+    #==========================================================================
+    eccentricity_correction_T_tra = ( np.sqrt(1. - e**2) / ( 1. + e*np.sin(w) ) )
+    T_tra_tot = params_median[companion+'_period'] / np.pi * 24. \
+                * np.arcsin( R_star_over_a \
+                             * np.sqrt( (1. + params_median[companion+'_rr'])**2 - b_tra**2 ) \
+                             / np.sin( np.arccos(params_median[companion+'_cosi'])) ) \
+                * eccentricity_correction_T_tra #in h
+    
+    
+    #==========================================================================
+    # dynamically set the zoom window to 3 * T_tra_tot
+    #==========================================================================
+    if not np.isnan(T_tra_tot):
+        zoomwindow = 3 * T_tra_tot #in h
+    else:
+        zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
+        
+    
+    #==========================================================================
+    # guesstimate where the secondary eclipse / occultation is
+    #==========================================================================
+    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
+
+    return zoomwindow, phase_shift #in h; in phase units
+
 
 
 ###############################################################################
@@ -388,9 +437,6 @@ def plot_1(ax, samples, inst, companion, style,
     
     timelabel = 'Time' #removed feature
     
-    if zoomwindow is None:
-        zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
-    
     
     #==========================================================================
     #::: helper fct
@@ -450,14 +496,7 @@ def plot_1(ax, samples, inst, companion, style,
             alpha = 0.1
         
 
-
-    #==========================================================================
-    # guesstimate where the secondary eclipse / occultation is
-    #==========================================================================
-    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
-    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
-    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
- 
+    zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
         
  
     #==========================================================================
@@ -520,21 +559,25 @@ def plot_1(ax, samples, inst, companion, style,
                     
             if key == 'flux':
                 xx_full = np.arange( x[0], x[-1]+dt, dt)
-                Npoints_chunk = 48
-                for i_chunk in tqdm(range(int(1.*len(xx_full)/Npoints_chunk)+2)):
-                    xx = xx_full[i_chunk*Npoints_chunk:(i_chunk+1)*Npoints_chunk] #plot in chunks of 48 points (1 day)
-                    if len(xx)>0 and any( (x>xx[0]) & (x<xx[-1]) ): #plot only where there is data
-                        for i in range(samples.shape[0]):
-                            s = samples[i,:]
-                            p = update_params(s)
-                            model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
-                            baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
-                            if style in ['full_minus_offset']:
-                                baseline -= np.median(baseline)
-                            stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                            ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
-                            ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-            elif key in ['rv', 'rv2']:
+                N_points_per_chunk = 48
+                N_chunks = int(1.*len(xx_full)/N_points_per_chunk)+2
+                if N_chunks < 60:
+                    for i_chunk in tqdm(range(N_chunks)):
+                        xx = xx_full[i_chunk*N_points_per_chunk:(i_chunk+1)*N_points_per_chunk] #plot in chunks of 48 points (1 day)
+                        if len(xx)>0 and any( (x>xx[0]) & (x<xx[-1]) ): #plot only where there is data
+                            for i in range(samples.shape[0]):
+                                s = samples[i,:]
+                                p = update_params(s)
+                                model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
+                                baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
+                                if style in ['full_minus_offset']:
+                                    baseline -= np.median(baseline)
+                                stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
+                                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
+                                ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
+                else:
+                    ax.text(0.05, 0.95, '(The model is not plotted here because the\nphotometric data spans more than 60 days)', fontsize=10, va='top', ha='left', transform=ax.transAxes)  
+            elif key in ['rv', 'rv2']: 
                 xx = np.arange( x[0], x[-1]+dt, dt)
                 for i in range(samples.shape[0]):
                     s = samples[i,:]
@@ -544,7 +587,7 @@ def plot_1(ax, samples, inst, companion, style,
                     if style in ['full_minus_offset']:
                         baseline -= np.median(baseline)                    
                     stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                    ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+                    ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
                     ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
         #::: other stuff
@@ -607,7 +650,7 @@ def plot_1(ax, samples, inst, companion, style,
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if (len(x) > 500) or force_binning:
-                ax.plot( phi*zoomfactor, y, 'k.', color='lightgrey', rasterized=kwargs_data['rasterized'] ) #don't allow any other kwargs_data here
+                ax.plot( phi*zoomfactor, y, marker='.', linestyle=None, color='lightgrey', rasterized=kwargs_data['rasterized'] ) #don't allow any other kwargs_data here
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, capsize=0, zorder=11, **kwargs_data )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, capsize=0, zorder=11, **kwargs_data )      
@@ -742,12 +785,14 @@ def plot_1(ax, samples, inst, companion, style,
 ###############################################################################
 def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
         
+    print('Plotting individual transits for companion', companion, 'and instrument', inst+'...')
+    
     #==========================================================================
     #::: input
     #==========================================================================
     if base==None: base = config.BASEMENT
     if kwargs_dict is None: kwargs_dict = {}
-    if 'window' not in kwargs_dict: kwargs_dict['window'] = 8./24. # in days
+    # if 'window' not in kwargs_dict: kwargs_dict['window'] = 8./24. # in days
     if 'rasterized' not in kwargs_dict: kwargs_dict['rasterized'] = True
     if 'marker' not in kwargs_dict: kwargs_dict['marker'] = '.'
     if 'linestyle' not in kwargs_dict: kwargs_dict['linestyle'] = 'none'
@@ -758,7 +803,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     #==========================================================================
     #::: translate input
     #==========================================================================
-    window = kwargs_dict['window']
+    # window = kwargs_dict['window']
     rasterized = kwargs_dict['rasterized']
     marker = kwargs_dict['marker']
     linestyle = kwargs_dict['linestyle']
@@ -790,30 +835,34 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     #::: load data and models
     #==========================================================================
     params_median, params_ll, params_ul = get_params_from_samples(samples)
+    
+    zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
+    zoomwindow /= 24. #in days
+    T_tra_tot = zoomwindow/3. #in days
+    
     x = base.data[inst]['time']
     y = 1.*base.data[inst][key]
     yerr_w = calculate_yerr_w(params_median, inst, key)
     
-    tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], base.settings['fast_fit_width'])
+    tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], T_tra_tot)
     N_transits = len(tmid_observed_transits)
     
-    fig, axes = plt.subplots(N_transits, 1, figsize=(6,4*N_transits), sharey=True, tight_layout=True)
-    
     if N_transits>0:
+        fig, axes = plt.subplots(N_transits, 1, figsize=(6,4*N_transits), sharey=True, tight_layout=True)
         axes = np.atleast_1d(axes)
         axes[0].set(title=inst)
         
-        for i, t in enumerate(tmid_observed_transits):
+        for i, t in tqdm(enumerate(tmid_observed_transits),total=N_transits):
             ax = axes[i]
             
             #::: mark data
-            ind = np.where((x >= (t - window/2.)) & (x <= (t + window/2.)))[0]
+            ind = np.where((x >= (t - zoomwindow/2.)) & (x <= (t + zoomwindow/2.)))[0]
             
             #::: plot model
             ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize, alpha=1, capsize=0, rasterized=rasterized)  
 
             #::: plot model + baseline, not phased
-            dt = 2./24./60. 
+            dt = 2./24./60. #2 min steps; in days
             xx = np.arange(x[ind][0], x[ind][-1]+dt, dt)
             for j in range(samples.shape[0]):
                 s = samples[j,:]
@@ -821,22 +870,26 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
                 stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx, baseline+stellar_var+baseline_plus, 'k-', color='orange', alpha=alpha, zorder=12 )
+                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
-            ax.set(xlim=[t-window/2., t+window/2.])
+            ax.set(xlim=[t-zoomwindow/2., t+zoomwindow/2.])
             ax.axvline(t,color='grey',lw=2,ls='--',label='linear prediction')
             if base.settings['fit_ttvs']==True:
                 ax.axvline(t+params_median[companion+'_ttv_transit_'+str(i+1)],color='r',lw=2,ls='--',label='TTV midtime')
             
             #::: axes decoration
             ax.set(xlabel='Time', ylabel=ylabel)
-            ax.text(0.95,0.95,'Transit '+str(i+1), va='top', ha='right', transform=ax.transAxes)
+            ax.text(0.95, 0.95, 'Transit '+str(i+1), va='top', ha='right', transform=ax.transAxes)
             
         if base.settings['fit_ttvs']==True:
             axes[0].legend(loc='upper left')
             
     else:
-        warnings.warn('No transit of companion '+companion+' for '+inst+'.')
+        fig, axes = plt.subplots(1, 1, figsize=(6,4), tight_layout=True)
+        axes = np.atleast_1d(axes)
+        axes[0].axis('off')
+        axes[0].text(0.5, 0.5, 'No transit of companion '+companion+' for '+inst+'.', fontsize=10, va='center', ha='center', transform=axes[0].transAxes)
+        # warnings.warn('No transit of companion '+companion+' for '+inst+'.')
     
     return fig, axes
             
@@ -849,11 +902,11 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
 ###############################################################################
 def get_params_from_samples(samples):
     '''
-    read MCMC results and update params
+    read MCMC or NS results and update params
     '''
-    theta_median = np.percentile(samples, 50, axis=0)
-    theta_ul = np.percentile(samples, 84, axis=0) - theta_median
-    theta_ll = theta_median - np.percentile(samples, 16, axis=0)
+    theta_median = np.nanpercentile(samples, 50, axis=0)
+    theta_ul = np.nanpercentile(samples, 84, axis=0) - theta_median
+    theta_ll = theta_median - np.nanpercentile(samples, 16, axis=0)
     params_median = update_params(theta_median)
     params_ll = update_params(theta_ll)
     params_ul = update_params(theta_ul)

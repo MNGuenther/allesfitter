@@ -1,0 +1,17 @@
+Parameter & Value & Source \\ 
+\hline 
+\multicolumn{3}{c}{\textit{Derived parameters}} \\ 
+\hline 
+Host radius over semi-major axis b; $R_\star/a_\mathrm{b}$ & $0.1003_{-0.0051}^{+0.015}$ & derived \\ 
+Semi-major axis b over host radius; $a_\mathrm{b}/R_\star$ & $9.97_{-1.3}^{+0.54}$ & derived \\ 
+Companion radius b over semi-major axis b; $R_\mathrm{b}/a_\mathrm{b}$ & $0.01051_{-0.00064}^{+0.0020}$ & derived \\ 
+Inclination b; $i_\mathrm{b}$ (deg) & $88.2_{-1.9}^{+1.2}$ & derived \\ 
+Impact parameter b; $b_\mathrm{tra;b}$ & $0.32_{-0.20}^{+0.25}$ & derived \\ 
+Total transit duration b; $T_\mathrm{tot;b}$ (h) & $2.760_{-0.070}^{+0.11}$ & derived \\ 
+Full-transit duration b; $T_\mathrm{full;b}$ (h) & $2.155_{-0.14}^{+0.077}$ & derived \\ 
+Host density from orbit b; $\rho_\mathrm{\star;b}$ (cgs) & $1.62_{-0.55}^{+0.28}$ & derived \\ 
+Transit depth (undil.) b; $\delta_\mathrm{tr; undil; b; Leonardo}$ (ppt) & $0.01319\pm0.00060$ & derived \\ 
+Transit depth (dil.) b; $\delta_\mathrm{tr; dil; b; Leonardo}$ (ppt) & $0.01319\pm0.00060$ & derived \\ 
+Limb darkening; $u_\mathrm{1; Leonardo}$ & $0.48\pm0.29$ & derived \\ 
+Limb darkening; $u_\mathrm{2; Leonardo}$ & $0.14_{-0.34}^{+0.36}$ & derived \\ 
+Combined host density from all orbits; $rho_\mathrm{\star; combined}$ (cgs) & $1.62_{-0.55}^{+0.28}$ & derived \\ 

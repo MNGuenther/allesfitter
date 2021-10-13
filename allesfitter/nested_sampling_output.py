@@ -118,7 +118,8 @@ def ns_output(datadir):
     f.close()
            
     
-    #::: plot the fit        
+    #::: plot the fit
+    '''        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
     
     for companion in config.BASEMENT.settings['companions_all']:
@@ -132,7 +133,7 @@ def ns_output(datadir):
             fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
             fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
-          
+    '''          
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples

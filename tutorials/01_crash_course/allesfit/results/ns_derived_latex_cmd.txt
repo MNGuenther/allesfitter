@@ -1,0 +1,13 @@
+\newcommand{\bRstarovera}{$0.1003_{-0.0051}^{+0.015}$} %Host radius over semi-major axis b; $R_\star/a_\mathrm{b}$ = $0.1003_{-0.0051}^{+0.015}$
+\newcommand{\baoverRstar}{$9.97_{-1.3}^{+0.54}$} %Semi-major axis b over host radius; $a_\mathrm{b}/R_\star$ = $9.97_{-1.3}^{+0.54}$
+\newcommand{\bRcompanionovera}{$0.01051_{-0.00064}^{+0.0020}$} %Companion radius b over semi-major axis b; $R_\mathrm{b}/a_\mathrm{b}$ = $0.01051_{-0.00064}^{+0.0020}$
+\newcommand{\bi}{$88.2_{-1.9}^{+1.2}$} %Inclination b; $i_\mathrm{b}$ (deg) = $88.2_{-1.9}^{+1.2}$
+\newcommand{\bbtra}{$0.32_{-0.20}^{+0.25}$} %Impact parameter b; $b_\mathrm{tra;b}$ = $0.32_{-0.20}^{+0.25}$
+\newcommand{\bTtratot}{$2.760_{-0.070}^{+0.11}$} %Total transit duration b; $T_\mathrm{tot;b}$ (h) = $2.760_{-0.070}^{+0.11}$
+\newcommand{\bTtrafull}{$2.155_{-0.14}^{+0.077}$} %Full-transit duration b; $T_\mathrm{full;b}$ (h) = $2.155_{-0.14}^{+0.077}$
+\newcommand{\bhostdensity}{$1.62_{-0.55}^{+0.28}$} %Host density from orbit b; $\rho_\mathrm{\star;b}$ (cgs) = $1.62_{-0.55}^{+0.28}$
+\newcommand{\bdepthtrundilLeonardo}{$0.01319\pm0.00060$} %Transit depth (undil.) b; $\delta_\mathrm{tr; undil; b; Leonardo}$ (ppt) = $0.01319\pm0.00060$
+\newcommand{\bdepthtrdilLeonardo}{$0.01319\pm0.00060$} %Transit depth (dil.) b; $\delta_\mathrm{tr; dil; b; Leonardo}$ (ppt) = $0.01319\pm0.00060$
+\newcommand{\hostldcuoneLeonardo}{$0.48\pm0.29$} %Limb darkening; $u_\mathrm{1; Leonardo}$ = $0.48\pm0.29$
+\newcommand{\hostldcutwoLeonardo}{$0.14_{-0.34}^{+0.36}$} %Limb darkening; $u_\mathrm{2; Leonardo}$ = $0.14_{-0.34}^{+0.36}$
+\newcommand{\combinedhostdensity}{$1.62_{-0.55}^{+0.28}$} %Combined host density from all orbits; $rho_\mathrm{\star; combined}$ (cgs) = $1.62_{-0.55}^{+0.28}$

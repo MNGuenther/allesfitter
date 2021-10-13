@@ -11,6 +11,6 @@ b_f_s,0,0,uniform 0.0 0.0,$\sqrt{e_b} \sin{\omega_b}$,,0
 host_ldc_q1_Leonardo,0.5,1,uniform 0.0 1.0,$q_{1; \mathrm{Leonardo}}$,,0.64
 host_ldc_q2_Leonardo,0.5,1,uniform 0.0 1.0,$q_{2; \mathrm{Leonardo}}$,,0.375
 #errors per instrument,,,,,,
-log_err_flux_Leonardo,-6,1,uniform -10 -1,$\log{\sigma_\mathrm{Leonardo}}$,rel. flux,
+ln_err_flux_Leonardo,-6,1,uniform -10 -1,$\log{\sigma_\mathrm{Leonardo}}$,rel. flux,
 #baseline per instrument,,,,,,
 baseline_offset_flux_Leonardo,0,1,uniform -1 1,$\mathrm{offset (Leonardo)}$,,

@@ -1,9 +1,9 @@
-\newcommand{\brr}{$=0.1056_{-0.0034}^{+0.0042}$} %none = 0.1056_{-0.0034}^{+0.0042}
-\newcommand{\brsuma}{$=0.1110_{-0.0058}^{+0.016}$} %none = 0.1110_{-0.0058}^{+0.016}
-\newcommand{\bcosi}{$=0.033_{-0.021}^{+0.031}$} %none = 0.033_{-0.021}^{+0.031}
-\newcommand{\bepoch}{$=4.50202\pm0.00091$} %none = 4.50202\pm0.00091
-\newcommand{\bperiod}{$=3.4011_{-0.0011}^{+0.0011}$} %none = 3.4011_{-0.0011}^{+0.0011}
-\newcommand{\hostldcq1Leonardo}{$=0.41_{-0.22}^{+0.33}$} %none = 0.41_{-0.22}^{+0.33}
-\newcommand{\hostldcq2Leonardo}{$=0.38_{-0.23}^{+0.32}$} %none = 0.38_{-0.23}^{+0.32}
-\newcommand{\logerrfluxLeonardo}{$=-6.249\pm0.075$} %none = -6.249\pm0.075
-\newcommand{\baselineoffsetfluxLeonardo}{$=0.00021\pm0.00023$} %none = 0.00021\pm0.00023
+\newcommand{\brr}{$0.1056_{-0.0034}^{+0.0044}$} %$R_b / R_\star=0.1056_{-0.0034}^{+0.0044}$ 
+\newcommand{\brsuma}{$0.1108_{-0.0057}^{+0.017}$} %$(R_\star + R_b) / a_b=0.1108_{-0.0057}^{+0.017}$ 
+\newcommand{\bcosi}{$0.032_{-0.021}^{+0.033}$} %$\cos{i_b}=0.032_{-0.021}^{+0.033}$ 
+\newcommand{\bepoch}{$4.50202\pm0.00091$} %$T_{0;b}=4.50202\pm0.00091$ BJD
+\newcommand{\bperiod}{$3.4011\pm0.0011$} %$P_b=3.4011\pm0.0011$ days
+\newcommand{\hostldcqoneLeonardo}{$0.41_{-0.22}^{+0.33}$} %$q_{1; \mathrm{Leonardo}}=0.41_{-0.22}^{+0.33}$ 
+\newcommand{\hostldcqtwoLeonardo}{$0.39_{-0.23}^{+0.32}$} %$q_{2; \mathrm{Leonardo}}=0.39_{-0.23}^{+0.32}$ 
+\newcommand{\lnerrfluxLeonardo}{$-6.247\pm0.074$} %$\log{\sigma_\mathrm{Leonardo}}=-6.247\pm0.074$ $\log{ \mathrm{rel. flux.} }$
+\newcommand{\baselineoffsetfluxLeonardo}{$0.00020\pm0.00024$} %$\mathrm{gp: \log{\sigma} (Leonardo)}=0.00020\pm0.00024$ 

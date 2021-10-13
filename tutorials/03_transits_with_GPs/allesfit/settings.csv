@@ -83,6 +83,7 @@ fit_ttvs,False
 # Stellar grid per object and instrument,
 ###############################################################################,
 host_grid_Leonardo,very_sparse
+b_grid_Leonardo,very_sparse
 ###############################################################################,
 # Stellar shape per object and instrument,
 ###############################################################################,

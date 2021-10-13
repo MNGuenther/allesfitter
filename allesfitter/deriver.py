@@ -202,7 +202,7 @@ def derive(samples, mode):
         R1a = R1/a, radius companion over semiamplitude
         R2a = R2/a, radius star over semiamplitude
         Ttot = T_{1-4}, total transit width 
-        Tfull = T_{2-3}, full transit width
+        Tfull = T_{2-3}, full-transit width
         
     Output:
     -------
@@ -289,7 +289,7 @@ def derive(samples, mode):
         #::: masses
         #----------------------------------------------------------------------
         #::: for detached binaries, where K and q were fitted:
-        if (companion+'_K' in config.BASEMENT.params) and not np.isclose(get_params(companion+'_q'),1):
+        if (companion+'_K' in config.BASEMENT.params) and len(config.BASEMENT.settings['inst_rv2'])>0:
             derived_samples[companion+'_M_companion_(M_earth)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_earth.value #in M_earth
             derived_samples[companion+'_M_companion_(M_jup)'] = get_params(companion+'_q') * star['M_star'] * M_sun.value / M_jup.value #in M_jup
             derived_samples[companion+'_M_companion_(M_sun)'] = get_params(companion+'_q') * star['M_star'] #in M_sun
@@ -365,7 +365,7 @@ def derive(samples, mode):
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             #::: iterate through all samples, draw different models and measure the depths
             #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            logprint('\n' + inst + ' ' + companion + ': deriving eclipse depths and more from model curves...')
+            print('Deriving eclipse depths (and more) from the model curves for companion', companion, 'and instrument', inst+'...')
             for i in range(N_less_samples):
                 s = samples[ np.random.randint(low=0,high=samples2.shape[0]) , : ]
                 p = update_params(s)
@@ -619,7 +619,7 @@ def derive(samples, mode):
     ###############################################################################
     ind_good = []
     for i,name in enumerate(names):
-        if (name in derived_samples) and isinstance(derived_samples[name], np.ndarray) and not any(np.isnan(derived_samples[name])) and not all(np.array(derived_samples[name])==0):
+        if (name in derived_samples) and isinstance(derived_samples[name], np.ndarray) and not all(np.isnan(derived_samples[name])) and not all(np.array(derived_samples[name])==0):
             ind_good.append(i)
             
     names = [ names[i] for i in ind_good ]
@@ -652,7 +652,7 @@ def derive(samples, mode):
             f.write('\\hline \n')
             
             for name,label in zip(names, labels):
-                ll, median, ul = np.percentile(derived_samples[name], [15.865, 50., 84.135])
+                ll, median, ul = np.nanpercentile(derived_samples[name], [15.865, 50., 84.135])
                 outfile.write( str(label)+','+str(median)+','+str(median-ll)+','+str(ul-median)+',derived\n' )
                 
                 value = round_tex(median, median-ll, ul-median)
@@ -668,9 +668,17 @@ def derive(samples, mode):
         #::: plot corner
         #=====================================================================
         if 'combined_host_density' in names: names.remove('combined_host_density') #has (N_companions x N_dims) dimensions, thus does not match the rest
+        
+        #::: clean up any isolated NaN's before calling corner
+        for name in names:
+            median = np.nanmedian(derived_samples[name])
+            ind = np.where(np.isnan(derived_samples[name]))
+            derived_samples[name][ind] = median
+
+        #::: prep the matrix for corner
         x = np.column_stack([ derived_samples[name] for name in names ])
         fontsize = np.min(( 24. + 0.5*(len(names)), 40 ))
-            
+        
         fig = corner(x,
                      range = [0.999]*len(names),
                      labels = names,
@@ -683,7 +691,7 @@ def derive(samples, mode):
         #::: set allesfitter titles
         for i, name in enumerate(names): 
             
-            ll, median, ul = np.percentile(derived_samples[name], [15.865, 50., 84.135])
+            ll, median, ul = np.nanpercentile(derived_samples[name], [15.865, 50., 84.135])
             value = round_tex(median, median-ll, ul-median)
             ctitle = r'' + labels[i] + '\n' + r'$=' + value + '$'
             if len(names)>1:
