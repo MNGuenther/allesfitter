@@ -14,19 +14,22 @@ https://www.allesfitter.com/
 Please cite both the paper and the code, like `\citep{allesfitter-paper, allesfitter-code}`, with:
 
     @ARTICLE{allesfitter-paper,
-           author = {{G{\"u}nther}, Maximilian~N. and {Daylan}, Tansu},
-            title = "{Allesfitter: Flexible Star and Exoplanet Inference From Photometry and Radial Velocity}",
-          journal = {arXiv e-prints},
-         keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics, Astrophysics - Solar and Stellar Astrophysics},
-             year = 2020,
-            month = mar,
-              eid = {arXiv:2003.14371},
-            pages = {arXiv:2003.14371},
-    archivePrefix = {arXiv},
-           eprint = {2003.14371},
+     author = {{G{\"u}nther}, Maximilian N. and {Daylan}, Tansu},
+     title = "{Allesfitter: Flexible Star and Exoplanet Inference from Photometry and Radial Velocity}",
+     journal = {\apjs},
+     keywords = {Exoplanets, Binary stars, Stellar flares, Bayesian statistics, Astronomy software, Starspots, Astronomy data modeling, 498, 154, 1603, 1900, 1855, 1572, 1859, Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics, Astrophysics - Solar and Stellar Astrophysics},
+     year = 2021,
+     month = may,
+     volume = {254},
+     number = {1},
+     eid = {13},
+     pages = {13},
+     doi = {10.3847/1538-4365/abe70e},
+     archivePrefix = {arXiv},
+     eprint = {2003.14371},
      primaryClass = {astro-ph.EP},
-           adsurl = {https://ui.adsabs.harvard.edu/abs/2020arXiv200314371G},
-          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+     adsurl = {https://ui.adsabs.harvard.edu/abs/2021ApJS..254...13G},
+     adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
     
     @MISC{allesfitter-code,
