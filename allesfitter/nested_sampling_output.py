@@ -119,7 +119,6 @@ def ns_output(datadir):
            
     
     #::: plot the fit
-    '''        
     posterior_samples_for_plot = draw_ns_posterior_samples(results, Nsamples=20) #only 20 samples for plotting
     
     for companion in config.BASEMENT.settings['companions_all']:
@@ -133,7 +132,7 @@ def ns_output(datadir):
             fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
             fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
-    '''          
+    
     
     #::: retrieve the results
     posterior_samples = draw_ns_posterior_samples(results)                               # all weighted posterior_samples
@@ -225,10 +224,10 @@ def ns_output(datadir):
                     for tick in caxes[i,j].xaxis.get_major_ticks(): tick.label.set_fontsize(24) 
                     for tick in caxes[i,j].yaxis.get_major_ticks(): tick.label.set_fontsize(24)    
         else:
-            caxes.set_title(ctitle)
+            caxes[i,i].set_title(ctitle)
             taxes[1].set_title(ttitle)
-            caxes.xaxis.set_label_coords(0.5, -0.5)
-            caxes.yaxis.set_label_coords(-0.5, 0.5)
+            caxes[i,i].xaxis.set_label_coords(0.5, -0.5)
+            caxes[i,i].yaxis.set_label_coords(-0.5, 0.5)
                
             
     #::: save and close the trace- and cornerplot

@@ -86,7 +86,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.7')
+        self.logprint('v1.2.8')
         
         self.load_settings()
         self.load_params()

@@ -200,9 +200,9 @@ def plot_MCMC_corner(sampler):
                     for tick in caxes[i,j].xaxis.get_major_ticks(): tick.label.set_fontsize(24) 
                     for tick in caxes[i,j].yaxis.get_major_ticks(): tick.label.set_fontsize(24)    
         else:
-            caxes.set_title(ctitle)
-            caxes.xaxis.set_label_coords(0.5, -0.5)
-            caxes.yaxis.set_label_coords(-0.5, 0.5)
+            caxes[i,i].set_title(ctitle)
+            caxes[i,i].xaxis.set_label_coords(0.5, -0.5)
+            caxes[i,i].yaxis.set_label_coords(-0.5, 0.5)
             
             
     return fig

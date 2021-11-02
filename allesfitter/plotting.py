@@ -34,7 +34,7 @@ import pathlib
 from astropy.time import Time
 
 #::: local imports
-from allesfitter.io import read_csv
+from allesfitter.inout import read_csv
 from allesfitter.time_series import sigma_clip, slide_clip
 
 #::: plotting settings

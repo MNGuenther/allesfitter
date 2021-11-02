@@ -52,7 +52,7 @@ except:
 from ..exoworlds_rdx.lightcurves.lightcurve_tools import plot_phase_folded_lightcurve, rebin_err  
 from ..time_series import clean, slide_clip
 from ..lightcurves import tessclean
-from ..io import write_json, write_csv
+from ..inout import write_json, write_csv
 from ..plotting import fullplot, brokenplot, tessplot, monthplot
 
 

@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 setup(
     name = 'allesfitter',
     packages = find_packages(),
-    version = '1.2.7',
+    version = '1.2.8',
     description = 'A global inference framework for photometry and RV',
     author = 'Maximilian N. Günther & Tansu Daylan',
     author_email = 'maximilian.guenther@esa.int',

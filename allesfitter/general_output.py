@@ -317,43 +317,46 @@ def guesstimator(params_median, companion, base=None):
     if base==None:
         base = config.BASEMENT
         
-    #==========================================================================
-    # guesstimate the median e, omega, R_star_over_a, and b_tra for below
-    #==========================================================================
-    e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
-    w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
-    R_star_over_a = params_median[companion+'_rsuma'] / (1. + params_median[companion+'_rr'])
-    eccentricity_correction_b_tra = ( (1. - e**2) / ( 1. + e*np.sin(w) ) )
-    b_tra = (1./R_star_over_a) * params_median[companion+'_cosi'] * eccentricity_correction_b_tra
-        
+    try:
+        #==========================================================================
+        # guesstimate the median e, omega, R_star_over_a, and b_tra for below
+        #==========================================================================
+        e = params_median[companion+'_f_s']**2 + params_median[companion+'_f_c']**2
+        w = np.mod( np.arctan2(params_median[companion+'_f_s'], params_median[companion+'_f_c']), 2*np.pi) #in rad, from 0 to 2*pi
+        R_star_over_a = params_median[companion+'_rsuma'] / (1. + params_median[companion+'_rr'])
+        eccentricity_correction_b_tra = ( (1. - e**2) / ( 1. + e*np.sin(w) ) )
+        b_tra = (1./R_star_over_a) * params_median[companion+'_cosi'] * eccentricity_correction_b_tra
             
-    #==========================================================================
-    # guesstimate the primary eclipse / transit duration (T14; total duration)
-    #==========================================================================
-    eccentricity_correction_T_tra = ( np.sqrt(1. - e**2) / ( 1. + e*np.sin(w) ) )
-    T_tra_tot = params_median[companion+'_period'] / np.pi * 24. \
-                * np.arcsin( R_star_over_a \
-                             * np.sqrt( (1. + params_median[companion+'_rr'])**2 - b_tra**2 ) \
-                             / np.sin( np.arccos(params_median[companion+'_cosi'])) ) \
-                * eccentricity_correction_T_tra #in h
-    
-    
-    #==========================================================================
-    # dynamically set the zoom window to 3 * T_tra_tot
-    #==========================================================================
-    if not np.isnan(T_tra_tot):
-        zoomwindow = 3 * T_tra_tot #in h
-    else:
-        zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
+                
+        #==========================================================================
+        # guesstimate the primary eclipse / transit duration (T14; total duration)
+        #==========================================================================
+        eccentricity_correction_T_tra = ( np.sqrt(1. - e**2) / ( 1. + e*np.sin(w) ) )
+        T_tra_tot = params_median[companion+'_period'] / np.pi * 24. \
+                    * np.arcsin( R_star_over_a \
+                                 * np.sqrt( (1. + params_median[companion+'_rr'])**2 - b_tra**2 ) \
+                                 / np.sin( np.arccos(params_median[companion+'_cosi'])) ) \
+                    * eccentricity_correction_T_tra #in h
         
+        
+        #==========================================================================
+        # dynamically set the zoom window to 3 * T_tra_tot
+        #==========================================================================
+        if not np.isnan(T_tra_tot):
+            zoomwindow = 3 * T_tra_tot #in h
+        else:
+            zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
+            
+        
+        #==========================================================================
+        # guesstimate where the secondary eclipse / occultation is
+        #==========================================================================
+        phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
     
-    #==========================================================================
-    # guesstimate where the secondary eclipse / occultation is
-    #==========================================================================
-    phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
+        return zoomwindow, phase_shift #in h; in phase units
 
-    return zoomwindow, phase_shift #in h; in phase units
-
+    except:
+        return 8., 0. #in h; in phase units
 
 
 ###############################################################################
