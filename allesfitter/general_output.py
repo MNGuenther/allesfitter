@@ -1084,7 +1084,7 @@ def plot_initial_guess(return_figs=False, kwargs_dict=None):
                         fig, axes, last_transit, total_transits = afplot_per_transit(samples, inst, companion, kwargs_dict=kwargs_dict)
                         fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
                         plt.close(fig)
-                        if last_transit < total_transits - 1:
+                        if total_transits > 0 and last_transit < total_transits - 1:
                             first_transit = last_transit
                         else:
                             first_transit = -1
