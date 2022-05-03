@@ -323,7 +323,7 @@ def mcmc_output(datadir, quiet=False):
             while (first_transit >= 0):
                 try:
                     kwargs_dict['first_transit'] = first_transit
-                    fig, axes, last_transit, total_transits = afplot_per_transit(posterior_samples, inst, companion)
+                    fig, axes, last_transit, total_transits = afplot_per_transit(posterior_samples, inst, companion, kwargs_dict=kwargs_dict)
                     fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
                     plt.close(fig)
                     if total_transits > 0 and last_transit < total_transits - 1:
