@@ -127,6 +127,8 @@ def ns_output(datadir):
             fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_'+companion+'.pdf'), bbox_inches='tight' )       
             plt.close(fig)
 
+    if kwargs_dict is None:
+        kwargs_dict = {}
     for companion in config.BASEMENT.settings['companions_phot']:
         first_transit = 0
         for inst in config.BASEMENT.settings['inst_phot']:
