@@ -317,7 +317,8 @@ def mcmc_output(datadir, quiet=False):
         if fig is not None:
             fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_'+companion+'.pdf'), bbox_inches='tight' )
             plt.close(fig)
-        
+    if kwargs_dict is None:
+        kwargs_dict = {}
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
             while (first_transit >= 0):
