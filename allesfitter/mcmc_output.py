@@ -321,6 +321,7 @@ def mcmc_output(datadir, quiet=False):
         kwargs_dict = {}
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
+            first_transit = 0
             while (first_transit >= 0):
                 try:
                     kwargs_dict['first_transit'] = first_transit
