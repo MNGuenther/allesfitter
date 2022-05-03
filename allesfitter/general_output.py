@@ -801,7 +801,9 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     if 'linestyle' not in kwargs_dict: kwargs_dict['linestyle'] = 'none'
     if 'color' not in kwargs_dict: kwargs_dict['color'] = 'b'
     if 'markersize' not in kwargs_dict: kwargs_dict['markersize'] = 8
-    
+    if 'max_transits' not in kwargs_dict: kwargs_dict['max_transits'] = 20
+    if 'first_transit' not in kwargs_dict: kwargs_dict['first_transit'] = 0
+
     
     #==========================================================================
     #::: translate input
@@ -812,7 +814,9 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     linestyle = kwargs_dict['linestyle']
     color = kwargs_dict['color']
     markersize = kwargs_dict['markersize']
-    
+    max_transits = kwargs_dict['max_transits']
+    first_transit = kwargs_dict['first_transit']
+
         
     #==========================================================================
     #::: configurations
@@ -848,6 +852,9 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     yerr_w = calculate_yerr_w(params_median, inst, key)
     
     tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], T_tra_tot)
+    total_transits = len(tmid_observed_transits)
+    last_transit = first_transit + max_transits if first_transit + max_transits < len(tmid_observed_transits) else len(tmid_observed_transits) - 1
+    tmid_observed_transits = tmid_observed_transits[first_transit:last_transit]
     N_transits = len(tmid_observed_transits)
     
     if N_transits>0:
@@ -856,6 +863,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
         axes[0].set(title=inst)
         
         for i, t in tqdm(enumerate(tmid_observed_transits),total=N_transits):
+            transit_label = first_transit + i
             ax = axes[i]
             
             #::: mark data
@@ -878,11 +886,11 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
             ax.set(xlim=[t-zoomwindow/2., t+zoomwindow/2.])
             ax.axvline(t,color='grey',lw=2,ls='--',label='linear prediction')
             if base.settings['fit_ttvs']==True:
-                ax.axvline(t+params_median[companion+'_ttv_transit_'+str(i+1)],color='r',lw=2,ls='--',label='TTV midtime')
+                ax.axvline(t+params_median[companion+'_ttv_transit_'+str(transit_label+1)],color='r',lw=2,ls='--',label='TTV midtime')
             
             #::: axes decoration
             ax.set(xlabel='Time', ylabel=ylabel)
-            ax.text(0.95, 0.95, 'Transit '+str(i+1), va='top', ha='right', transform=ax.transAxes)
+            ax.text(0.95, 0.95, 'Transit '+str(transit_label+1), va='top', ha='right', transform=ax.transAxes)
             
         if base.settings['fit_ttvs']==True:
             axes[0].legend(loc='upper left')
@@ -894,7 +902,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
         axes[0].text(0.5, 0.5, 'No transit of companion '+companion+' for '+inst+'.', fontsize=10, va='center', ha='center', transform=axes[0].transAxes)
         # warnings.warn('No transit of companion '+companion+' for '+inst+'.')
     
-    return fig, axes
+    return fig, axes, last_transit, total_transits
             
                 
 
@@ -1065,15 +1073,24 @@ def plot_initial_guess(return_figs=False, kwargs_dict=None):
             if fig is not None:
                 fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_'+companion+'.pdf'), bbox_inches='tight' )
                 plt.close(fig)
-            
+        if kwargs_dict is None:
+            kwargs_dict = {}
         for companion in config.BASEMENT.settings['companions_phot']:
+            first_transit = 0
             for inst in config.BASEMENT.settings['inst_phot']:
-                try:
-                    fig, axes = afplot_per_transit(samples, inst, companion, kwargs_dict=kwargs_dict)
-                    fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-                    plt.close(fig)
-                except:
-                    pass
+                while(first_transit >= 0):
+                    try:
+                        kwargs_dict['first_transit'] = first_transit
+                        fig, axes, last_transit, total_transits = afplot_per_transit(samples, inst, companion, kwargs_dict=kwargs_dict)
+                        fig.savefig( os.path.join(config.BASEMENT.outdir,'initial_guess_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
+                        plt.close(fig)
+                        if last_transit < total_transits - 1:
+                            first_transit = last_transit
+                        else:
+                            first_transit = -1
+                    except Exception as e:
+                        first_transit = -1
+                        pass
         return None
     
     else:
@@ -1097,7 +1114,7 @@ def plot_ttv_results(params_median, params_ll, params_ul):
             axes.errorbar( i+1, params_median[companion+'_ttv_transit_'+str(i+1)]*24*60, 
                            yerr=np.array([[ params_ll[companion+'_ttv_transit_'+str(i+1)]*24*60, params_ul[companion+'_ttv_transit_'+str(i+1)]*24*60 ]]).T, 
                            color=config.BASEMENT.settings[companion+'_color'], fmt='.')
-        axes.set(xlabel='Transit Nr.', ylabel='TTV (mins)')
+        axes.set(xlabel='Tranist Nr.', ylabel='TTV (mins)')
         fig.savefig( os.path.join(config.BASEMENT.outdir,'ttv_results_'+companion+'.pdf'), bbox_inches='tight' )
         plt.close(fig)
     
