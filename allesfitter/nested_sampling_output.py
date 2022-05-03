@@ -130,8 +130,8 @@ def ns_output(datadir):
     if kwargs_dict is None:
         kwargs_dict = {}
     for companion in config.BASEMENT.settings['companions_phot']:
-        first_transit = 0
         for inst in config.BASEMENT.settings['inst_phot']:
+            first_transit = 0
             while (first_transit >= 0):
                 kwargs_dict['first_transit'] = first_transit
                 fig, axes, last_transit, total_transits = afplot_per_transit(posterior_samples_for_plot, inst, companion,
