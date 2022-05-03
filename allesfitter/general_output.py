@@ -853,7 +853,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     
     tmid_observed_transits = get_tmid_observed_transits(x, params_median[companion+'_epoch'], params_median[companion+'_period'], T_tra_tot)
     total_transits = len(tmid_observed_transits)
-    last_transit = first_transit + max_transits if first_transit + max_transits < len(tmid_observed_transits) else len(tmid_observed_transits) - 1
+    last_transit = first_transit + max_transits if first_transit + max_transits < len(tmid_observed_transits) else len(tmid_observed_transits)
     tmid_observed_transits = tmid_observed_transits[first_transit:last_transit]
     N_transits = len(tmid_observed_transits)
     
