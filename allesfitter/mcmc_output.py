@@ -320,12 +320,19 @@ def mcmc_output(datadir, quiet=False):
         
     for companion in config.BASEMENT.settings['companions_phot']:
         for inst in config.BASEMENT.settings['inst_phot']:
-            try:
-                fig, axes = afplot_per_transit(posterior_samples, inst, companion)
-                fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-                plt.close(fig)
-            except:
-                pass
+            while (first_transit >= 0):
+                try:
+                    kwargs_dict['first_transit'] = first_transit
+                    fig, axes, last_transit, total_transits = afplot_per_transit(posterior_samples, inst, companion)
+                    fig.savefig( os.path.join(config.BASEMENT.outdir,'mcmc_fit_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
+                    plt.close(fig)
+                    if last_transit < total_transits - 1:
+                        first_transit = last_transit
+                    else:
+                        first_transit = -1
+                except Exception as e:
+                    first_transit = -1
+                    pass
     
     #::: plot the chains
     fig, axes = plot_MCMC_chains(reader)
