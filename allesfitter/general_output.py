@@ -1114,7 +1114,7 @@ def plot_ttv_results(params_median, params_ll, params_ul):
             axes.errorbar( i+1, params_median[companion+'_ttv_transit_'+str(i+1)]*24*60, 
                            yerr=np.array([[ params_ll[companion+'_ttv_transit_'+str(i+1)]*24*60, params_ul[companion+'_ttv_transit_'+str(i+1)]*24*60 ]]).T, 
                            color=config.BASEMENT.settings[companion+'_color'], fmt='.')
-        axes.set(xlabel='Tranist Nr.', ylabel='TTV (mins)')
+        axes.set(xlabel='Transit Nr.', ylabel='TTV (mins)')
         fig.savefig( os.path.join(config.BASEMENT.outdir,'ttv_results_'+companion+'.pdf'), bbox_inches='tight' )
         plt.close(fig)
     
