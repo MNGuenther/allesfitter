@@ -1076,8 +1076,8 @@ def plot_initial_guess(return_figs=False, kwargs_dict=None):
         if kwargs_dict is None:
             kwargs_dict = {}
         for companion in config.BASEMENT.settings['companions_phot']:
-            first_transit = 0
             for inst in config.BASEMENT.settings['inst_phot']:
+                first_transit = 0
                 while(first_transit >= 0):
                     try:
                         kwargs_dict['first_transit'] = first_transit
