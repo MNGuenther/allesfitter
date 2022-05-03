@@ -128,10 +128,19 @@ def ns_output(datadir):
             plt.close(fig)
 
     for companion in config.BASEMENT.settings['companions_phot']:
+        first_transit = 0
         for inst in config.BASEMENT.settings['inst_phot']:
-            fig, axes = afplot_per_transit(posterior_samples_for_plot, inst, companion)
-            fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'.pdf'), bbox_inches='tight' )
-            plt.close(fig)
+            while (first_transit >= 0):
+                kwargs_dict['first_transit'] = first_transit
+                fig, axes, last_transit, total_transits = afplot_per_transit(posterior_samples_for_plot, inst, companion,
+                                                             kwargs_dict=kwargs_dict)
+                fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
+                plt.close(fig)
+                if last_transit < total_transits - 1:
+                    first_transit = last_transit
+                else:
+                    first_transit = -1
+            
     
     
     #::: retrieve the results
