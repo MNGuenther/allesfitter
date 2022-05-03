@@ -136,7 +136,7 @@ def ns_output(datadir):
                                                              kwargs_dict=kwargs_dict)
                 fig.savefig( os.path.join(config.BASEMENT.outdir,'ns_fit_per_transit_'+inst+'_'+companion+'_' + str(last_transit) + 'th.pdf'), bbox_inches='tight' )
                 plt.close(fig)
-                if last_transit < total_transits - 1:
+                if total_transits > 0 and last_transit < total_transits - 1:
                     first_transit = last_transit
                 else:
                     first_transit = -1
