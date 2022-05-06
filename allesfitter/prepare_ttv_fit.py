@@ -46,7 +46,7 @@ from allesfitter.plotting import fullplot, brokenplot, chunkplot, monthplot, tes
 ###############################################################################
 #::: prepare TTV fit (if chosen)
 ###############################################################################
-def prepare_ttv_fit(datadir, style='fullplot'):
+def prepare_ttv_fit(datadir, style='fullplot', max_transits=20):
     '''
     Inputs:
     -------
@@ -55,7 +55,9 @@ def prepare_ttv_fit(datadir, style='fullplot'):
     style : str
         chose between 'fullplot', 'monthplot', and 'tessplot'; this defines how the plot looks
         default is 'fullplot'
-        
+    max_transits : int
+        the maximum number of transits to be plotted into the same pdf. If there were more transits than `max_transits`
+        additional plots will be created.
     Outputs:
     --------
     None
@@ -121,10 +123,12 @@ def prepare_ttv_fit(datadir, style='fullplot'):
                                                              alles.initial_guess_params_median[companion+'_period'],
                                                              window)
         N = len(tmid_linear_predictions)
-        fig, axes = plt.subplots(N, 1, figsize=(6,4*N), sharey=True, tight_layout=True)
-        
+        end_transit_index = max_transits
         for i, tmid1 in enumerate(tmid_linear_predictions):
-            
+            plot_index = i % max_transits
+            if plot_index == 0:
+                end_transit_index = i + max_transits if i + max_transits < N else N
+                fig, axes = plt.subplots((end_transit_index - i), 1, figsize=(6, 4 * (end_transit_index - i)), sharey=True, tight_layout=True)
             #::: estimate the observed tranist midtime by computing the minimum of the data around the linearly predicted transit midtime
             ind_tr1 = np.where((time_combined >= (tmid1 - window/2.)) & (time_combined <= (tmid1 + window/2.)))[0]
             tr_times = time_combined[ind_tr1]
@@ -142,7 +146,7 @@ def prepare_ttv_fit(datadir, style='fullplot'):
             tmid_estimates.append(tmid2)
             
             #::: plot this per transit
-            ax = axes[i]
+            ax = axes[plot_index] if isinstance(axes, (list, np.ndarray)) else axes
             ax.plot(tr_times, tr_flux, marker='.', ls='none', color=alles.settings[companion+'_color'], rasterized=True)
             if trend is not None: ax.plot(tr_times, trend, 'r-')
             ax.axvline(tmid1,c='grey',ls='--',label='linear prediction')
@@ -151,10 +155,11 @@ def prepare_ttv_fit(datadir, style='fullplot'):
             ax.text(0.95,0.95,'Transit '+str(i+1), va='top', ha='right', transform=ax.transAxes)
             with open(os.path.join(datadir,'ttv_preparation','ttv_initial_guess_params.csv'),'a') as f:
                f.write(companion+'_ttv_transit_'+str(i+1)+','+np.format_float_positional(ttv_guess,4)+',1,uniform '+np.format_float_positional(ttv_guess-0.01,4)+' '+np.format_float_positional(ttv_guess+0.01,4)+',TTV$_\mathrm{'+companion+';'+str(i+1)+'}$,d\n')
-        
-        axes[0].legend()
-        fig.savefig(os.path.join(datadir,'ttv_preparation','ttv_preparation_'+companion+'_per_transit.pdf'), bbox_inches='tight')
-        plt.close(fig)
+            if i == end_transit_index - 1:
+                ax_for_legend = axes[0] if isinstance(axes, (list, np.ndarray)) else axes
+                ax_for_legend.legend()
+                fig.savefig(os.path.join(datadir,'ttv_preparation','ttv_preparation_'+companion+'_per_transit_' + str(end_transit_index) + 'th.pdf'), bbox_inches='tight')
+                plt.close(fig)
          
         tmid_estimates = np.array(tmid_estimates)
         
