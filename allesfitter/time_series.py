@@ -122,7 +122,7 @@ def sort(time, y, y_err=None):
 
 
 ###############################################################################
-#::: slide clip a time series
+#::: sigma clip a time series
 ###############################################################################
 def sigma_clip(time, y, low=4, high=4, return_mask=False):
     """

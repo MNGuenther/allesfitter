@@ -55,7 +55,7 @@ def write_csv(fname, *arrays, **kwargs):
 
 
 
-def read_csv(fname):
+def read_csv(fname, skip_header=0):
     '''
     Reads a csv file and unpacks the columns.
 
@@ -68,7 +68,7 @@ def read_csv(fname):
     -------
     Collection of arrays, e.g. time, flux, flux_err.
     '''
-    return np.genfromtxt(fname, delimiter=',', comments='#', encoding='utf-8', dtype=float, unpack=True)
+    return np.genfromtxt(fname, delimiter=',', comments='#', encoding='utf-8', dtype=float, unpack=True, skip_header=skip_header)
 
 
 

@@ -199,7 +199,7 @@ def plot_panel_transits(datadir, ax=None, insts=None, companions=None, colors=No
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=True)    
             ax.plot( phi*zoomfactor, y, 'b.', color='silver', rasterized=True )
-            ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, linestyle='none', marker='o', ms=8, color=color, capsize=0, zorder=11 )
+            ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, ls='none', marker='o', ms=8, color=color, capsize=0, zorder=11 )
             ax.set_xlabel(xlabel, fontsize=BIGGER_SIZE)
             ax.set_ylabel(ylabel, fontsize=BIGGER_SIZE)
 
@@ -340,23 +340,31 @@ def guesstimator(params_median, companion, base=None):
         
         
         #==========================================================================
-        # dynamically set the zoom window to 3 * T_tra_tot
+        # dynamically set the x-axis zoom window to 3 * T_tra_tot
         #==========================================================================
         if not np.isnan(T_tra_tot):
             zoomwindow = 3 * T_tra_tot #in h
         else:
             zoomwindow = base.settings['zoom_window'] * 24. #user input is in days, convert here to hours
-            
+
+
+        #==========================================================================
+        # dynamically set the y-axis zoom window to [1.-2.*depth, 1.+depth]   
+        #==========================================================================
+        depth = (params_median[companion+'_rr'])**2
+        y_zoomwindow = [1.-2.*depth, 1.+depth]        
+        
         
         #==========================================================================
         # guesstimate where the secondary eclipse / occultation is
         #==========================================================================
         phase_shift = 0.5 * (1. + 4./np.pi * e * np.cos(w)) #in phase units; approximation from Winn2010
     
-        return zoomwindow, phase_shift #in h; in phase units
+        return zoomwindow, y_zoomwindow, phase_shift #in h; in phase units
 
     except:
-        return 8., 0. #in h; in phase units
+        return 8., [0.98,1.02], 0. #in h; in rel. flux; in phase units
+
 
 
 ###############################################################################
@@ -421,7 +429,7 @@ def plot_1(ax, samples, inst, companion, style,
     if 'label' not in kwargs_data: kwargs_data['label'] = inst
     if 'marker' not in kwargs_data: kwargs_data['marker'] = '.'
     if 'markersize' not in kwargs_data: kwargs_data['markersize'] = 8.
-    if 'linestyle' not in kwargs_data: kwargs_data['linestyle'] = 'none'
+    if 'ls' not in kwargs_data: kwargs_data['ls'] = 'none'
     if 'color' not in kwargs_data: kwargs_data['color'] = 'b'
     if 'alpha' not in kwargs_data: kwargs_data['alpha'] = 1.
     if 'rasterized' not in kwargs_data: kwargs_data['rasterized'] = True
@@ -429,7 +437,7 @@ def plot_1(ax, samples, inst, companion, style,
     if kwargs_model is None: kwargs_model = {}
     if 'marker' not in kwargs_model: kwargs_model['marker'] = 'none'
     if 'markersize' not in kwargs_model: kwargs_model['markersize'] = 0.
-    if 'linestyle' not in kwargs_model: kwargs_model['linestyle'] = '-'
+    if 'ls' not in kwargs_model: kwargs_model['ls'] = '-'
     if 'color' not in kwargs_model: kwargs_model['color'] = 'r'
     if 'alpha' not in kwargs_model: kwargs_model['alpha'] = 1.
     
@@ -499,7 +507,7 @@ def plot_1(ax, samples, inst, companion, style,
             alpha = 0.1
         
 
-    zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
+    zoomwindow, y_zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
         
  
     #==========================================================================
@@ -537,8 +545,8 @@ def plot_1(ax, samples, inst, companion, style,
             
             
         #::: plot data, not phase        
-#        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', linestyle='none', color='lightgrey', zorder=-1, rasterized=True ) 
-        # ax.errorbar(x, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], linestyle=kwargs_data['linestyle'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'] )  
+#        ax.errorbar(base.fulldata[inst]['time'], base.fulldata[inst][key], yerr=np.nanmedian(yerr_w), marker='.', ls='none', color='lightgrey', zorder=-1, rasterized=True ) 
+        # ax.errorbar(x, y, yerr=yerr_w, marker=kwargs_data['marker'], markersize=kwargs_data['markersize'], ls=kwargs_data['ls'], color=kwargs_data['color'], alpha=kwargs_data['alpha'], capsize=0, rasterized=kwargs_data['rasterized'] )  
         ax.errorbar(x, y, yerr=yerr_w, capsize=0, **kwargs_data)  
         if base.settings['color_plot']:
             ax.scatter(x, y, c=x, marker='o', rasterized=kwargs_data['rasterized'], cmap='inferno', zorder=11 ) 
@@ -576,7 +584,7 @@ def plot_1(ax, samples, inst, companion, style,
                                 if style in ['full_minus_offset']:
                                     baseline -= np.median(baseline)
                                 stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
+                                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, ls='-', color='orange', alpha=alpha, zorder=12 )
                                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
                 else:
                     ax.text(0.05, 0.95, '(The model is not plotted here because the\nphotometric data spans more than 60 days)', fontsize=10, va='top', ha='left', transform=ax.transAxes)  
@@ -590,7 +598,7 @@ def plot_1(ax, samples, inst, companion, style,
                     if style in ['full_minus_offset']:
                         baseline -= np.median(baseline)                    
                     stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                    ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
+                    ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, ls='-', color='orange', alpha=alpha, zorder=12 )
                     ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
         
         #::: other stuff
@@ -653,7 +661,7 @@ def plot_1(ax, samples, inst, companion, style,
             #::: plot data, phased        
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = 0.002, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             if (len(x) > 500) or force_binning:
-                ax.plot( phi*zoomfactor, y, marker='.', linestyle=None, color='lightgrey', rasterized=kwargs_data['rasterized'] ) #don't allow any other kwargs_data here
+                ax.plot( phi*zoomfactor, y, marker='.', ls=None, color='lightgrey', rasterized=kwargs_data['rasterized'] ) #don't allow any other kwargs_data here
                 ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, capsize=0, zorder=11, **kwargs_data )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, capsize=0, zorder=11, **kwargs_data )      
@@ -699,7 +707,9 @@ def plot_1(ax, samples, inst, companion, style,
                 dt = 0.01            
             elif style in ['phasezoom', 'phasezoom_occ', 
                            'phasezoom_residuals', 'phasezoom_occ_residuals']: 
-                dt = 15./60./24. / params_median[companion+'_period']
+                dt1 = 15./60./24. / params_median[companion+'_period'] #draw a point every 15 minutes per 1 day orbital period
+                dt2 = (zoomwindow/3/24.) / 50. #use 100 points per transit duration
+                dt = np.nanmin([dt1,dt2]) #pick the smaller one
                 
             phase_time, phase_y, phase_y_err, _, phi = lct.phase_fold(x, y, params_median[companion+'_period'], params_median[companion+'_epoch'], dt = dt, ferr_type='meansig', ferr_style='sem', sigmaclip=False)    
             buf = phi*zoomfactor
@@ -709,7 +719,7 @@ def plot_1(ax, samples, inst, companion, style,
                              'phase_curve_residuals']:
                     ax.plot( phase_time*zoomfactor, phase_y, 'b.', color=kwargs_data['color'], rasterized=kwargs_data['rasterized'], zorder=11 )                    
                 else: 
-                    ax.plot( phi*zoomfactor, y, 'b.', color='lightgrey', rasterized=kwargs_data['rasterized'], )
+                    ax.plot( phi*zoomfactor, y, marker='.', ls='none', color='lightgrey', rasterized=kwargs_data['rasterized'], )
                     ax.errorbar( phase_time*zoomfactor, phase_y, yerr=phase_y_err, capsize=0, zorder=11, **kwargs_data )
             else:
                 ax.errorbar( phi*zoomfactor, y, yerr=yerr_w, capsize=0, zorder=11, **kwargs_data )
@@ -754,7 +764,18 @@ def plot_1(ax, samples, inst, companion, style,
                 ax.set( xlim=[xlower, xupper], xlabel=r'$\mathrm{ T - T_0 \ (h) }$' )
         
         
-        #::: y-zoom onto occultation and phase variations
+        #::: y-zoom onto transit and phase variations
+        if style in ['phasezoom']:
+            try:
+                # buf = phase_y[(phase_time>-zoomwindow/24./2.) & (phase_time<zoomwindow/24./2.)] #TODO: replace with proper eclipse indexing
+                # def nanptp(arr): return np.nanmax(arr)-np.nanmin(arr)
+                # y0 = np.nanmin(buf)-0.1*nanptp(buf)
+                # y1 = np.nanmax(buf)+0.1*nanptp(buf)
+                # if y1>y0: ax.set(ylim=[y0,y1])
+                ax.set(ylim=y_zoomwindow)
+            except:
+                pass
+            
         if style in ['phasezoom_occ']:
             try:
                 buf = phase_y[phase_time>0.25] #TODO: replace with proper eclipse indexing
@@ -798,7 +819,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     # if 'window' not in kwargs_dict: kwargs_dict['window'] = 8./24. # in days
     if 'rasterized' not in kwargs_dict: kwargs_dict['rasterized'] = True
     if 'marker' not in kwargs_dict: kwargs_dict['marker'] = '.'
-    if 'linestyle' not in kwargs_dict: kwargs_dict['linestyle'] = 'none'
+    if 'ls' not in kwargs_dict: kwargs_dict['ls'] = 'none'
     if 'color' not in kwargs_dict: kwargs_dict['color'] = 'b'
     if 'markersize' not in kwargs_dict: kwargs_dict['markersize'] = 8
     
@@ -809,7 +830,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     # window = kwargs_dict['window']
     rasterized = kwargs_dict['rasterized']
     marker = kwargs_dict['marker']
-    linestyle = kwargs_dict['linestyle']
+    ls = kwargs_dict['ls']
     color = kwargs_dict['color']
     markersize = kwargs_dict['markersize']
     
@@ -839,7 +860,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
     #==========================================================================
     params_median, params_ll, params_ul = get_params_from_samples(samples)
     
-    zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
+    zoomwindow, y_zoomwindow, phase_shift = guesstimator(params_median, companion, base=base)
     zoomwindow /= 24. #in days
     T_tra_tot = zoomwindow/3. #in days
     
@@ -862,7 +883,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
             ind = np.where((x >= (t - zoomwindow/2.)) & (x <= (t + zoomwindow/2.)))[0]
             
             #::: plot model
-            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, linestyle=linestyle, color=color, markersize=markersize, alpha=1, capsize=0, rasterized=rasterized)  
+            ax.errorbar(x[ind], y[ind], yerr=yerr_w[ind], marker=marker, ls=ls, color=color, markersize=markersize, alpha=1, capsize=0, rasterized=rasterized)  
 
             #::: plot model + baseline, not phased
             dt = 2./24./60. #2 min steps; in days
@@ -873,7 +894,7 @@ def afplot_per_transit(samples, inst, companion, base=None, kwargs_dict=None):
                 model = calculate_model(p, inst, key, xx=xx) #evaluated on xx (!)
                 baseline = calculate_baseline(p, inst, key, xx=xx) #evaluated on xx (!)
                 stellar_var = calculate_stellar_var(p, 'all', key, xx=xx) #evaluated on xx (!)
-                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, linestyle='-', color='orange', alpha=alpha, zorder=12 )
+                ax.plot( xx, baseline+stellar_var+baseline_plus, marker=None, ls='-', color='orange', alpha=alpha, zorder=12 )
                 ax.plot( xx, model+baseline+stellar_var, 'r-', alpha=alpha, zorder=12 )
             ax.set(xlim=[t-zoomwindow/2., t+zoomwindow/2.])
             ax.axvline(t,color='grey',lw=2,ls='--',label='linear prediction')
@@ -1092,7 +1113,7 @@ def plot_initial_guess(return_figs=False, kwargs_dict=None):
 def plot_ttv_results(params_median, params_ll, params_ul):
     for companion in config.BASEMENT.settings['companions_all']:
         fig, axes = plt.subplots()
-        axes.axhline(0, color='grey', linestyle='--')
+        axes.axhline(0, color='grey', ls='--')
         for i in range(len(config.BASEMENT.data[companion+'_tmid_observed_transits'])):
             axes.errorbar( i+1, params_median[companion+'_ttv_transit_'+str(i+1)]*24*60, 
                            yerr=np.array([[ params_ll[companion+'_ttv_transit_'+str(i+1)]*24*60, params_ul[companion+'_ttv_transit_'+str(i+1)]*24*60 ]]).T, 

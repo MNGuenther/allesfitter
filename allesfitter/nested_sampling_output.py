@@ -32,6 +32,7 @@ try:
    import cPickle as pickle
 except:
    import pickle
+from copy import deepcopy
 from dynesty import utils as dyutils
 from dynesty import plotting as dyplot
 import warnings
@@ -94,6 +95,7 @@ def ns_output(datadir):
     '''
     config.init(datadir)
     
+    
     #::: security check
     if os.path.exists(os.path.join(config.BASEMENT.outdir,'ns_table.csv')):
         try:
@@ -155,13 +157,13 @@ def ns_output(datadir):
         labels.append( str(config.BASEMENT.fitlabels[i]) )
         units.append( str(config.BASEMENT.fitunits[i]) )
         
-    results2 = results.copy()                    
+    results2 = deepcopy(results) # results.copy() does not work anymore since dynesty 1.2                 
     params_median2, params_ll2, params_ul2 = params_median.copy(), params_ll.copy(), params_ul.copy()     # params drawn form these posterior_samples; only needed for plots (subtract epoch offset)  
     fittruths2 = config.BASEMENT.fittruths.copy()
     for companion in config.BASEMENT.settings['companions_all']:
         
         if companion+'_epoch' in config.BASEMENT.fitkeys:
-            ind    = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
+            ind = np.where(config.BASEMENT.fitkeys==companion+'_epoch')[0][0]
             results2['samples'][:,ind] -= int(params_median[companion+'_epoch'])                #np.round(params_median[companion+'_epoch'],decimals=0)
             units[ind] = str(units[ind]+'-'+str(int(params_median[companion+'_epoch']))+'d')    #np.format_float_positional(params_median[companion+'_epoch'],0)+'d')
             fittruths2[ind] -= int(params_median[companion+'_epoch'])

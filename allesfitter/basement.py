@@ -86,7 +86,7 @@ class Basement():
         print('')
         self.logprint('\nallesfitter version')
         self.logprint('---------------------')
-        self.logprint('v1.2.8')
+        self.logprint('v1.2.9')
         
         self.load_settings()
         self.load_params()
@@ -99,7 +99,7 @@ class Basement():
                 warnings.warn('\nCould not shift epoch (you can peacefully ignore this warning if no period was given)\n')
         
         if self.settings['fit_ttvs']:  
-            self.prepare_ttv_fit()
+            self.setup_ttv_fit()
         
         #::: external priors (e.g. stellar density)
         self.external_priors = {}
@@ -190,6 +190,9 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #::: Main settings
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        if 'time_format' not in self.settings:
+            self.settings['time_format'] = 'BJD_TDB'
+            
         for key in ['companions_phot', 'companions_rv', 'inst_phot', 'inst_rv', 'inst_rv2']:
             if key not in self.settings:
                 self.settings[key] = []
@@ -243,6 +246,9 @@ class Basement():
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         self.settings['multiprocess'] = set_bool(self.settings['multiprocess'])
         
+        from pprint import pprint
+        pprint(self.settings)
+        
         if 'multiprocess_cores' not in self.settings.keys():
             self.settings['multiprocess_cores'] = cpu_count()-1
         elif self.settings['multiprocess_cores'] == 'all':
@@ -254,7 +260,6 @@ class Basement():
                 warnings.warn(string)
             if self.settings['multiprocess_cores'] > cpu_count():
                 string = 'Oops, you want to run on '+str(self.settings['multiprocess_cores'])+' cores, but your computer has only '+str(cpu_count())+'. Maybe try running on '+str(cpu_count()-1)+'?'
-                raise ValueError(string)
 
 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -476,35 +481,32 @@ class Basement():
             elif inst in self.settings['inst_rv']: key='rv'
             elif inst in self.settings['inst_rv2']: key='rv2'
             
+            #::: default
+            #::: if the user gives no baseline, the default is 'none'
             if 'baseline_'+key+'_'+inst not in self.settings: 
                 self.settings['baseline_'+key+'_'+inst] = 'none'
 
+            #::: hybrid_spline
+            #::: the user can define the s value directly, e.g. as "hybrid_spline 0.001"
+            #::: this block serves to split up this input and assign it to the right functions
+            if ('hybrid_spline' in self.settings['baseline_'+key+'_'+inst])\
+                and (len(self.settings['baseline_'+key+'_'+inst].split(' '))>1): 
+                s = self.settings['baseline_'+key+'_'+inst].split(' ')[1]
+                self.settings['baseline_'+key+'_'+inst] = 'hybrid_spline_s'
+                self.settings['baseline_'+key+'_'+inst+'_args'] = s #any arguments coming with this baseline (for future expandability; for now it is simply the s-value)
+                
+            #::: sample_GP
+            #::: make sure the keywords are updated correctly
             elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-                 warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
+                 warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please update your files before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
                  self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                  
+            #::: baseline against custom series
+            #::: allows the user to fit a baseline not vs. time but vs. a chosen custom series
             if 'baseline_'+key+'_'+inst+'_against' not in self.settings:
                 self.settings['baseline_'+key+'_'+inst+'_against'] = 'time'
             if self.settings['baseline_'+key+'_'+inst+'_against'] not in ['time','custom_series']:
                 raise ValueError("The setting 'baseline_'+key+'_'+inst+'_against' must be one of ['time', custom_series'], but was '" + self.settings['baseline_'+key+'_'+inst+'_against'] + "'.")
-                     
-        # for inst in self.settings['inst_phot']:
-        #     for key in ['flux']:
-        #         if 'baseline_'+key+'_'+inst not in self.settings: 
-        #             self.settings['baseline_'+key+'_'+inst] = 'none'
-                    
-        #         elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-        #              warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
-        #              self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
-                     
-        # for inst in self.settings['inst_rv']:
-        #     for key in ['rv']:
-        #         if 'baseline_'+key+'_'+inst not in self.settings: 
-        #             self.settings['baseline_'+key+'_'+inst] = 'none'
-                    
-        #         elif self.settings['baseline_'+key+'_'+inst] == 'sample_GP': 
-        #              warnings.warn('You are using outdated keywords. Automatically renaming sample_GP ---> sample_GP_Matern32.'+'. Please fix this before the Duolingo owl comes to get you.') #, category=DeprecationWarning)
-        #              self.settings['baseline_'+key+'_'+inst] = 'sample_GP_Matern32'
                      
                 
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -959,9 +961,9 @@ class Basement():
         Example: 
         -------
             A lightcurve is stored as
-                data['TESS']['time'], data['TESS']['flux']
+                data['TESS']['time'], data['TESS']['flux'], etc.
             A RV curve is stored as
-                data['HARPS']['time'], data['HARPS']['flux']
+                data['HARPS']['time'], data['HARPS']['flux'], etc.
         '''
         self.fulldata = {}
         self.data = {}
@@ -1273,22 +1275,38 @@ class Basement():
     
     
     ###############################################################################
-    #::: prepare TTV fit (if chosen)
+    #::: setup TTV fit (if chosen)
     ###############################################################################
-    def prepare_ttv_fit(self):
+    def setup_ttv_fit(self):
         '''
         this must be run *after* reduce_phot_data()
         '''
         
-        for companion in self.settings['companions_phot']:
-            all_times = []
-            all_flux = []
-            for inst in self.settings['inst_phot']:
-                all_times += list(self.data[inst]['time'])
-                all_flux += list(self.data[inst]['flux'])
-            
-            self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(all_times,self.params[companion+'_epoch'],self.params[companion+'_period'],self.settings['fast_fit_width'])
+        #::: the window we choose to look for transits is determined by fast_fit_width
+        window = self.settings['fast_fit_width']
         
+        #::: for each companion, stitch together all the time stamps observed by all photometric instruments
+        #::: and check which of these times overlap with a potential transit window (determined by fast_fit_width)
+        for companion in self.settings['companions_phot']:
+            times_combined = []
+            for inst in self.settings['inst_phot']:
+                times_combined += list(self.data[inst]['time'])
+            times_combined = np.sort(times_combined)
+            
+            self.data[companion+'_tmid_observed_transits'] = get_tmid_observed_transits(times_combined,
+                                                                                        self.params[companion+'_epoch'],
+                                                                                        self.params[companion+'_period'],
+                                                                                        window)
+            
+            for inst in self.settings['inst_phot']:
+                time = self.data[inst]['time']
+                for i, t in enumerate(self.data[companion+'_tmid_observed_transits']):
+                    ind = np.where((time >= (t - window/2.)) & (time <= (t + window/2.)))[0]
+                    self.data[inst][companion+'_ind_time_transit_'+str(i+1)] = ind
+                    self.data[inst][companion+'_time_transit_'+str(i+1)] = time[ind]
+                    
+
+            #::: THE FOLLOWING PART MOVED INTO THE SEPARATE SCRIPT "PREPARE_TTV_FIT.PY"
             #::: plots
             # if self.settings['fit_ttvs']:  
             #     flux_min = np.nanmin(all_flux)
@@ -1316,14 +1334,6 @@ class Basement():
             #         else:
             #             pass        
             #     plt.close(fig)
-            
-            width = self.settings['fast_fit_width']
-            for inst in self.settings['inst_phot']:
-                time = self.data[inst]['time']
-                for i, t in enumerate(self.data[companion+'_tmid_observed_transits']):
-                    ind = np.where((time >= (t - width/2.)) & (time <= (t + width/2.)))[0]
-                    self.data[inst][companion+'_ind_time_transit_'+str(i+1)] = ind
-                    self.data[inst][companion+'_time_transit_'+str(i+1)] = time[ind]
             
                 
                 

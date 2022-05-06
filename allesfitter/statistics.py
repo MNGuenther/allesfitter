@@ -17,6 +17,7 @@ Web: www.mnguenther.com
 from __future__ import print_function, division, absolute_import
 
 #::: modules
+import numpy as np
 import pandas as pd
 from scipy.stats import anderson
 from statsmodels.tsa.stattools import adfuller
@@ -121,7 +122,7 @@ def alles_adfuller(residuals):
                 for key,value in adfTest[4].items():
                     dfResults['Critical Value (%s)'%key] = value
                 logprint(dfResults.to_string())
-            
+    
     sTest = StationarityTests()
     sTest.ADF_Stationarity_Test(residuals, printResults = True)
     logprint("Is the time series stationary? {0}".format(sTest.isStationary))
@@ -246,6 +247,7 @@ def residual_stats(residuals):
     -------
     Prints the statstics and conclusions.
     '''
+    residuals = residuals[ ~np.isnan(residuals) & np.isfinite(residuals) ] #remove all evil
     logprint("\nPerforming diagnostic tests on the fit's residuals...\n")
     passed_anderson = alles_anderson(residuals)
     passed_adfuller = alles_adfuller(residuals)

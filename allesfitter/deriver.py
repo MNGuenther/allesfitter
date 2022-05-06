@@ -109,11 +109,11 @@ def calculate_values_from_model_curves(p, inst, companion):
     #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     if (config.BASEMENT.settings['phase_curve'] is False):
         #::: compute transit / primary eclipse depth
-        depth_tr = 1. - flux_subfct_ellc(p, inst, companion, xx=[p[companion+'_epoch']])[0]
+        depth_tr = 1e3 * (1. - flux_subfct_ellc(p, inst, companion, xx=[p[companion+'_epoch']])[0])
         
         #::: compute occultation / secondary eclipse depth (if wished)
         if (config.BASEMENT.settings['secondary_eclipse'] is True): 
-            depth_occ = 1. - flux_subfct_ellc(p, inst, companion, xx=[epoch_occ])[0]
+            depth_occ = 1e3 * (1. - flux_subfct_ellc(p, inst, companion, xx=[epoch_occ])[0])
 
 
     #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

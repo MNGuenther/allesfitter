@@ -25,7 +25,7 @@ sns.set_context(rc={'lines.markeredgewidth': 1})
 #::: modules
 import numpy as np
 import matplotlib.pyplot as plt    
-from matplotlib.ticker import ScalarFormatter
+from matplotlib.ticker import ScalarFormatter, FixedLocator
 import os
 from shutil import copyfile
 import emcee
@@ -108,6 +108,7 @@ def plot_MCMC_chains(sampler):
     maxi = np.max(log_prob[int(1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by']):,:])
     axes[0].set( title='lnprob', xlabel='steps', rasterized=True,
                  ylim=[mini, maxi] )
+    axes[0].xaxis.set_major_locator(FixedLocator(axes[0].get_xticks())) #useless line to bypass useless matplotlib warnings
     axes[0].set_xticklabels( [int(label) for label in axes[0].get_xticks()*config.BASEMENT.settings['mcmc_thin_by']] )
     
     #:::plot all chains of parameters
@@ -116,7 +117,7 @@ def plot_MCMC_chains(sampler):
         ax.set(title=config.BASEMENT.fitkeys[i], xlabel='steps')
         ax.plot(chain[:,:,i], '-', rasterized=True)
         ax.axvline( 1.*config.BASEMENT.settings['mcmc_burn_steps']/config.BASEMENT.settings['mcmc_thin_by'], color='k', linestyle='--' )
-#        ax.set_xticks(ax.get_xticks()[::2])
+        ax.xaxis.set_major_locator(FixedLocator(ax.get_xticks())) #useless line to bypass useless matplotlib warnings
         ax.set_xticklabels( [int(label) for label in ax.get_xticks()*config.BASEMENT.settings['mcmc_thin_by']] )
 
     plt.tight_layout()
@@ -241,7 +242,7 @@ def print_autocorr(sampler):
     logprint('\t', '{0: <30}'.format('parameter'), '{0: <20}'.format('tau (in steps)'), '{0: <20}'.format('Chain length (in multiples of tau)'))
     converged = True
     for i, key in enumerate(config.BASEMENT.fitkeys):
-        chain_length = ((config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']) / tau[i])
+        chain_length = (1.*(config.BASEMENT.settings['mcmc_total_steps'] - config.BASEMENT.settings['mcmc_burn_steps']) / tau[i])
         logprint('\t', '{0: <30}'.format(key), '{0: <20}'.format(tau[i]), '{0: <20}'.format(chain_length))
         if (chain_length < 30) or np.isinf(chain_length) or np.isnan(chain_length):
             converged = False

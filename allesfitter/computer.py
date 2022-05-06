@@ -88,7 +88,7 @@ for dilution:
 #::: possible functions
 ###############################################################################  
 GPs = ['sample_GP_real', 'sample_GP_complex', 'sample_GP_Matern32', 'sample_GP_SHO']
-FCTs = ['none', 'offset', 'linear', 'hybrid_offset', 'hybrid_poly_0', 'hybrid_poly_1', 'hybrid_poly_2', 'hybrid_poly_3', 'hybrid_poly_4', 'hybrid_poly_5', 'hybrid_poly_6', 'hybrid_spline', 'sample_offset', 'sample_linear']
+FCTs = ['none', 'offset', 'linear', 'hybrid_offset', 'hybrid_poly_0', 'hybrid_poly_1', 'hybrid_poly_2', 'hybrid_poly_3', 'hybrid_poly_4', 'hybrid_poly_5', 'hybrid_poly_6', 'hybrid_spline', 'hybrid_spline_s', 'sample_offset', 'sample_linear']
 
 
 
@@ -719,7 +719,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
     for n_transit in range(len(config.BASEMENT.data[companion+'_tmid_observed_transits'])):
         
         if xx is None:
-            ind   = config.BASEMENT.data[inst][companion+'_ind_time_transit_'+str(n_transit+1)]
+            ind = config.BASEMENT.data[inst][companion+'_ind_time_transit_'+str(n_transit+1)]
             xx_piecewise = config.BASEMENT.data[inst][companion+'_time_transit_'+str(n_transit+1)]
         else:
             tmid = config.BASEMENT.data[companion+'_tmid_observed_transits'][n_transit]
@@ -730,7 +730,7 @@ def flux_fct_piecewise(params, inst, companion, xx=None, settings=None):
         
         if len(xx_piecewise)>0:
             
-            #::: FutureMax warning: one does not simply replace this with flux_subfct_ellc, because it need the additive term after epoch
+            #::: FutureMax warning: one does not simply replace this with flux_subfct_ellc, because it needs the additive term after epoch
             # model_flux_piecewise = flux_subfct_ellc(params, inst, companion, xx=xx_piecewise, settings=settings, t_exp=t_exp, n_int=n_int)
 
             #::: planet and EB transit lightcurve model
@@ -1617,6 +1617,14 @@ def baseline_hybrid_poly(*args):
         baseline = poly.polyval(xx, params_poly) #evaluate on xx (!)
     else:
         raise ValueError("'polyorder' has to be > 0.")
+        
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(x,y,'b.')
+    # ax.plot(xx,baseline,'r-', lw=2)
+    # ax.set(xlim=[np.min(xx), 2.458332e6])
+    # plt.show()
+    # input('press enter to continue')
     return baseline    
 
 
@@ -1639,15 +1647,33 @@ def baseline_hybrid_spline(*args):
     # print('y:\n', y[0:5], '\n in range:', np.min(y), np.median(y), np.max(y), '\n Nall=', len(y), ' Nvalid=', len(np.isfinite(y)))
     # print('weights:\n', weights[0:5], '\n in range:', np.min(weights), np.median(weights), np.max(weights), '\n Nall=', len(weights), ' Nvalid=', len(np.isfinite(weights)))
     # print('baseline:\n', baseline[0:5], '\n in range:', np.min(baseline), np.median(baseline), np.max(baseline), '\n Nall=', len(baseline), ' Nvalid=', len(np.isfinite(baseline)))
-    # plt.figure()
-    # plt.plot(x,y,'k.', color='grey')
-    # plt.plot(xx,baseline,'r-', lw=2)
+    # fig, ax = plt.subplots()
+    # ax.plot(x,y,'b.')
+    # ax.plot(xx,baseline,'r-', lw=2)
+    # ax.set(xlim=[np.min(xx), 2.458332e6])
     # plt.show()
     # input('press enter to continue')
     
     return baseline   
 
+
+
+#==============================================================================
+#::: calculate baseline: hybrid_spline 
+#::: (like Gillon+2012, but with a cubic spline, here with a manually given s value)
+#==============================================================================
+def baseline_hybrid_spline_s(*args):
+    x, y, yerr_w, xx, params, inst, key = args
+    yerr_weights = yerr_w/np.nanmean(yerr_w)
+    weights = 1./yerr_weights
+    ind = np.isfinite(y) #mask NaN
+    spl = UnivariateSpline(x[ind],y[ind],w=weights[ind],
+                           s=float(config.BASEMENT.settings['baseline_'+key+'_'+inst+'_args']))
+    baseline = spl(xx) #evaluate on xx (!)
+    
+    return baseline   
      
+    
     
 #==============================================================================
 #::: calculate baseline: hybrid_GP (like Gillon+2012, but with a GP)
@@ -1798,6 +1824,7 @@ baseline_switch = \
     'hybrid_poly_5' : baseline_hybrid_poly,
     'hybrid_poly_6' : baseline_hybrid_poly,
     'hybrid_spline' : baseline_hybrid_spline,
+    'hybrid_spline_s' : baseline_hybrid_spline_s, #hybrid spline but with a manually given s-value (to avoid any slow if/else in the function)
     'hybrid_GP'     : baseline_hybrid_GP,
     'sample_offset' : baseline_sample_offset,
     'sample_linear' : baseline_sample_linear,
