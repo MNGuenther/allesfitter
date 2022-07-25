@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import gzip
+import warnings
 try:
    import cPickle as pickle
 except:
@@ -100,7 +101,9 @@ class allesclass():
         except:
             pass
         
-        #::: nested sampling?
+        print('working')
+        
+        #::: nested sampling fit?
         if os.path.exists( os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz') ):
             f = gzip.GzipFile(os.path.join(config.BASEMENT.outdir,'save_ns.pickle.gz'), 'rb')
             results = pickle.load(f)
@@ -109,7 +112,7 @@ class allesclass():
             self.posterior_params = nested_sampling_output.draw_ns_posterior_samples(results, as_type='dic') # all weighted posterior_samples
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
         
-        #::: mcmc?
+        #::: mcmc fit?
         elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_save.h5') ):
             copyfile(os.path.join(config.BASEMENT.outdir,'mcmc_save.h5'), os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             reader = emcee.backends.HDFBackend( os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'), read_only=True )
@@ -120,12 +123,21 @@ class allesclass():
             self.posterior_params_median, self.posterior_params_ll, self.posterior_params_ul = general_output.get_params_from_samples(self.posterior_samples)
             os.remove(os.path.join(config.BASEMENT.outdir,'mcmc_save_tmp.h5'))
             
-        elif os.path.exists( os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle') ):
+        #::: else
+        else:
+            warnings.warn('No NS nor MCMC save file detected.')
+            
+        #::: nested sampling derived results?
+        if os.path.exists( os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle') ):
             self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'ns_derived_samples.pickle'),'rb'))
             
+        #::: mcmc derived results?
         elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_derived_samples.pickle') ):
             self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'mcmc_derived_samples.pickle'),'rb'))
             
+        #::: else
+        else:
+            warnings.warn('No NS nor MCMC derived file detected.')
             
         
     
@@ -317,4 +329,4 @@ class allesclass():
     
     
 #::: version
-__version__ = '1.2.9'
+__version__ = '1.2.10'

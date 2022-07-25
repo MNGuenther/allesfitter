@@ -158,10 +158,11 @@ def get_logZ(datadirs, quiet=False):
     logZ = []
     logZ_err = []
     
-    for rname in np.atleast_1d(datadirs):
+    for dirname in np.atleast_1d(datadirs):
         
-        try: #new version
-            fname = os.path.join( rname, 'results', 'save_ns.pickle.gz' )
+        #new version
+        fname = os.path.join( dirname, 'results', 'save_ns.pickle.gz' )
+        if os.path.exists(fname):
             if not quiet:
                 print('--------------------------')
                 print(fname)
@@ -170,8 +171,8 @@ def get_logZ(datadirs, quiet=False):
             results = pickle.load(f)
             f.close()
             
-        except: #old version
-            fname = os.path.join( rname, 'results', 'save_ns.pickle' )
+        else: #old version
+            fname = os.path.join( dirname, 'results', 'save_ns.pickle' )
             if not quiet:
                 print('--------------------------')
                 print(fname)

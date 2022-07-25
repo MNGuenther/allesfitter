@@ -75,7 +75,13 @@ def clean(time, y, y_err=None):
         returns:
             (array([3., 4.]), array([3., 4.]), None)
     """
-
+    try:
+        time = time.value
+        flux = flux.value
+        if y_err is not None: 
+            y_err = y_err.value
+    except:
+        pass
     time = np.ma.array(time)
     y = np.ma.array(y)
     if y_err is None:
