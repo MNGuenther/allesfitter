@@ -129,11 +129,11 @@ class allesclass():
             
         #::: nested sampling derived results?
         if os.path.exists( os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle') ):
-            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'ns_derived_samples.pickle'),'rb'))
+            self.posterior_derived_params = pickle.load(open(os.path.join(config.BASEMENT.outdir,'ns_derived_samples.pickle'),'rb'))
             
         #::: mcmc derived results?
         elif os.path.exists( os.path.join(config.BASEMENT.outdir,'mcmc_derived_samples.pickle') ):
-            self.posterior_derived_params = pickle.load(open(os.path.join(datadir,'mcmc_derived_samples.pickle'),'rb'))
+            self.posterior_derived_params = pickle.load(open(os.path.join(config.BASEMENT.outdir,'mcmc_derived_samples.pickle'),'rb'))
             
         #::: else
         else:
