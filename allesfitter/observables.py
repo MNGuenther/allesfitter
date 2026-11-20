@@ -361,7 +361,8 @@ def calc_rho(R, M,
     
     #return
     if return_unit == 'cgs':
-        return rho.cgs.value
+        #return rho.cgs.value  # slow: Unit.cgs searches for the best CGS composition at every call (issue #88)
+        return rho.to_value(u.g / u.cm**3)
     else:
         return None #TODO
     
@@ -401,7 +402,8 @@ def calc_rho_host(P, radius_1, rr, rho_comp,
     
     #return
     if return_unit == 'cgs':
-        return rho_host.cgs.value
+        #return rho_host.cgs.value  # slow, see calc_rho
+        return rho_host.to_value(u.g / u.cm**3)
     else:
         return None #TODO
 
